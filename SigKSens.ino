@@ -30,8 +30,8 @@ char myHostname[16];
 // memory to save sensor info
 class SensorInfo {
   public:
-    DeviceAddress sensorAddress;
-     signalKPath[50];
+    uint8_t sensorAddress[8];
+    char signalKPath[50];
 };
 
 LinkedList<SensorInfo*> sensorList = LinkedList<SensorInfo*>();
@@ -44,68 +44,85 @@ void saveConfigCallback () {
   shouldSaveConfig = true;
 }
 
-void setup() {
-  // put your setup code here, to run once:
-  Serial.begin(115200);
-  pinMode(LED_BUILTIN, OUTPUT);     // Initialize the LED_BUILTIN pin as an output
-  WiFiManager wifiManager;
+void saveConfig() {
+  Serial.println("saving config");
+  DynamicJsonBuffer jsonBuffer;
+  SensorInfo *tmpSensorInfo;
 
-  // TESTING STUFF
-  //clean FS, for testing
-  //SPIFFS.format();
-  //reset saved settings
-  //wifiManager.resetSettings();
+  JsonObject& json = jsonBuffer.createObject();
+  json["hostname"] = myHostname;
 
-
-  /*************************************************
-  * FS Mount
-  */
-
-  if (SPIFFS.begin()) {
-    Serial.println("mounted file system");
-
-    String str = "";
-    Dir dir = SPIFFS.openDir("/");
-    while (dir.next()) {
-      str += dir.fileName();
-      str += " / ";
-      str += dir.fileSize();
-      str += "\r\n";
+  //sensors
+  JsonArray& oneWSensors = json.createNestedArray("1wSensors");
+  for (uint8_t i=0; i < sensorList.size(); i++) {
+    tmpSensorInfo = sensorList.get(i);
+    JsonObject& tmpSens = oneWSensors.createNestedObject();
+    JsonArray& tmpAddress = tmpSens.createNestedArray("address");
+    for (uint8_t x = 0; x < 8; x++)
+    {
+      tmpAddress.add(tmpSensorInfo->sensorAddress[x]);
     }
-    Serial.print(str);
+    tmpSens.set<String>("signalKPath", tmpSensorInfo->signalKPath );
 
-    
-    if (SPIFFS.exists("/config.json")) {
-      //file exists, reading and loading
-      Serial.println("reading config file");
-      File configFile = SPIFFS.open("/config.json", "r");
-      if (configFile) {
-        Serial.println("opened config file");
-        size_t size = configFile.size();
-        // Allocate a buffer to store contents of the file.
-        std::unique_ptr<char[]> buf(new char[size]);
+  }
 
-        configFile.readBytes(buf.get(), size);
-        DynamicJsonBuffer jsonBuffer;
-        JsonObject& json = jsonBuffer.parseObject(buf.get());
-        json.printTo(Serial);
-        if (json.success()) {
-          Serial.println("\nparsed json");
+  File configFile = SPIFFS.open("/config.json", "w");
+  if (!configFile) {
+    Serial.println("failed to open config file for writing");
+  }
 
-          strcpy(myHostname, json["hostname"]);
-        } else {
-          Serial.println("failed to load json config");
+  json.prettyPrintTo(Serial);
+  json.printTo(configFile);
+  configFile.close();
+}
+
+void loadConfig() {
+  SensorInfo *tmpSensorInfo;
+  uint8_t tempDeviceAddress[8];
+
+  if (SPIFFS.exists("/config.json")) {
+    //file exists, reading and loading
+    Serial.println("reading config file");
+    File configFile = SPIFFS.open("/config.json", "r");
+    if (configFile) {
+      Serial.println("opened config file");
+      size_t size = configFile.size();
+      // Allocate a buffer to store contents of the file.
+      std::unique_ptr<char[]> buf(new char[size]);
+
+      configFile.readBytes(buf.get(), size);
+      DynamicJsonBuffer jsonBuffer;
+      JsonObject& json = jsonBuffer.parseObject(buf.get());
+      Serial.println("Current Configuration:");
+      json.prettyPrintTo(Serial);
+      if (json.success()) {
+        Serial.println("\nparsed json");
+        // load hostname
+        strcpy(myHostname, json["hostname"]);
+        // load known sensors
+        for (uint8_t i=0; i < json["1wSensors"].size(); i++) {
+
+          SensorInfo *newSensor = new SensorInfo();
+          //extract address array
+          for (uint8_t x=0; x<8; x++) {
+            tempDeviceAddress[x] = json["1wSensors"][i]["address"][x];
+          }
+
+          memcpy(newSensor->sensorAddress, tempDeviceAddress,8);
+          strcpy(newSensor->signalKPath,json["1wSensors"][i]["signalKPath"]);
+          sensorList.add(newSensor);
         }
+
+      } else {
+        Serial.println("failed to load json config");
       }
     }
-  } else {
-    Serial.println("failed to mount FS");
   }
-  //end FS load
+}
 
-/***************************************************************
- * WIFI 
- */
+void setupWifi() {
+  WiFiManager wifiManager;
+ 
   //set config save notify callback
   wifiManager.setSaveConfigCallback(saveConfigCallback);
   WiFiManagerParameter custom_hostname("myHostname", "Set Hostname", myHostname, 16);
@@ -115,52 +132,34 @@ void setup() {
   wifiManager.autoConnect("Unconfigured Sensor");
   Serial.println("Connected to Wifi!");
 
-/**************************************************************
- * Save config
- */
-
+  // Save config if needed
   if (shouldSaveConfig) {
     strcpy(myHostname, custom_hostname.getValue());
-    Serial.println("saving config");
-    DynamicJsonBuffer jsonBuffer;
-    JsonObject& json = jsonBuffer.createObject();
-    json["hostname"] = myHostname;
-    File configFile = SPIFFS.open("/config.json", "w");
-    if (!configFile) {
-      Serial.println("failed to open config file for writing");
-    }
-
-    json.printTo(Serial);
-    json.printTo(configFile);
-    configFile.close();
-    //end save
+    saveConfig();
   }
 
-//  if (!MDNS.begin(myHostname)) {             // Start the mDNS responder for esp8266.local
-//    Serial.println("Error setting up MDNS responder!");
-//  } else {
-//    Serial.println("mDNS responder started");
-//  }
-/*
-  Serial.printf("Starting SSDP...\n");
-    SSDP.setSchemaURL("description.xml");
-    SSDP.setHTTPPort(80);
-    SSDP.setName("WifiSensorNode");
-    SSDP.setSerialNumber("001788102201");
-    SSDP.setURL("index.html");
-    SSDP.setModelName("WifiSensorNode");
-    SSDP.setModelNumber("929000226503");
-    SSDP.setModelURL("http://www.meethue.com");
-    SSDP.setManufacturer("Royal Philips Electronics");
-    SSDP.setManufacturerURL("http://www.philips.com");
-    SSDP.begin();
-*/
-  Serial.printf("Ready!\n");
+}
 
-  
-  /*************************************
-   * Over the Air upgrade
-   */
+void setupFS() {
+  if (SPIFFS.begin()) {
+    Serial.println("mounted file system");
+    Serial.println("FS Contents:");
+    String str = "";
+    Dir dir = SPIFFS.openDir("/");
+    while (dir.next()) {
+      str += dir.fileName();
+      str += " / ";
+      str += dir.fileSize();
+      str += "\r\n";
+    }
+    Serial.print(str);
+  } else {
+    Serial.println("failed to mount FS");
+  }
+
+}
+
+void setupOTA() {
   ArduinoOTA.onStart([]() {
     Serial.println("Start");
   });
@@ -179,16 +178,64 @@ void setup() {
     else if (error == OTA_END_ERROR) Serial.println("End Failed");
   });
   ArduinoOTA.begin();
+}
 
-
-  /*********************
-   * Web
-   */
+void setupHTTP() {
   server.serveStatic("/", SPIFFS, "/web/index.html");
   server.on("/getSensors", htmlGetSensors);
   server.begin();
+}
+
+void setupDiscovery() {
+//  if (!MDNS.begin(myHostname)) {             // Start the mDNS responder for esp8266.local
+//    Serial.println("Error setting up MDNS responder!");
+//  } else {
+//    Serial.println("mDNS responder started");
+//  }
+//  Serial.printf("Starting SSDP...\n");
+//    SSDP.setSchemaURL("description.xml");
+//    SSDP.setHTTPPort(80);
+//    SSDP.setName("WifiSensorNode");
+//    SSDP.setSerialNumber("001788102201");
+//    SSDP.setURL("index.html");
+//    SSDP.setModelName("WifiSensorNode");
+//    SSDP.setModelNumber("929000226503");
+//    SSDP.setModelURL("http://www.meethue.com");
+//    SSDP.setManufacturer("Royal Philips Electronics");
+//    SSDP.setManufacturerURL("http://www.philips.com");
+//    SSDP.begin();
+}
+
+void setup() {
+  // put your setup code here, to run once:
+  Serial.begin(115200);
+  pinMode(LED_BUILTIN, OUTPUT);     // Initialize the LED_BUILTIN pin as an output
+
+
+  // TESTING STUFF
+  //clean FS, for testing
+  //SPIFFS.format();
+  //reset saved settings
+  //wifiManager.resetSettings();
+
+  setupWifi();
+  setupFS();
+  loadConfig();
+  setupOTA();
+  setupHTTP();
+  setupDiscovery();
+  
+
+
+
+  Serial.printf("Ready!\n");
+
   
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////// End Setup! /////////////////////////////////////////////////////////////////////////////////////////
+
 
 void htmlGetSensors() {
   Serial.println(myHostname);
@@ -197,15 +244,16 @@ void htmlGetSensors() {
 
 
 // function to print a device address
-//void printAddress(DeviceAddress deviceAddress)
-//{
-// for (uint8_t i = 0; i < 8; i++)
-//  {
-//    // zero pad the address if necessary
-//    if (deviceAddress[i] < 16) Serial.print("0");
-//    Serial.print(deviceAddress[i], HEX);
-//  }
-//}
+void printAddress(DeviceAddress deviceAddress)
+{
+ for (uint8_t i = 0; i < 8; i++)
+  {
+    // zero pad the address if necessary
+    //if (deviceAddress[i] < 16) Serial.print("0");
+    Serial.print(deviceAddress[i], HEX);
+    Serial.print("-");
+  }
+}
 
 
 
@@ -215,32 +263,32 @@ void handleWebRequest() {
 }
 
 
-void findSensors() {
-  DeviceAddress tempDeviceAddress;
+void findNewSensors() {
+  uint8_t tempDeviceAddress[8];
   int numberOfDevices = 0;
   sensors.begin();
   numberOfDevices = sensors.getDeviceCount();
   SensorInfo *tmpSensorInfo;
   for(int i=0;i<numberOfDevices; i++) {
-    Serial.print("Checking num: ");
-    Serial.println(i);
     if(sensors.getAddress(tempDeviceAddress, i))
     {
       //see if it's in sensorInfo
       bool known = false;
       for (int x=0;x<sensorList.size() ; x++) {
-        Serial.print(x);
         tmpSensorInfo = sensorList.get(x);
-        if (tmpSensorInfo->sensorAddress == tempDeviceAddress) {
+        if (memcmp(tmpSensorInfo->sensorAddress, tempDeviceAddress, sizeof(tempDeviceAddress)) == 0) {
           known = true;
         }
       }
       if (!known) {
-        Serial.println("New Sensorfound!");
-        SensorInfo *newSensor = new sensorInfo();
-        newSensor->sensorAddress = tempDeviceAddress;
-        newSensor->signalKPath = "";
+        Serial.print("New Sensor found: ");
+        printAddress(tempDeviceAddress);
+        Serial.println("");        
+        SensorInfo *newSensor = new SensorInfo();
+        memcpy(newSensor->sensorAddress, tempDeviceAddress,8);
+        strcpy(newSensor->signalKPath,"");
         sensorList.add(newSensor);
+        saveConfig();
       }
 
     }
@@ -256,10 +304,10 @@ void loop() {
   digitalWrite(LED_BUILTIN, HIGH);
   delay(500);
 
-  findSensors();
+  findNewSensors();
 
   handleWebRequest();
-  
+  Serial.println(sensorList.size());
 /*
   sensors.begin();
   // locate devices on the bus
