@@ -16,6 +16,7 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 
+#define RESET_CONFIG_PIN 0
 #define ONE_WIRE_BUS 14   // D5 pin on ESP
 #define TEMPERATURE_PRECISION 9
 
@@ -120,6 +121,22 @@ void loadConfig() {
   }
 }
 
+void resetConfig() {
+  WiFiManager wifiManager;
+  Serial.println("Resetting Config!");
+  wifiManager.resetSettings();
+  SPIFFS.remove("/config.json");
+  for (uint8_t x=0; x<50; x++) { // need delay as resetting right away 
+    digitalWrite(LED_BUILTIN, LOW);  // to cause wifi settings to not erase
+    delay(20);                 
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(20);
+  }
+
+  ESP.reset();
+}
+
+
 void setupWifi() {
   WiFiManager wifiManager;
  
@@ -210,16 +227,11 @@ void setup() {
   // put your setup code here, to run once:
   Serial.begin(115200);
   pinMode(LED_BUILTIN, OUTPUT);     // Initialize the LED_BUILTIN pin as an output
+  pinMode(RESET_CONFIG_PIN, INPUT_PULLUP);
 
-
-  // TESTING STUFF
-  //clean FS, for testing
-  //SPIFFS.format();
-  //reset saved settings
-  //wifiManager.resetSettings();
+  setupFS();
 
   setupWifi();
-  setupFS();
   loadConfig();
   setupOTA();
   setupHTTP();
@@ -305,9 +317,14 @@ void loop() {
   delay(500);
 
   findNewSensors();
-
+  
   handleWebRequest();
   Serial.println(sensorList.size());
+
+  //Reset Config!
+  if (digitalRead(RESET_CONFIG_PIN) == LOW) {
+    resetConfig();
+  } 
 /*
   sensors.begin();
   // locate devices on the bus
