@@ -33,6 +33,7 @@ class SensorInfo {
   public:
     uint8_t sensorAddress[8];
     char signalKPath[50];
+    float tempK;
 };
 
 LinkedList<SensorInfo*> sensorList = LinkedList<SensorInfo*>();
@@ -204,11 +205,13 @@ void setupHTTP() {
 }
 
 void setupDiscovery() {
-//  if (!MDNS.begin(myHostname)) {             // Start the mDNS responder for esp8266.local
-//    Serial.println("Error setting up MDNS responder!");
-//  } else {
-//    Serial.println("mDNS responder started");
-//  }
+  if (!MDNS.begin(myHostname)) {             // Start the mDNS responder for esp8266.local
+    Serial.println("Error setting up MDNS responder!");
+  } else {
+    Serial.println("mDNS responder started");
+  }
+  MDNS.addService("http", "tcp", 80);
+  
 //  Serial.printf("Starting SSDP...\n");
 //    SSDP.setSchemaURL("description.xml");
 //    SSDP.setHTTPPort(80);
@@ -237,7 +240,9 @@ void setup() {
   setupHTTP();
   setupDiscovery();
   
-
+  Serial.print("Parasite power is: "); 
+  if (sensors.isParasitePowerMode()) Serial.println("ON");
+  else Serial.println("OFF");
 
 
   Serial.printf("Ready!\n");
@@ -249,9 +254,27 @@ void setup() {
 //////////////////////////// End Setup! /////////////////////////////////////////////////////////////////////////////////////////
 
 
-void htmlGetSensors() {
-  Serial.println(myHostname);
-  Serial.println("aa");
+void htmlGetSensors() { // more or less same code as saving config...
+  DynamicJsonBuffer jsonBuffer;
+  SensorInfo *tmpSensorInfo;
+  char response[1024];
+  JsonObject& json = jsonBuffer.createObject();
+
+  //sensors
+  JsonArray& oneWSensors = json.createNestedArray("1wSensors");
+  for (uint8_t i=0; i < sensorList.size(); i++) {
+    tmpSensorInfo = sensorList.get(i);
+    JsonObject& tmpSens = oneWSensors.createNestedObject();
+    JsonArray& tmpAddress = tmpSens.createNestedArray("address");
+    for (uint8_t x = 0; x < 8; x++)
+    {
+      tmpAddress.add(tmpSensorInfo->sensorAddress[x]);
+    }
+    tmpSens.set<String>("signalKPath", tmpSensorInfo->signalKPath );
+    tmpSens.set<float>("tempK", tmpSensorInfo->tempK);
+  }
+  json.printTo(response);
+  server.send ( 200, "application/json", response);
 }
 
 
@@ -272,25 +295,26 @@ void printAddress(DeviceAddress deviceAddress)
 
 
 
-void handleWebRequest() {
-  
-}
-
-
-void findNewSensors() {
+void process1WSensors() {
   uint8_t tempDeviceAddress[8];
   int numberOfDevices = 0;
   sensors.begin();
   numberOfDevices = sensors.getDeviceCount();
   SensorInfo *tmpSensorInfo;
+  sensors.requestTemperatures();
+
   for(int i=0;i<numberOfDevices; i++) {
     if(sensors.getAddress(tempDeviceAddress, i))
     {
+      float tempC = sensors.getTempC(tempDeviceAddress);
+      float tempK = tempC + 273.15;
+
       //see if it's in sensorInfo
       bool known = false;
       for (int x=0;x<sensorList.size() ; x++) {
         tmpSensorInfo = sensorList.get(x);
         if (memcmp(tmpSensorInfo->sensorAddress, tempDeviceAddress, sizeof(tempDeviceAddress)) == 0) {
+          tmpSensorInfo->tempK = tempK;
           known = true;
         }
       }
@@ -301,6 +325,7 @@ void findNewSensors() {
         SensorInfo *newSensor = new SensorInfo();
         memcpy(newSensor->sensorAddress, tempDeviceAddress,8);
         strcpy(newSensor->signalKPath,"");
+        newSensor->tempK = tempK;
         sensorList.add(newSensor);
         saveConfig();
       }
@@ -313,15 +338,15 @@ void findNewSensors() {
 void loop() {
   ArduinoOTA.handle();
   server.handleClient();
-  digitalWrite(LED_BUILTIN, LOW);  
-  delay(500);                 
-  digitalWrite(LED_BUILTIN, HIGH);
-  delay(500);
-
-  findNewSensors();
+ // MDNS.update();
+  delay(100);                 
   
-  handleWebRequest();
-  Serial.println(sensorList.size());
+  digitalWrite(LED_BUILTIN, LOW);
+  
+  process1WSensors();
+  digitalWrite(LED_BUILTIN, HIGH);  
+  
+  //Serial.println(sensorList.size());
 
   //Reset Config!
   if (digitalRead(RESET_CONFIG_PIN) == LOW) {
