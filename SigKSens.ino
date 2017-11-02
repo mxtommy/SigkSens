@@ -17,8 +17,10 @@
 #include <DallasTemperature.h>
 
 #define RESET_CONFIG_PIN 0
-#define ONE_WIRE_BUS 14   // D5 pin on ESP
-#define TEMPERATURE_PRECISION 9
+#define ONE_WIRE_BUS 13   // D7 pin on ESP
+#define TEMPERATURE_PRECISION 12 // 0.25C resolution in 187ms. (11 is .125C Resolution in 375ms, 12 .0625C in 750ms)
+
+#define MAX_SIGNALK_PATH_LEN 100
 
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
@@ -27,12 +29,15 @@ ESP8266WebServer server(80);
 
 char myHostname[16];
 
+os_timer_t  tempReadingTimer;
+bool readyToPoll1Wire = false;
+
 
 // memory to save sensor info
 class SensorInfo {
   public:
     uint8_t sensorAddress[8];
-    char signalKPath[50];
+    char signalKPath[MAX_SIGNALK_PATH_LEN];
     float tempK;
 };
 
@@ -198,32 +203,76 @@ void setupOTA() {
   ArduinoOTA.begin();
 }
 
-void setupHTTP() {
-  server.serveStatic("/", SPIFFS, "/web/index.html");
-  server.on("/getSensors", htmlGetSensors);
-  server.begin();
-}
 
 void setupDiscovery() {
   if (!MDNS.begin(myHostname)) {             // Start the mDNS responder for esp8266.local
     Serial.println("Error setting up MDNS responder!");
   } else {
-    Serial.println("mDNS responder started");
+    Serial.print ("mDNS responder started at ");
+    Serial.print (myHostname);
+    Serial.println("");
   }
   MDNS.addService("http", "tcp", 80);
   
-//  Serial.printf("Starting SSDP...\n");
-//    SSDP.setSchemaURL("description.xml");
-//    SSDP.setHTTPPort(80);
-//    SSDP.setName("WifiSensorNode");
-//    SSDP.setSerialNumber("001788102201");
-//    SSDP.setURL("index.html");
-//    SSDP.setModelName("WifiSensorNode");
-//    SSDP.setModelNumber("929000226503");
-//    SSDP.setModelURL("http://www.meethue.com");
-//    SSDP.setManufacturer("Royal Philips Electronics");
-//    SSDP.setManufacturerURL("http://www.philips.com");
-//    SSDP.begin();
+  Serial.printf("Starting SSDP...\n");
+    SSDP.setSchemaURL("description.xml");
+    SSDP.setHTTPPort(80);
+    SSDP.setName(myHostname);
+    SSDP.setSerialNumber("12345");
+    SSDP.setURL("index.html");
+    SSDP.setModelName("WifiSensorNode");
+    SSDP.setModelNumber("12345");
+    SSDP.setModelURL("http://www.signalk.org");
+    SSDP.setManufacturer("SigK");
+    SSDP.setManufacturerURL("http://www.signalk.org");
+    SSDP.setDeviceType("upnp:rootdevice");
+    SSDP.begin();
+}
+
+void setupHTTP() {
+  Serial.println("starting webserver");
+  server.onNotFound(handleNotFound);
+  server.serveStatic("/", SPIFFS, "/web/index.html");
+  server.serveStatic("/index.html", SPIFFS, "/web/index.html");
+  server.on("/getSensors", HTTP_GET, htmlGetSensors);
+  server.on("/set1wSensorPath", HTTP_GET, htmlSet1WPath);
+  server.on("/description.xml", HTTP_GET, [](){  SSDP.schema(server.client()); });
+  server.begin();
+}
+
+void setup1Wire() {
+  uint8_t tempDeviceAddress[8];
+  int numberOfDevices = 0;
+  sensors.begin();
+  
+  numberOfDevices = sensors.getDeviceCount();
+
+  Serial.print("Parasite power is: "); 
+  if (sensors.isParasitePowerMode()) Serial.println("ON");
+  else Serial.println("OFF");
+
+  for(int i=0;i<numberOfDevices; i++) {
+    if(sensors.getAddress(tempDeviceAddress, i))
+    {
+      Serial.print("1Wire Device ");
+      printAddress(tempDeviceAddress);
+      Serial.print(" presion currently: ");
+      Serial.print(sensors.getResolution(tempDeviceAddress), DEC); 
+      Serial.print(". Setting to ");
+      Serial.print(TEMPERATURE_PRECISION);
+      sensors.setResolution(tempDeviceAddress, TEMPERATURE_PRECISION);
+      Serial.print(" Done!. Is now: ");
+      Serial.println(sensors.getResolution(tempDeviceAddress), DEC); 
+    }
+  }
+  sensors.begin(); //restart otherwise new resolution timings not taken into consideration...
+  
+
+}
+
+void setupTimers() {
+  os_timer_setfn(&tempReadingTimer, poll1WSensors, NULL);
+  os_timer_arm(&tempReadingTimer, 5000, true);
 }
 
 void setup() {
@@ -237,12 +286,12 @@ void setup() {
   setupWifi();
   loadConfig();
   setupOTA();
-  setupHTTP();
   setupDiscovery();
-  
-  Serial.print("Parasite power is: "); 
-  if (sensors.isParasitePowerMode()) Serial.println("ON");
-  else Serial.println("OFF");
+  setupHTTP();
+
+  setup1Wire();
+  setupTimers();
+
 
 
   Serial.printf("Ready!\n");
@@ -252,24 +301,31 @@ void setup() {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////// End Setup! /////////////////////////////////////////////////////////////////////////////////////////
+void handleNotFound(){
+  server.send(404, "text/plain", "404: Not found"); // Send HTTP status 404 (Not Found) when there's no handler for the URI in the request
+}
 
-
-void htmlGetSensors() { // more or less same code as saving config...
+void htmlGetSensors() {
   DynamicJsonBuffer jsonBuffer;
   SensorInfo *tmpSensorInfo;
   char response[1024];
   JsonObject& json = jsonBuffer.createObject();
-
+  char strAddress[32];
   //sensors
   JsonArray& oneWSensors = json.createNestedArray("1wSensors");
   for (uint8_t i=0; i < sensorList.size(); i++) {
     tmpSensorInfo = sensorList.get(i);
     JsonObject& tmpSens = oneWSensors.createNestedObject();
-    JsonArray& tmpAddress = tmpSens.createNestedArray("address");
-    for (uint8_t x = 0; x < 8; x++)
-    {
-      tmpAddress.add(tmpSensorInfo->sensorAddress[x]);
-    }
+    sprintf(strAddress, "%02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X", 
+        tmpSensorInfo->sensorAddress[0], 
+        tmpSensorInfo->sensorAddress[1], 
+        tmpSensorInfo->sensorAddress[2],
+        tmpSensorInfo->sensorAddress[3], 
+        tmpSensorInfo->sensorAddress[4], 
+        tmpSensorInfo->sensorAddress[5], 
+        tmpSensorInfo->sensorAddress[6], 
+        tmpSensorInfo->sensorAddress[7]  );
+    tmpSens.set<String>("address", strAddress);
     tmpSens.set<String>("signalKPath", tmpSensorInfo->signalKPath );
     tmpSens.set<float>("tempK", tmpSensorInfo->tempK);
   }
@@ -277,6 +333,42 @@ void htmlGetSensors() { // more or less same code as saving config...
   server.send ( 200, "application/json", response);
 }
 
+
+void htmlSet1WPath() {
+  
+  DeviceAddress address;
+  SensorInfo *tmpSensorInfo;
+  char pathStr[MAX_SIGNALK_PATH_LEN];
+  bool found = false;
+
+  Serial.print("Setting path for 1W Sensor: ");
+  if(!server.hasArg("address")) {server.send(500, "text/plain", "missing arg 'address'"); return;}
+  if(!server.hasArg("path")) {server.send(500, "text/plain", "missing arg 'path'"); return;}
+  
+  String addressStr = server.arg("address");
+  server.arg("path").toCharArray(pathStr, MAX_SIGNALK_PATH_LEN);
+
+  parseBytes(addressStr.c_str(), ':', address,  8, 16);
+
+  printAddress(address);
+  Serial.println('');
+  for (int x=0;x<sensorList.size() ; x++) {
+    tmpSensorInfo = sensorList.get(x);
+    if (memcmp(tmpSensorInfo->sensorAddress, address, sizeof(address)) == 0) {
+      memcpy(tmpSensorInfo->signalKPath, pathStr, MAX_SIGNALK_PATH_LEN);
+      found = true;
+      break; //no need to check others if we found it
+    }
+  }
+
+  if (found) {
+    saveConfig();
+    server.send(200, "application/json", "{ \"success\": true }");
+  } else {
+    server.send(500, "application/json", "{ \"success\": false }");
+  }
+  
+}
 
 // function to print a device address
 void printAddress(DeviceAddress deviceAddress)
@@ -292,13 +384,15 @@ void printAddress(DeviceAddress deviceAddress)
   }
 }
 
-
+void poll1WSensors(void *pArg) {
+  readyToPoll1Wire = true;
+}
 
 
 void process1WSensors() {
   uint8_t tempDeviceAddress[8];
   int numberOfDevices = 0;
-  sensors.begin();
+
   numberOfDevices = sensors.getDeviceCount();
   SensorInfo *tmpSensorInfo;
   sensors.requestTemperatures();
@@ -306,6 +400,7 @@ void process1WSensors() {
   for(int i=0;i<numberOfDevices; i++) {
     if(sensors.getAddress(tempDeviceAddress, i))
     {
+      
       float tempC = sensors.getTempC(tempDeviceAddress);
       float tempK = tempC + 273.15;
 
@@ -332,33 +427,37 @@ void process1WSensors() {
 
     }
   }
+  readyToPoll1Wire = false;
 }
 
 
 void loop() {
   ArduinoOTA.handle();
   server.handleClient();
- // MDNS.update();
-  delay(100);                 
-  
-  digitalWrite(LED_BUILTIN, LOW);
-  
-  process1WSensors();
-  digitalWrite(LED_BUILTIN, HIGH);  
-  
-  //Serial.println(sensorList.size());
+  yield();           
 
+  if (readyToPoll1Wire) {
+    digitalWrite(LED_BUILTIN, LOW);
+    process1WSensors();
+    digitalWrite(LED_BUILTIN, HIGH);  
+  }
+
+  
   //Reset Config!
   if (digitalRead(RESET_CONFIG_PIN) == LOW) {
-    resetConfig();
+    //resetConfig();
   } 
-/*
-  sensors.begin();
-  // locate devices on the bus
-  Serial.print(myHostname);
-  Serial.print("Locating devices...");
-  Serial.print("Found ");
-  Serial.print(sensors.getDeviceCount(), DEC);
-  Serial.println(" devices.");
-*/
+
+}
+
+
+void parseBytes(const char* str, char sep, byte* bytes, int maxBytes, int base) {
+  for (int i = 0; i < maxBytes; i++) {
+      bytes[i] = strtoul(str, NULL, base);  // Convert byte
+      str = strchr(str, sep);               // Find next separator
+      if (str == NULL || *str == '\0') {
+          break;                            // No more separators, exit
+      }
+      str++;                                // Point to next character after separator
+  }
 }
