@@ -16,11 +16,24 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 
+
+/*---------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------
+Defines
+-----------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------*/
+
+
 #define RESET_CONFIG_PIN 0
 #define ONE_WIRE_BUS 13   // D7 pin on ESP
 #define TEMPERATURE_PRECISION 10 // 10 is 0.25C resolution in 187ms. (11 is .125C Resolution in 375ms, 12 .0625C in 750ms)
-
 #define MAX_SIGNALK_PATH_LEN 100
+
+/*---------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------
+Global Variables
+-----------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------*/
 
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
@@ -29,8 +42,7 @@ ESP8266WebServer server(80);
 
 char myHostname[16];
 
-os_timer_t  tempReadingTimer;
-bool readyToPoll1Wire = false;
+
 
 
 // memory to save sensor info
@@ -45,6 +57,14 @@ LinkedList<SensorInfo*> sensorList = LinkedList<SensorInfo*>();
 
 //flag for saving data
 bool shouldSaveConfig = false;
+
+/*---------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------
+Config Save/Load/Reset
+-----------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------*/
+
+
 
 void saveConfigCallback () {
   Serial.println("Should save config");
@@ -141,6 +161,192 @@ void resetConfig() {
 
   ESP.reset();
 }
+
+
+/*---------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------
+One Wire
+-----------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------*/
+
+os_timer_t  oneWireRequestTimer; // repeating timer that fires ever X/time to start temp request cycle
+os_timer_t  oneWireReadyTimer; // once request cycle starts, this timer set so we can send when ready
+bool readyToRequest1Wire = false;
+bool readyToRead1Wire = false;
+uint16_t readingTempDelay = 5000; //ms between reading
+
+void setup1Wire() {
+  sensors.begin();
+  
+  sensors.setWaitForConversion(false);
+
+  Serial.print("Parasite power is: "); 
+  if (sensors.isParasitePowerMode()) Serial.println("ON");
+  else Serial.println("OFF");
+
+  Serial.print("1Wire Device precision currently: ");
+  Serial.print(sensors.getResolution());
+  Serial.print(" setting to ");
+  Serial.print(TEMPERATURE_PRECISION);
+  sensors.setResolution(TEMPERATURE_PRECISION);
+  Serial.println(" Done!");
+
+  Serial.print("Starting temperature polling timer at: ");
+  Serial.print(readingTempDelay);
+  Serial.println("ms");
+
+  os_timer_setfn(&oneWireRequestTimer, interuptRequest1WSensors, NULL);
+  os_timer_setfn(&oneWireReadyTimer, interuptReady1WSensors, NULL);
+
+  os_timer_arm(&oneWireRequestTimer, readingTempDelay, true);
+}
+
+//called once every loop()
+void handle1Wire() {
+
+  // If it's time to request temps, well request it...
+  if (readyToRequest1Wire) {
+    digitalWrite(LED_BUILTIN, LOW);
+    request1WSensors();
+    digitalWrite(LED_BUILTIN, HIGH);  
+  }
+
+  //ready to send temps! 
+  if (readyToRead1Wire) {
+    digitalWrite(LED_BUILTIN, LOW);
+    read1WSensors();
+    digitalWrite(LED_BUILTIN, HIGH);      
+  }
+
+}
+
+
+// debug function to print a device address
+void printAddress(DeviceAddress deviceAddress) {
+ for (uint8_t i = 0; i < 8; i++)
+  {
+    // zero pad the address if necessary
+    if (deviceAddress[i] < 16) Serial.print("0");
+    Serial.print(deviceAddress[i], HEX);
+    if (i < 7) {
+      Serial.print(":");
+    }
+  }
+}
+
+void interuptRequest1WSensors(void *pArg) {
+  readyToRequest1Wire = true;
+}
+
+void interuptReady1WSensors(void *pArg) {
+  readyToRead1Wire = true;
+} 
+
+void request1WSensors() {
+  readyToRequest1Wire = false; // reset interupt
+
+  sensors.begin(); //needed so the library searches for new sensors that came up since boot
+  sensors.requestTemperatures();
+
+  // start ready timer
+  uint16_t msWait;
+  switch(TEMPERATURE_PRECISION) {
+    case 9:
+      msWait = 94;
+    case 10:
+      msWait =  188;
+    case 11:
+      msWait =  375;
+    default:
+      msWait =  750;
+  }
+  os_timer_arm(&oneWireReadyTimer, msWait, false); // false = no loop
+  
+}
+
+
+
+
+void read1WSensors() {
+  readyToRead1Wire = false; // reset interupt
+ 
+  uint8_t tempDeviceAddress[8];
+  int numberOfDevices = 0;
+
+  numberOfDevices = sensors.getDeviceCount();
+  SensorInfo *tmpSensorInfo;
+
+  for(int i=0;i<numberOfDevices; i++) {
+    if(sensors.getAddress(tempDeviceAddress, i))
+    {
+      
+      float tempC = sensors.getTempC(tempDeviceAddress);
+      float tempK = tempC + 273.15;
+
+      //see if it's in sensorInfo
+      bool known = false;
+      for (int x=0;x<sensorList.size() ; x++) {
+        tmpSensorInfo = sensorList.get(x);
+        if (memcmp(tmpSensorInfo->sensorAddress, tempDeviceAddress, sizeof(tempDeviceAddress)) == 0) {
+          tmpSensorInfo->tempK = tempK;
+          known = true;
+        }
+      }
+      if (!known) {
+        Serial.print("New Sensor found: ");
+        printAddress(tempDeviceAddress);
+        Serial.println("");        
+        SensorInfo *newSensor = new SensorInfo();
+        memcpy(newSensor->sensorAddress, tempDeviceAddress,8);
+        strcpy(newSensor->signalKPath,"");
+        newSensor->tempK = tempK;
+        sensorList.add(newSensor);
+        saveConfig();
+      }
+
+    }
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 void setupWifi() {
@@ -240,26 +446,9 @@ void setupHTTP() {
   server.begin();
 }
 
-void setup1Wire() {
-  sensors.begin();
-  
-  Serial.print("Parasite power is: "); 
-  if (sensors.isParasitePowerMode()) Serial.println("ON");
-  else Serial.println("OFF");
 
-  Serial.print("1Wire Device precision currently: ");
-  Serial.print(sensors.getResolution());
-  Serial.print(" setting to ");
-  Serial.print(TEMPERATURE_PRECISION);
-  sensors.setResolution(TEMPERATURE_PRECISION);
-  Serial.println(" Done!");
 
-}
 
-void setupTimers() {
-  os_timer_setfn(&tempReadingTimer, poll1WSensors, NULL);
-  os_timer_arm(&tempReadingTimer, 5000, true);
-}
 
 void setup() {
   // put your setup code here, to run once:
@@ -276,7 +465,6 @@ void setup() {
   setupHTTP();
 
   setup1Wire();
-  setupTimers();
 
 
 
@@ -354,78 +542,21 @@ void htmlSet1WPath() {
   
 }
 
-// function to print a device address
-void printAddress(DeviceAddress deviceAddress)
-{
- for (uint8_t i = 0; i < 8; i++)
-  {
-    // zero pad the address if necessary
-    if (deviceAddress[i] < 16) Serial.print("0");
-    Serial.print(deviceAddress[i], HEX);
-    if (i < 7) {
-      Serial.print(":");
-    }
-  }
-}
 
-void poll1WSensors(void *pArg) {
-  readyToPoll1Wire = true;
-}
-
-
-void process1WSensors() {
-  sensors.begin(); //needed so the library searches for new sensors that came up since boot
-  uint8_t tempDeviceAddress[8];
-  int numberOfDevices = 0;
-
-  numberOfDevices = sensors.getDeviceCount();
-  SensorInfo *tmpSensorInfo;
-  sensors.requestTemperatures();
-
-  for(int i=0;i<numberOfDevices; i++) {
-    if(sensors.getAddress(tempDeviceAddress, i))
-    {
-      
-      float tempC = sensors.getTempC(tempDeviceAddress);
-      float tempK = tempC + 273.15;
-
-      //see if it's in sensorInfo
-      bool known = false;
-      for (int x=0;x<sensorList.size() ; x++) {
-        tmpSensorInfo = sensorList.get(x);
-        if (memcmp(tmpSensorInfo->sensorAddress, tempDeviceAddress, sizeof(tempDeviceAddress)) == 0) {
-          tmpSensorInfo->tempK = tempK;
-          known = true;
-        }
-      }
-      if (!known) {
-        Serial.print("New Sensor found: ");
-        printAddress(tempDeviceAddress);
-        Serial.println("");        
-        SensorInfo *newSensor = new SensorInfo();
-        memcpy(newSensor->sensorAddress, tempDeviceAddress,8);
-        strcpy(newSensor->signalKPath,"");
-        newSensor->tempK = tempK;
-        sensorList.add(newSensor);
-        saveConfig();
-      }
-
-    }
-  }
-  readyToPoll1Wire = false;
-}
 
 
 void loop() {
+  //device mgmt
   ArduinoOTA.handle();
   server.handleClient();
+
+  //our stuff
+  handle1Wire();
+  
+
   yield();           
 
-  if (readyToPoll1Wire) {
-    digitalWrite(LED_BUILTIN, LOW);
-    process1WSensors();
-    digitalWrite(LED_BUILTIN, HIGH);  
-  }
+  
 
   
   //Reset Config!
