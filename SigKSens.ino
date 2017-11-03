@@ -18,7 +18,7 @@
 
 #define RESET_CONFIG_PIN 0
 #define ONE_WIRE_BUS 13   // D7 pin on ESP
-#define TEMPERATURE_PRECISION 12 // 0.25C resolution in 187ms. (11 is .125C Resolution in 375ms, 12 .0625C in 750ms)
+#define TEMPERATURE_PRECISION 10 // 10 is 0.25C resolution in 187ms. (11 is .125C Resolution in 375ms, 12 .0625C in 750ms)
 
 #define MAX_SIGNALK_PATH_LEN 100
 
@@ -241,32 +241,18 @@ void setupHTTP() {
 }
 
 void setup1Wire() {
-  uint8_t tempDeviceAddress[8];
-  int numberOfDevices = 0;
   sensors.begin();
   
-  numberOfDevices = sensors.getDeviceCount();
-
   Serial.print("Parasite power is: "); 
   if (sensors.isParasitePowerMode()) Serial.println("ON");
   else Serial.println("OFF");
 
-  for(int i=0;i<numberOfDevices; i++) {
-    if(sensors.getAddress(tempDeviceAddress, i))
-    {
-      Serial.print("1Wire Device ");
-      printAddress(tempDeviceAddress);
-      Serial.print(" presion currently: ");
-      Serial.print(sensors.getResolution(tempDeviceAddress), DEC); 
-      Serial.print(". Setting to ");
-      Serial.print(TEMPERATURE_PRECISION);
-      sensors.setResolution(tempDeviceAddress, TEMPERATURE_PRECISION);
-      Serial.print(" Done!. Is now: ");
-      Serial.println(sensors.getResolution(tempDeviceAddress), DEC); 
-    }
-  }
-  sensors.begin(); //restart otherwise new resolution timings not taken into consideration...
-  
+  Serial.print("1Wire Device precision currently: ");
+  Serial.print(sensors.getResolution());
+  Serial.print(" setting to ");
+  Serial.print(TEMPERATURE_PRECISION);
+  sensors.setResolution(TEMPERATURE_PRECISION);
+  Serial.println(" Done!");
 
 }
 
@@ -350,8 +336,6 @@ void htmlSet1WPath() {
 
   parseBytes(addressStr.c_str(), ':', address,  8, 16);
 
-  printAddress(address);
-  Serial.println('');
   for (int x=0;x<sensorList.size() ; x++) {
     tmpSensorInfo = sensorList.get(x);
     if (memcmp(tmpSensorInfo->sensorAddress, address, sizeof(address)) == 0) {
@@ -390,6 +374,7 @@ void poll1WSensors(void *pArg) {
 
 
 void process1WSensors() {
+  sensors.begin(); //needed so the library searches for new sensors that came up since boot
   uint8_t tempDeviceAddress[8];
   int numberOfDevices = 0;
 
