@@ -25,27 +25,23 @@ void handleNotFound(){
 void htmlGetSensors() {
   DynamicJsonBuffer jsonBuffer;
   SensorInfo *tmpSensorInfo;
-  char response[1024];
+  char response[2048];
   JsonObject& json = jsonBuffer.createObject();
   char strAddress[32];
-  //sensors
-  JsonArray& oneWSensors = json.createNestedArray("1wSensors");
+
+  //Sensors
+  JsonArray& sensorArr = json.createNestedArray("sensors");
+  
+  
   for (uint8_t i=0; i < sensorList.size(); i++) {
     tmpSensorInfo = sensorList.get(i);
-    JsonObject& tmpSens = oneWSensors.createNestedObject();
-    sprintf(strAddress, "%02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X", 
-        tmpSensorInfo->sensorAddress[0], 
-        tmpSensorInfo->sensorAddress[1], 
-        tmpSensorInfo->sensorAddress[2],
-        tmpSensorInfo->sensorAddress[3], 
-        tmpSensorInfo->sensorAddress[4], 
-        tmpSensorInfo->sensorAddress[5], 
-        tmpSensorInfo->sensorAddress[6], 
-        tmpSensorInfo->sensorAddress[7]  );
-    tmpSens.set<String>("address", strAddress);
+    JsonObject& tmpSens = sensorArr.createNestedObject();
+    tmpSens.set<String>("address", tmpSensorInfo->address);
     tmpSens.set<String>("signalKPath", tmpSensorInfo->signalKPath );
-    tmpSens.set<float>("tempK", tmpSensorInfo->tempK);
+    tmpSens["value"] = RawJson(tmpSensorInfo->valueJson);
+    tmpSens.set<String>("type", tmpSensorInfo->type);
   }
+
   json.printTo(response);
   server.send ( 200, "application/json", response);
 }
@@ -53,24 +49,23 @@ void htmlGetSensors() {
 
 void htmlSet1WPath() {
   
-  DeviceAddress address;
   SensorInfo *tmpSensorInfo;
   char pathStr[MAX_SIGNALK_PATH_LEN];
+  char address[32];
   bool found = false;
 
   Serial.print("Setting path for 1W Sensor: ");
   if(!server.hasArg("address")) {server.send(500, "text/plain", "missing arg 'address'"); return;}
   if(!server.hasArg("path")) {server.send(500, "text/plain", "missing arg 'path'"); return;}
   
-  String addressStr = server.arg("address");
+  server.arg("address").toCharArray(address, 32);
   server.arg("path").toCharArray(pathStr, MAX_SIGNALK_PATH_LEN);
 
-  parseBytes(addressStr.c_str(), ':', address,  8, 16);
 
   for (int x=0;x<sensorList.size() ; x++) {
     tmpSensorInfo = sensorList.get(x);
-    if (memcmp(tmpSensorInfo->sensorAddress, address, sizeof(address)) == 0) {
-      memcpy(tmpSensorInfo->signalKPath, pathStr, MAX_SIGNALK_PATH_LEN);
+    if (strcmp(tmpSensorInfo->address, address) == 0) {
+      strcpy(tmpSensorInfo->signalKPath, pathStr);
       found = true;
       break; //no need to check others if we found it
     }

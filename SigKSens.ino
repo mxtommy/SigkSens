@@ -29,7 +29,7 @@ Defines
 
 #define ONE_WIRE_BUS 13   // D7 pin on ESP
 
-// set these together!
+// set these together! Precision for OneWire
 // 9  is 0.5C in 94ms
 // 10 is 0.25C in 187ms
 // 11 is 0.125C in 375ms
@@ -38,8 +38,10 @@ Defines
 #define ONEWIRE_READ_DELAY 94
 
 #define MAX_SIGNALK_PATH_LEN 100
+#define MAX_SENSOR_VALUE_LEN 100
 
-
+#define SHORT_BUTTON_PRESS_MS 1000
+#define LONG_BUTTON_PRESS_MS 5000
 
 /*---------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------
@@ -60,15 +62,25 @@ bool shouldSaveConfig = false;
 // memory to save sensor info
 class SensorInfo {
   public:
-    uint8_t sensorAddress[8];
+    char address[32];
     char signalKPath[MAX_SIGNALK_PATH_LEN];
-    float tempK;
+    char valueJson[MAX_SENSOR_VALUE_LEN];
+    char type[10];
 };
 
 
 LinkedList<SensorInfo*> sensorList = LinkedList<SensorInfo*>();
 
+// memory for SHT30
+class sensorSHT {
+  public:
+    int8_t address = DEVICE_DISCONNECTED;
+    char signalKPath[MAX_SIGNALK_PATH_LEN];
+    float tempK;
+    float humidity;
+};
 
+sensorSHT sensorSHT;
 
 /*---------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------
@@ -97,24 +109,7 @@ void setupWifi() {
 
 }
 
-void setupFS() {
-  if (SPIFFS.begin()) {
-    Serial.println("mounted file system");
-    Serial.println("FS Contents:");
-    String str = "";
-    Dir dir = SPIFFS.openDir("/");
-    while (dir.next()) {
-      str += dir.fileName();
-      str += " / ";
-      str += dir.fileSize();
-      str += "\r\n";
-    }
-    Serial.print(str);
-  } else {
-    Serial.println("failed to mount FS");
-  }
 
-}
 
 void setupOTA() {
   ArduinoOTA.onStart([]() {
@@ -178,6 +173,7 @@ void setup() {
   setupDiscovery();
   setupHTTP();
 
+  setupConfigReset();
   setup1Wire();
   setupI2C();
   
@@ -204,11 +200,8 @@ void loop() {
   handleI2C();
   server.handleClient();
   
-  
-  //Reset Config!
-  if (digitalRead(RESET_CONFIG_PIN) == LOW) {
-    //resetConfig();
-  } 
+  handleConfigReset();
+
 
 }
 

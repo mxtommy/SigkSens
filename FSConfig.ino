@@ -4,7 +4,24 @@ Config Save/Load/Reset
 -----------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------*/
 
+void setupFS() {
+  if (SPIFFS.begin()) {
+    Serial.println("mounted file system");
+    Serial.println("FS Contents:");
+    String str = "";
+    Dir dir = SPIFFS.openDir("/");
+    while (dir.next()) {
+      str += dir.fileName();
+      str += " / ";
+      str += dir.fileSize();
+      str += "\r\n";
+    }
+    Serial.print(str);
+  } else {
+    Serial.println("failed to mount FS");
+  }
 
+}
 
 
 void saveConfigCallback () {
@@ -20,18 +37,16 @@ void saveConfig() {
   JsonObject& json = jsonBuffer.createObject();
   json["hostname"] = myHostname;
 
-  //sensors
-  JsonArray& oneWSensors = json.createNestedArray("1wSensors");
+  //oneWire sensors
+  JsonArray& jsonSensors = json.createNestedArray("sensors");
   for (uint8_t i=0; i < sensorList.size(); i++) {
     tmpSensorInfo = sensorList.get(i);
-    JsonObject& tmpSens = oneWSensors.createNestedObject();
-    JsonArray& tmpAddress = tmpSens.createNestedArray("address");
-    for (uint8_t x = 0; x < 8; x++)
-    {
-      tmpAddress.add(tmpSensorInfo->sensorAddress[x]);
-    }
+    JsonObject& tmpSens = jsonSensors.createNestedObject();
+    tmpSens["address"] = tmpSensorInfo->address;
     tmpSens.set<String>("signalKPath", tmpSensorInfo->signalKPath );
+    tmpSens["type"] = tmpSensorInfo->type;
   }
+
 
   File configFile = SPIFFS.open("/config.json", "w");
   if (!configFile) {
@@ -67,19 +82,29 @@ void loadConfig() {
         // load hostname
         strcpy(myHostname, json["hostname"]);
         // load known sensors
-        for (uint8_t i=0; i < json["1wSensors"].size(); i++) {
+        for (uint8_t i=0; i < json["sensors"].size(); i++) {
 
           SensorInfo *newSensor = new SensorInfo();
           //extract address array
-          for (uint8_t x=0; x<8; x++) {
-            tempDeviceAddress[x] = json["1wSensors"][i]["address"][x];
+
+          strcpy(newSensor->address, json["sensors"][i]["address"]);
+          strcpy(newSensor->signalKPath,json["sensors"][i]["signalKPath"]);
+          strcpy(newSensor->type, json["sensors"][i]["type"]);
+
+          // set valueJson to null of that sensor type
+          //should probably do this elsewhere to keep concerns seperate...
+          if (strcmp(newSensor->type, "oneWire") == 0) {
+            strcpy(newSensor->valueJson, "{ tempK: null }");
+          }
+          else if (strcmp(newSensor->type, "sht30") == 0) {
+            strcpy(newSensor->valueJson, "{ tempK: null, humidity: null }");
           }
 
-          memcpy(newSensor->sensorAddress, tempDeviceAddress,8);
-          strcpy(newSensor->signalKPath,json["1wSensors"][i]["signalKPath"]);
-          newSensor->tempK = 0;
+          
           sensorList.add(newSensor);
         }
+
+
 
       } else {
         Serial.println("failed to load json config");
@@ -88,17 +113,4 @@ void loadConfig() {
   }
 }
 
-void resetConfig() {
-  WiFiManager wifiManager;
-  Serial.println("Resetting Config!");
-  wifiManager.resetSettings();
-  SPIFFS.remove("/config.json");
-  for (uint8_t x=0; x<50; x++) { // need delay as resetting right away 
-    digitalWrite(LED_BUILTIN, LOW);  // to cause wifi settings to not erase
-    delay(20);                 
-    digitalWrite(LED_BUILTIN, HIGH);
-    delay(20);
-  }
 
-  ESP.reset();
-}

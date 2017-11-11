@@ -120,19 +120,25 @@ void request1WSensors() {
 
 void read1WSensors() {
   readyToRead1Wire = false; // reset interupt
-  SensorInfo *tmpSensorInfo;
- 
+  SensorInfo *thisSensorInfo;
+  DeviceAddress address;
   float tempK;
   float tempC;
 
   for (uint8_t i=0; i < sensorList.size(); i++) {
-    tmpSensorInfo = sensorList.get(i);
-    tempC = sensors.getTempC(tmpSensorInfo->sensorAddress);
-    if (tempC == DEVICE_DISCONNECTED) {
-      tmpSensorInfo->tempK = DEVICE_DISCONNECTED;
-    } else {
-      tmpSensorInfo->tempK = tempC + 273.15;
+    thisSensorInfo = sensorList.get(i);
+    if (strcmp(thisSensorInfo->type, "oneWire") == 0) {
+      parseBytes(thisSensorInfo->address, ':', address,  8, 16); // convert string address to uint_8 array
+    
+      tempC = sensors.getTempC(address);
+      if (tempC == DEVICE_DISCONNECTED) {
+        strcpy(thisSensorInfo->valueJson, "{ tempK: null }");
+      } else {
+        tempK = tempC + 273.15;
+        sprintf(thisSensorInfo->valueJson, "{ tempK: %d.%02d }", (int)tempK,(int)(tempK*100)%100);
+      } 
     }
+
   }
 }
 
@@ -141,6 +147,8 @@ void oneWireScanBus() {
   readyToScan1Wire = false; // reset Interupt
 
   uint8_t tempDeviceAddress[8];
+  char strAddress[32];
+
   int numberOfDevices = 0;
 
   sensors.begin(); //needed so the library searches for new sensors that came up since boot
@@ -151,22 +159,36 @@ void oneWireScanBus() {
   for(int i=0;i<numberOfDevices; i++) {
     if(sensors.getAddress(tempDeviceAddress, i))
     {
+
+      // convert to string
+        sprintf(strAddress, "%02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X", 
+        tempDeviceAddress[0], 
+        tempDeviceAddress[1], 
+        tempDeviceAddress[2],
+        tempDeviceAddress[3], 
+        tempDeviceAddress[4], 
+        tempDeviceAddress[5], 
+        tempDeviceAddress[6], 
+        tempDeviceAddress[7]  );      
+      
       //see if it's in sensorInfo
       bool known = false;
       for (int x=0;x<sensorList.size() ; x++) {
         tmpSensorInfo = sensorList.get(x);
-        if (memcmp(tmpSensorInfo->sensorAddress, tempDeviceAddress, sizeof(tempDeviceAddress)) == 0) {
-          known = true;
+        if (strcmp(tmpSensorInfo->address, strAddress) == 0) {
+          known = true;                
         }
+        
       }
       if (!known) {
         Serial.print("New Sensor found: ");
-        printAddress(tempDeviceAddress);
+        Serial.print(strAddress);
         Serial.println("");        
         SensorInfo *newSensor = new SensorInfo();
-        memcpy(newSensor->sensorAddress, tempDeviceAddress,8);
+        strcpy(newSensor->address, strAddress);
         strcpy(newSensor->signalKPath,"");
-        newSensor->tempK = DEVICE_DISCONNECTED;
+        strcpy(newSensor->type,"oneWire");
+        strcpy(newSensor->valueJson, "{ tempK: null }");
         sensorList.add(newSensor);
         saveConfig();
       }
