@@ -1,3 +1,10 @@
+/* SensorType info
+
+type="sht30"
+[0] = tempK
+[1] = humidity
+
+*/
 
 os_timer_t  sensorSHTPollTimer; // repeating timer that fires ever X/time to start poll cycle
 os_timer_t  sensorSHTReadTimer; // once request cycle starts, this timer set so we can send when ready
@@ -72,7 +79,7 @@ void readSHT() {
   uint8_t address;
   float tempK;
   float humidity;
-
+  
   readytoReadSHT = false; //reset interupt
 
   for (int x=0;x<sensorList.size() ; x++) {
@@ -100,7 +107,8 @@ void readSHT() {
         Serial.print(address);
         Serial.print(" ErrorCode: ");
         Serial.println(errorCode);
-        strcpy(thisSensorInfo->valueJson, "{ tempK: null, humidity: null }");
+        thisSensorInfo->valueJson[0] = "null";
+        thisSensorInfo->valueJson[1] = "null";
         return;
       }
   
@@ -108,11 +116,8 @@ void readSHT() {
       tempK = (((((data[0] * 256.0) + data[1]) * 175) / 65535.0) - 45) + 273.15;
       humidity = ((((data[3] * 256.0) + data[4]) * 100) / 65535.0);
 
-      sprintf(thisSensorInfo->valueJson, "{ tempK: %d.%02d, humidity: %d.%02d }", 
-                                                  (int)tempK,
-                                                  (int)(tempK*100)%100,
-                                                  (int)humidity,
-                                                  (int)(humidity*100)%100);
+      thisSensorInfo->valueJson[0] = tempK;
+      thisSensorInfo->valueJson[1] = humidity;
 
     }
   }

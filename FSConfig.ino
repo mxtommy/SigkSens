@@ -33,18 +33,32 @@ void saveConfig() {
   Serial.println("saving config");
   DynamicJsonBuffer jsonBuffer;
   SensorInfo *tmpSensorInfo;
+  uint8_t numAttr;
 
   JsonObject& json = jsonBuffer.createObject();
   json["hostname"] = myHostname;
 
-  //oneWire sensors
+  //sensors
   JsonArray& jsonSensors = json.createNestedArray("sensors");
   for (uint8_t i=0; i < sensorList.size(); i++) {
     tmpSensorInfo = sensorList.get(i);
     JsonObject& tmpSens = jsonSensors.createNestedObject();
     tmpSens["address"] = tmpSensorInfo->address;
-    tmpSens.set<String>("signalKPath", tmpSensorInfo->signalKPath );
     tmpSens["type"] = tmpSensorInfo->type;
+
+    // set number of attributes by sensor type
+    if (strcmp(tmpSensorInfo->type, "oneWire") == 0) {
+      numAttr = 1;
+    } else if (strcmp(tmpSensorInfo->type, "sht30") == 0) {
+      numAttr = 2;
+    } else {
+      //default to all...
+      numAttr = MAX_SENSOR_ATTRIBUTES;
+    }
+    JsonArray& jsonPaths = tmpSens.createNestedArray("signalKPaths");
+    for (int x=0;x<numAttr; x++) {
+      jsonPaths.add(tmpSensorInfo->signalKPath[x]);
+    }
   }
 
 
@@ -61,6 +75,7 @@ void saveConfig() {
 void loadConfig() {
   SensorInfo *tmpSensorInfo;
   uint8_t tempDeviceAddress[8];
+  char tempStr[MAX_SIGNALK_PATH_LEN];
 
   if (SPIFFS.exists("/config.json")) {
     //file exists, reading and loading
@@ -88,16 +103,32 @@ void loadConfig() {
           //extract address array
 
           strcpy(newSensor->address, json["sensors"][i]["address"]);
-          strcpy(newSensor->signalKPath,json["sensors"][i]["signalKPath"]);
           strcpy(newSensor->type, json["sensors"][i]["type"]);
 
-          // set valueJson to null of that sensor type
+          
+
+
+          // load paths and set valueJson to null of that sensor type
           //should probably do this elsewhere to keep concerns seperate...
           if (strcmp(newSensor->type, "oneWire") == 0) {
-            strcpy(newSensor->valueJson, "{ tempK: null }");
+            // tempK
+            strcpy(tempStr, json["sensors"][i]["signalKPaths"][0]);
+            newSensor->attrName[0] = "tempK";
+            newSensor->signalKPath[0] = tempStr;            
+            newSensor->valueJson[0] = "null";
           }
           else if (strcmp(newSensor->type, "sht30") == 0) {
-            strcpy(newSensor->valueJson, "{ tempK: null, humidity: null }");
+            //tempK            
+            strcpy(tempStr, json["sensors"][i]["signalKPaths"][0]);
+            newSensor->attrName[0] = "tempK";
+            newSensor->signalKPath[0] = tempStr;                
+            newSensor->valueJson[0] = "null";
+
+            //humidity
+            strcpy(tempStr, json["sensors"][i]["signalKPaths"][1]);
+            newSensor->attrName[1] = "humidity";
+            newSensor->signalKPath[1] = tempStr;              
+            newSensor->valueJson[1] = "null";
           }
 
           

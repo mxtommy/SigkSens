@@ -40,9 +40,13 @@ void scanI2C() {
       Serial.print("New SHT Sensor found at: 0x45 ");
       SensorInfo *newSensor = new SensorInfo();
       strcpy(newSensor->address, "45");
-      strcpy(newSensor->signalKPath,"");
       strcpy(newSensor->type,"sht30");
-      strcpy(newSensor->valueJson, "{ tempK: null, humidity: null }");
+      newSensor->attrName[0] = "tempK";
+      newSensor->attrName[1] = "humidity";
+      newSensor->signalKPath[0] = "";
+      newSensor->signalKPath[1] = "";
+      newSensor->valueJson[0] = "null";
+      newSensor->valueJson[1] = "null";
       sensorList.add(newSensor);         
       saveConfig();
     }    

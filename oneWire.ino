@@ -132,10 +132,10 @@ void read1WSensors() {
     
       tempC = sensors.getTempC(address);
       if (tempC == DEVICE_DISCONNECTED) {
-        strcpy(thisSensorInfo->valueJson, "{ tempK: null }");
+        thisSensorInfo->valueJson[0] = "null";
       } else {
         tempK = tempC + 273.15;
-        sprintf(thisSensorInfo->valueJson, "{ tempK: %d.%02d }", (int)tempK,(int)(tempK*100)%100);
+        thisSensorInfo->valueJson[0] = tempK;
       } 
     }
 
@@ -186,9 +186,10 @@ void oneWireScanBus() {
         Serial.println("");        
         SensorInfo *newSensor = new SensorInfo();
         strcpy(newSensor->address, strAddress);
-        strcpy(newSensor->signalKPath,"");
+        newSensor->signalKPath[0] = "";
+        newSensor->attrName[0] = "tempK";
         strcpy(newSensor->type,"oneWire");
-        strcpy(newSensor->valueJson, "{ tempK: null }");
+        newSensor->valueJson[0] = "{ \"tempK\": null }";
         sensorList.add(newSensor);
         saveConfig();
       }

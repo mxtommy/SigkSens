@@ -38,7 +38,7 @@ Defines
 #define ONEWIRE_READ_DELAY 94
 
 #define MAX_SIGNALK_PATH_LEN 100
-#define MAX_SENSOR_VALUE_LEN 100
+#define MAX_SENSOR_ATTRIBUTES 10
 
 #define SHORT_BUTTON_PRESS_MS 1000
 #define LONG_BUTTON_PRESS_MS 5000
@@ -63,24 +63,15 @@ bool shouldSaveConfig = false;
 class SensorInfo {
   public:
     char address[32];
-    char signalKPath[MAX_SIGNALK_PATH_LEN];
-    char valueJson[MAX_SENSOR_VALUE_LEN];
+    String attrName[MAX_SENSOR_ATTRIBUTES];
+    String signalKPath[MAX_SENSOR_ATTRIBUTES];
+    String valueJson[MAX_SENSOR_ATTRIBUTES];
     char type[10];
 };
 
 
 LinkedList<SensorInfo*> sensorList = LinkedList<SensorInfo*>();
 
-// memory for SHT30
-class sensorSHT {
-  public:
-    int8_t address = DEVICE_DISCONNECTED;
-    char signalKPath[MAX_SIGNALK_PATH_LEN];
-    float tempK;
-    float humidity;
-};
-
-sensorSHT sensorSHT;
 
 /*---------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------
