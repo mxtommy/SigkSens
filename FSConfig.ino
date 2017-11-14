@@ -61,6 +61,10 @@ void saveConfig() {
     }
   }
 
+  //Timers
+  json["oneWireReadDelay"] = oneWireReadDelay;
+  json["sensorSHTReadDelay"] = sensorSHTReadDelay;
+
 
   File configFile = SPIFFS.open("/config.json", "w");
   if (!configFile) {
@@ -94,8 +98,10 @@ void loadConfig() {
       json.prettyPrintTo(Serial);
       if (json.success()) {
         Serial.println("\nparsed json");
+        
         // load hostname
         strcpy(myHostname, json["hostname"]);
+
         // load known sensors
         for (uint8_t i=0; i < json["sensors"].size(); i++) {
 
@@ -135,7 +141,10 @@ void loadConfig() {
           sensorList.add(newSensor);
         }
 
-
+        //Timers
+    
+        oneWireReadDelay = json["oneWireReadDelay"];
+        sensorSHTReadDelay = json["sensorSHTReadDelay"];        
 
       } else {
         Serial.println("failed to load json config");

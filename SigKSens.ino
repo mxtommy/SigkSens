@@ -72,6 +72,12 @@ class SensorInfo {
 
 LinkedList<SensorInfo*> sensorList = LinkedList<SensorInfo*>();
 
+// some timers 
+uint32_t oneWireReadDelay = 5000; //ms between reading
+uint32_t oneWireScanDelay = 30000; //ms between scan
+uint32_t sensorSHTReadDelay = 5000; //ms between reading
+
+
 
 /*---------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------

@@ -12,7 +12,9 @@ void setupHTTP() {
   server.serveStatic("/", SPIFFS, "/web/index.html");
   server.serveStatic("/index.html", SPIFFS, "/web/index.html");
   server.on("/getSensors", HTTP_GET, htmlGetSensors);
+  server.on("/getTimers", HTTP_GET, htmlGetTimers);
   server.on("/setSensorPath", HTTP_GET, htmlSetSensorPath);
+  server.on("/setTimerDelay", HTTP_GET, htmlSetTimerDelay);
   server.on("/description.xml", HTTP_GET, [](){  SSDP.schema(server.client()); });
   server.begin();
 }
@@ -108,4 +110,63 @@ void htmlSetSensorPath() {
   }
   
 }
+
+
+void htmlSetTimerDelay() {
+  uint32_t newDelay = 0;
+  char timer[10];
+  bool ok = false;
+
+  Serial.print("Setting Timer delay");
+  if(!server.hasArg("timer")) {server.send(500, "text/plain", "missing arg 'timer'"); return;}
+  if(!server.hasArg("delay")) {server.send(500, "text/plain", "missing arg 'delay'"); return;}
+
+  server.arg("timer").toCharArray(timer, 10);
+  newDelay = server.arg("delay").toInt();
+
+  if (newDelay > 5) { //ostimer min delay is 5ms
+    if (strcmp(timer, "oneWire") == 0) {
+      ok = true;
+      setOneWireReadDelay(newDelay);
+    } else if (strcmp(timer, "sht30") == 0) {
+      ok = true;
+      Serial.println("sht30");
+    }
+
+    
+  }
+
+  if (ok) {
+    saveConfig();
+    server.send(200, "application/json", "{ \"success\": true }");
+  } else {
+    server.send(500, "application/json", "{ \"success\": false }");
+  }
+  
+}
+
+void htmlGetTimers() {
+  DynamicJsonBuffer jsonBuffer;
+  char response[2048];
+
+  JsonObject& json = jsonBuffer.createObject();
+
+  json["oneWire"] = oneWireReadDelay;
+  json["sht30"] = sensorSHTReadDelay;
+
+  
+  json.printTo(response);
+  server.send ( 200, "application/json", response);
+  
+}
+
+
+
+
+
+
+
+
+
+
 

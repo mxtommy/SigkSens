@@ -13,8 +13,7 @@ os_timer_t  oneWireScanTimer; // timer to scan for new devices
 bool readyToRequest1Wire = false;
 bool readyToRead1Wire = false;
 bool readyToScan1Wire = false;
-uint16_t oneWireReadDelay = 5000; //ms between reading
-uint16_t oneWireScanDelay = 30000; //ms between scan
+
 
 void setup1Wire() {
   sensors.begin();
@@ -82,6 +81,14 @@ void handle1Wire() {
 
 }
 
+void setOneWireReadDelay(uint32_t newDelay) {
+  os_timer_disarm(&oneWireRequestTimer);
+  Serial.print("Restarting oneWire polling timer at: ");
+  Serial.print(oneWireReadDelay);  
+  Serial.println("ms");
+  oneWireReadDelay = newDelay;
+  os_timer_arm(&oneWireRequestTimer, oneWireReadDelay, true);
+}
 
 // debug function to print a device address
 void printAddress(DeviceAddress deviceAddress) {

@@ -9,7 +9,6 @@ type="sht30"
 os_timer_t  sensorSHTPollTimer; // repeating timer that fires ever X/time to start poll cycle
 os_timer_t  sensorSHTReadTimer; // once request cycle starts, this timer set so we can send when ready
 
-uint16_t sensorSHTReadDelay = 5000; //ms between reading
 bool readytoPollSHT = false;
 bool readytoReadSHT = false;
 
@@ -20,7 +19,10 @@ void setupSHT30() {
   os_timer_setfn(&sensorSHTPollTimer, interuptSHTPoll, NULL);
   os_timer_setfn(&sensorSHTReadTimer, interuptSHTRead, NULL);
 
-  os_timer_arm(&sensorSHTPollTimer, sensorSHTReadDelay, true); // should probably confirm we actually have an sht30 connected
+  Serial.print("Starting SHT polling timer at: ");
+  Serial.print(sensorSHTReadDelay);  
+  Serial.println("ms");
+  os_timer_arm(&sensorSHTPollTimer, sensorSHTReadDelay, true); // TODO should probably confirm we actually have an sht30 connected
   
 }
 
@@ -38,6 +40,16 @@ void handleSHT30() {
     digitalWrite(LED_BUILTIN, HIGH);  
   }
   
+}
+
+
+void setSHTReadDelay(uint32_t newDelay) {
+  os_timer_disarm(&sensorSHTPollTimer);
+  sensorSHTReadDelay = newDelay;
+  Serial.print("Restarting SHT30 polling timer at: ");
+  Serial.print(sensorSHTReadDelay);  
+  Serial.println("ms");  
+  os_timer_arm(&sensorSHTPollTimer, sensorSHTReadDelay, true);  
 }
 
 void interuptSHTPoll(void *pArg) {
