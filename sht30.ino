@@ -64,6 +64,7 @@ void pollSHT() {
   
   SensorInfo *thisSensorInfo;
   uint8_t address;
+  uint8_t errorCode;
 
   readytoPollSHT = false; //reset interupt
 
@@ -76,7 +77,13 @@ void pollSHT() {
       Wire.write(0x2C);
       Wire.write(0x06);
       // Stop I2C transmission
-      Wire.endTransmission();      
+      errorCode = Wire.endTransmission();
+      if (errorCode != 0) {
+        Serial.print("Error pollling SHT at address: ");
+        Serial.print(address, HEX);
+        Serial.print(" ErrorCode: ");
+        Serial.println(errorCode);
+      }
     }
   }
  
@@ -116,7 +123,7 @@ void readSHT() {
       errorCode = Wire.endTransmission();
       if (errorCode != 0) {
         Serial.print("Error reading from SHT30 at address: ");
-        Serial.print(address);
+        Serial.print(address, HEX);
         Serial.print(" ErrorCode: ");
         Serial.println(errorCode);
         thisSensorInfo->valueJson[0] = "null";

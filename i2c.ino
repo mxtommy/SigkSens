@@ -1,6 +1,6 @@
 
-
-
+bool sensorSHT30Present = false;
+bool sensorMPU925XPresent = false;
 
 
 void setupI2C() {
@@ -8,15 +8,22 @@ void setupI2C() {
   
   scanI2C();
 
-  setupSHT30();
+  if (sensorSHT30Present) {
+    setupSHT30();
+  }
+
+  setupMPU9250();
 
   
 }
 
 void handleI2C() {
 
-  handleSHT30();
+  if (sensorSHT30Present) {
+    handleSHT30();  
+  }
   
+  handleMPU9250();
 }
 
 
@@ -29,6 +36,7 @@ void scanI2C() {
 
   //SHT30
   if (scanI2CAddress(0x45)) { //Sht on D1 sheild
+    sensorSHT30Present = true;
     bool known = false;
     for (int x=0;x<sensorList.size() ; x++) {
       tmpSensorInfo = sensorList.get(x);
@@ -52,6 +60,37 @@ void scanI2C() {
     }    
   }
 
+  //MPU925X
+  if (scanI2CAddress(0x68)) {
+    sensorMPU925XPresent = true;
+    bool known = false;
+    for (int x=0;x<sensorList.size() ; x++) {
+      tmpSensorInfo = sensorList.get(x);
+      if (strcmp(tmpSensorInfo->address, "68") == 0) {
+        known = true;                
+      }
+    }    
+    if (!known) {
+      Serial.print("New MPU925X found at: 0x68 ");
+      SensorInfo *newSensor = new SensorInfo();
+      strcpy(newSensor->address, "68");
+      strcpy(newSensor->type,"mpu925x");
+      newSensor->attrName[0] = "yaw";
+      newSensor->attrName[1] = "pitch";
+      newSensor->attrName[2] = "roll";
+      newSensor->signalKPath[0] = "";
+      newSensor->signalKPath[1] = "";
+      newSensor->signalKPath[2] = "";
+      newSensor->valueJson[0] = "null";
+      newSensor->valueJson[1] = "null";
+      newSensor->valueJson[2] = "null";
+      sensorList.add(newSensor);         
+      saveConfig();
+    }    
+  }
+
+
+
 
 }
 
@@ -62,7 +101,6 @@ bool scanI2CAddress(uint8_t address) {
   
   Wire.beginTransmission(address);
   errorCode = Wire.endTransmission();
-
   if (errorCode == 0) {
     return true;
   }
