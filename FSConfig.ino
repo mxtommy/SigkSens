@@ -51,6 +51,8 @@ void saveConfig() {
       numAttr = 1;
     } else if (strcmp(tmpSensorInfo->type, "sht30") == 0) {
       numAttr = 2;
+    } else if (strcmp(tmpSensorInfo->type, "mpu925x") == 0) {
+      numAttr = 4;      
     } else {
       //default to all...
       numAttr = MAX_SENSOR_ATTRIBUTES;
@@ -136,7 +138,31 @@ void loadConfig() {
             newSensor->signalKPath[1] = tempStr;              
             newSensor->valueJson[1] = "null";
           }
+          else if (strcmp(newSensor->type, "mpu925x") == 0) {
+            //tempK (of gyro sensor)           
+            strcpy(tempStr, json["sensors"][i]["signalKPaths"][0]);
+            newSensor->attrName[0] = "tempK";
+            newSensor->signalKPath[0] = tempStr;                
+            newSensor->valueJson[0] = "null";
+                        
+            //yaw            
+            strcpy(tempStr, json["sensors"][i]["signalKPaths"][1]);
+            newSensor->attrName[1] = "yaw";
+            newSensor->signalKPath[1] = tempStr;                
+            newSensor->valueJson[1] = "null";
 
+            //pitch
+            strcpy(tempStr, json["sensors"][i]["signalKPaths"][2]);
+            newSensor->attrName[2] = "pitch";
+            newSensor->signalKPath[2] = tempStr;              
+            newSensor->valueJson[2] = "null";
+
+            //roll
+            strcpy(tempStr, json["sensors"][i]["signalKPaths"][3]);
+            newSensor->attrName[3] = "roll";
+            newSensor->signalKPath[3] = tempStr;              
+            newSensor->valueJson[3] = "null";            
+          }
           
           sensorList.add(newSensor);
         }

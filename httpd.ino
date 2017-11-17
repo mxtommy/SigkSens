@@ -13,6 +13,8 @@ void setupHTTP() {
   server.serveStatic("/index.html", SPIFFS, "/web/index.html");
   server.on("/getSensors", HTTP_GET, htmlGetSensors);
   server.on("/getTimers", HTTP_GET, htmlGetTimers);
+
+  //server.on("/getMPUCalibration", HTTP_GET, htmlGetMPUCalibration);
   server.on("/setSensorPath", HTTP_GET, htmlSetSensorPath);
   server.on("/setTimerDelay", HTTP_GET, htmlSetTimerDelay);
   server.on("/description.xml", HTTP_GET, [](){  SSDP.schema(server.client()); });
@@ -47,6 +49,8 @@ void htmlGetSensors() {
       numAttr = 1;
     } else if (strcmp(tmpSensorInfo->type, "sht30") == 0) {
       numAttr = 2;
+    } else if (strcmp(tmpSensorInfo->type,"mpu925x") == 0) {
+      numAttr = 4;
     } else {
       //default to all...
       numAttr = MAX_SENSOR_ATTRIBUTES;

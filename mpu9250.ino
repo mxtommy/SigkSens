@@ -166,7 +166,7 @@
 #define MS5637_ADDRESS 0x76   // Address of altimeter
 #endif  
 
-#define SerialDebug true  // set to true to get Serial output for debugging
+#define SerialDebug false  // set to true to get Serial output for debugging
 
 // Set initial input parameters
 enum Ascale {
@@ -256,10 +256,94 @@ enum MPUVersion {
 };
 
 uint8_t MPUVersion;
+float myPI = 3.14159265359f;
 
+
+/* ---------------------------------------------------------------------------------------------
+   ---------------------------------------------------------------------------------------------
+   ---------------------------------------------------------------------------------------------
+   --------------------------------------------------------------------------------------------- */
+ 
 bool MPUisValid = false;
+os_timer_t  mpuUpdateSensorInfo; // repeating timer that fires ever X/time to start temp request cycle
+bool mpuUpdateReady = false;
+uint32_t updateDelay = 1000;
 
-void setupMPU9250()
+void setupMPU9250() {
+
+  configureMPU9250();
+  os_timer_setfn(&mpuUpdateSensorInfo, interuptMPUSensorInfo, NULL);
+  os_timer_arm(&mpuUpdateSensorInfo, updateDelay, true);
+  attachInterrupt(12, interuptMPUNewData, RISING); // define interrupt for INT pin output of MPU9250
+
+}
+
+
+void handleMPU9250() {
+
+  if (!MPUisValid) {
+    return;
+  }
+
+  //if (readByte(MPU9250_ADDRESS, INT_STATUS) & 0x01) {  //If there's new data
+  if(newData) {
+    newData = false; // reset newData flag
+    processMPU9250();
+  }
+
+  updateQuaternion();
+
+
+  if (mpuUpdateReady) {
+    // reset interupt
+    mpuUpdateReady = false;
+    updateMPUSensorInfo();
+  }
+
+
+  
+}
+
+void interuptMPUSensorInfo(void *pArg) {
+  mpuUpdateReady = true;
+}
+
+void interuptMPUNewData()
+{
+  newData = true;
+}
+
+/* ---------------------------------------------------------------------------------------------
+   ---------------------------------------------------------------------------------------------
+   ---------------------------------------------------------------------------------------------
+   --------------------------------------------------------------------------------------------- */
+
+void htmlGetCalibration() {
+  Serial.println("Aaa");
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ---------------------------------------------------------------------------------------------
+   ---------------------------------------------------------------------------------------------
+   ---------------------------------------------------------------------------------------------
+   --------------------------------------------------------------------------------------------- */
+
+
+void configureMPU9250()
 {
 
  
@@ -274,9 +358,7 @@ void setupMPU9250()
   } else {
     MPUVersion = MPU9250; //default?
   }
-   
 
-   
   if ( (c == 0x71) || (c == 0x73) ) //
   {  
     Serial.println("MPU925X is online...");
@@ -310,7 +392,9 @@ void setupMPU9250()
 
     // Get magnetometer calibration from AK8963 ROM
     initAK8963(magCalibration); Serial.println("AK8963 initialized for active data mode...."); // Initialize device for active mode read of magnetometer
-  
+
+
+////////////////////////////////////////////////////////////////////////////////////////
     magcalMPU9250(magBias, magScale);
     Serial.println("AK8963 mag biases (mG)"); Serial.println(magBias[0]); Serial.println(magBias[1]); Serial.println(magBias[2]); 
     Serial.println("AK8963 mag scale (mG)"); Serial.println(magScale[0]); Serial.println(magScale[1]); Serial.println(magScale[2]); 
@@ -322,12 +406,7 @@ void setupMPU9250()
       Serial.print("Y-Axis sensitivity adjustment value "); Serial.println(magCalibration[1], 2);
       Serial.print("Z-Axis sensitivity adjustment value "); Serial.println(magCalibration[2], 2);
     }
-
-
     MPUisValid = true;
-  
-
-
   }
   else
   {
@@ -336,41 +415,36 @@ void setupMPU9250()
   }
 }
 
-void handleMPU9250()
-{  
-  if (!MPUisValid) {
-    return;
-  }
-  
-  if (readByte(MPU9250_ADDRESS, INT_STATUS) & 0x01) {      
-    readMPU9250Data(MPU9250Data); // INT cleared on any read
- 
+void processMPU9250() {  
     
-    // Now we'll calculate the accleration value into actual g's
-    ax = (float)MPU9250Data[0]*aRes - accelBias[0];  // get actual g value, this depends on scale being set
-    ay = (float)MPU9250Data[1]*aRes - accelBias[1];   
-    az = (float)MPU9250Data[2]*aRes - accelBias[2];  
+  readMPU9250Data(MPU9250Data); // INT cleared on any read
+    
+  // Now we'll calculate the accleration value into actual g's
+  ax = (float)MPU9250Data[0]*aRes - accelBias[0];  // get actual g value, this depends on scale being set
+  ay = (float)MPU9250Data[1]*aRes - accelBias[1];   
+  az = (float)MPU9250Data[2]*aRes - accelBias[2];  
    
-     // Calculate the gyro value into actual degrees per second
-    gx = (float)MPU9250Data[4]*gRes;  // get actual gyro value, this depends on scale being set
-    gy = (float)MPU9250Data[5]*gRes;  
-    gz = (float)MPU9250Data[6]*gRes;   
+  // Calculate the gyro value into actual degrees per second
+  gx = (float)MPU9250Data[4]*gRes;  // get actual gyro value, this depends on scale being set
+  gy = (float)MPU9250Data[5]*gRes;  
+  gz = (float)MPU9250Data[6]*gRes;   
   
-    readMagData(magCount);  // Read the x/y/z adc values
+  readMagData(magCount);  // Read the x/y/z adc values
    
-    // Calculate the magnetometer values in milliGauss
-    // Include factory calibration per data sheet and user environmental corrections
-    if(newMagData == true) {
-      newMagData = false; // reset newMagData flag
-      mx = (float)magCount[0]*mRes*magCalibration[0] - magBias[0];  // get actual magnetometer value, this depends on scale being set
-      my = (float)magCount[1]*mRes*magCalibration[1] - magBias[1];  
-      mz = (float)magCount[2]*mRes*magCalibration[2] - magBias[2];  
-      mx *= magScale[0];
-      my *= magScale[1];
-      mz *= magScale[2]; 
-    } 
-  }
-  
+  // Calculate the magnetometer values in milliGauss
+  // Include factory calibration per data sheet and user environmental corrections
+  if(newMagData == true) {
+    newMagData = false; // reset newMagData flag
+    mx = (float)magCount[0]*mRes*magCalibration[0] - magBias[0];  // get actual magnetometer value, this depends on scale being set
+    my = (float)magCount[1]*mRes*magCalibration[1] - magBias[1];  
+    mz = (float)magCount[2]*mRes*magCalibration[2] - magBias[2];  
+    mx *= magScale[0];
+    my *= magScale[1];
+    mz *= magScale[2]; 
+  } 
+}
+
+void updateQuaternion() {
   Now = micros();
   deltat = ((Now - lastUpdate)/1000000.0f); // set integration time by time elapsed since last filter update
   lastUpdate = Now;
@@ -387,14 +461,21 @@ void handleMPU9250()
   // function to get North along the accel +x-axis, East along the accel -y-axis, and Down along the accel -z-axis.
   // This orientation choice can be modified to allow any convenient (non-NED) orientation convention.
   // Pass gyro rate as rad/s
-  MadgwickQuaternionUpdate(-ax, ay, az, gx*PI/180.0f, -gy*PI/180.0f, -gz*PI/180.0f,  my,  -mx, mz);
-  //  if(passThru)MahonyQuaternionUpdate(-ax, ay, az, gx*PI/180.0f, -gy*PI/180.0f, -gz*PI/180.0f,  my,  -mx, mz);
+  //MadgwickQuaternionUpdate(-ay, -ax, -az, gx*myPI/180.0f, -gy*myPI/180.0f, -gz*myPI/180.0f,  my,  -mx, mz);
 
-  // Serial print and/or display at 0.5 s rate independent of data rates
-  delt_t = millis() - count;
-  if (delt_t > 500) { // update LCD once per half-second independent of read rate
+    MadgwickQuaternionUpdate(-ax, ay, az, gx*myPI/180.0f, -gy*myPI/180.0f, -gz*myPI/180.0f,  my,  -mx, mz);
+  //  if(passThru)MahonyQuaternionUpdate(-ax, ay, az, gx*myPI/180.0f, -gy*myPI/180.0f, -gz*myPI/180.0f,  my,  -mx, mz);
+}
 
-    if(SerialDebug) {
+void updateMPUSensorInfo() {
+  SensorInfo *thisSensorInfo;
+  uint8_t address;
+               
+  tempCount = readTempData();  // Read the gyro adc values
+  temperature = ((float) tempCount) / 333.87 + 21.0; // Gyro chip temperature in degrees Centigrade
+  // Print temperature in degrees Centigrade      
+ 
+  if(SerialDebug) {
     Serial.print("ax = "); Serial.print((int)1000*ax);  
     Serial.print(" ay = "); Serial.print((int)1000*ay); 
     Serial.print(" az = "); Serial.print((int)1000*az); Serial.println(" mg");
@@ -409,14 +490,10 @@ void handleMPU9250()
     Serial.print(" qx = "); Serial.print(q[1]); 
     Serial.print(" qy = "); Serial.print(q[2]); 
     Serial.print(" qz = "); Serial.println(q[3]); 
-    }               
-    tempCount = readTempData();  // Read the gyro adc values
-    temperature = ((float) tempCount) / 333.87 + 21.0; // Gyro chip temperature in degrees Centigrade
-   // Print temperature in degrees Centigrade      
     Serial.print("Gyro temperature is ");  Serial.print(temperature, 1);  Serial.println(" degrees C"); // Print T values to tenths of s degree C
- 
    
-   // Define output variables from updated quaternion---these are Tait-Bryan angles, commonly used in aircraft orientation.
+  }   
+  // Define output variables from updated quaternion---these are Tait-Bryan angles, commonly used in aircraft orientation.
   // In this coordinate system, the positive z-axis is down toward Earth. 
   // Yaw is the angle between Sensor x-axis and Earth magnetic North (or true North if corrected for local declination, looking down on the sensor positive yaw is counterclockwise.
   // Pitch is angle between sensor x-axis and Earth ground plane, toward the Earth is positive, up toward the sky is negative.
@@ -425,38 +502,56 @@ void handleMPU9250()
   // Tait-Bryan angles as well as Euler angles are non-commutative; that is, the get the correct orientation the rotations must be
   // applied in the correct order which for this configuration is yaw, pitch, and then roll.
   // For more see http://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles which has additional links.
-    //Software AHRS:
- //   yaw   = atan2f(2.0f * (q[1] * q[2] + q[0] * q[3]), q[0] * q[0] + q[1] * q[1] - q[2] * q[2] - q[3] * q[3]);   
- //   pitch = -asinf(2.0f * (q[1] * q[3] - q[0] * q[2]));
- //   roll  = atan2f(2.0f * (q[0] * q[1] + q[2] * q[3]), q[0] * q[0] - q[1] * q[1] - q[2] * q[2] + q[3] * q[3]);
- //   pitch *= 180.0f / PI;
- //   yaw   *= 180.0f / PI; 
- //   yaw   += 13.8f; // Declination at Danville, California is 13 degrees 48 minutes and 47 seconds on 2014-04-04
- //   if(yaw < 0) yaw   += 360.0f; // Ensure yaw stays between 0 and 360
- //   roll  *= 180.0f / PI;
-    a12 =   2.0f * (q[1] * q[2] + q[0] * q[3]);
-    a22 =   q[0] * q[0] + q[1] * q[1] - q[2] * q[2] - q[3] * q[3];
-    a31 =   2.0f * (q[0] * q[1] + q[2] * q[3]);
-    a32 =   2.0f * (q[1] * q[3] - q[0] * q[2]);
-    a33 =   q[0] * q[0] - q[1] * q[1] - q[2] * q[2] + q[3] * q[3];
-    pitch = -asinf(a32);
-    roll  = atan2f(a31, a33);
-    yaw   = atan2f(a12, a22);
-    pitch *= 180.0f / PI;
-    yaw   *= 180.0f / PI; 
-//    yaw   += 13.8f; // Declination at Danville, California is 13 degrees 48 minutes and 47 seconds on 2014-04-04
-    if(yaw < 0) yaw   += 360.0f; // Ensure yaw stays between 0 and 360
-    roll  *= 180.0f / PI;
-    lin_ax = ax + a31;
-    lin_ay = ay + a32;
-    lin_az = az - a33;
-    if(SerialDebug) {
+  //Software AHRS:
+  //   yaw   = atan2f(2.0f * (q[1] * q[2] + q[0] * q[3]), q[0] * q[0] + q[1] * q[1] - q[2] * q[2] - q[3] * q[3]);   
+  //   pitch = -asinf(2.0f * (q[1] * q[3] - q[0] * q[2]));
+  //   roll  = atan2f(2.0f * (q[0] * q[1] + q[2] * q[3]), q[0] * q[0] - q[1] * q[1] - q[2] * q[2] + q[3] * q[3]);
+  //   pitch *= 180.0f / PI;
+  //   yaw   *= 180.0f / PI; 
+  //   yaw   += 13.8f; // Declination at Danville, California is 13 degrees 48 minutes and 47 seconds on 2014-04-04
+  //   if(yaw < 0) yaw   += 360.0f; // Ensure yaw stays between 0 and 360
+  //   roll  *= 180.0f / PI;
+  a12 =   2.0f * (q[1] * q[2] + q[0] * q[3]);
+  a22 =   q[0] * q[0] + q[1] * q[1] - q[2] * q[2] - q[3] * q[3];
+  a31 =   2.0f * (q[0] * q[1] + q[2] * q[3]);
+  a32 =   2.0f * (q[1] * q[3] - q[0] * q[2]);
+  a33 =   q[0] * q[0] - q[1] * q[1] - q[2] * q[2] + q[3] * q[3];
+  pitch = -asinf(a32);
+  roll  = atan2f(a31, a33);
+  yaw   = atan2f(a12, a22);
+  pitch *= 180.0f / myPI;
+  yaw   *= 180.0f / myPI; 
+  //    yaw   += 13.8f; // Declination at Danville, California is 13 degrees 48 minutes and 47 seconds on 2014-04-04
+  if(yaw < 0) yaw   += 360.0f; // Ensure yaw stays between 0 and 360
+  roll  *= 180.0f / myPI;
+  lin_ax = ax + a31;
+  lin_ay = ay + a32;
+  lin_az = az - a33;
+
+
+
+  for (uint8_t i=0; i < sensorList.size(); i++) {
+    thisSensorInfo = sensorList.get(i);
+    if (strcmp(thisSensorInfo->type, "mpu925x") == 0) {
+      //we're just going to assume there's only one for now...
+    
+      thisSensorInfo->valueJson[0] = temperature + 273.15;
+      thisSensorInfo->valueJson[1] = String(yaw * (myPI/180.0f),4);
+      thisSensorInfo->valueJson[2] = String(pitch * (myPI/180.0f),4);
+      thisSensorInfo->valueJson[3] = String(roll * (myPI/180.0f),4);
+      
+    }
+
+  }
+
+  if(SerialDebug) {
     Serial.print("Yaw, Pitch, Roll: ");
     Serial.print(yaw, 2);
     Serial.print(", ");
     Serial.print(pitch, 2);
     Serial.print(", ");
-    Serial.println(roll, 2);
+    Serial.print(roll, 2);
+    Serial.print(" rate = "); Serial.print((float)sumCount/sum, 2); Serial.println(" Hz");
 
     Serial.print("Grav_x, Grav_y, Grav_z: ");
     Serial.print(-a31*1000, 2);
@@ -471,8 +566,7 @@ void handleMPU9250()
     Serial.print(", ");
     Serial.print(lin_az*1000, 2);  Serial.println(" mg");
     
-    Serial.print("rate = "); Serial.print((float)sumCount/sum, 2); Serial.println(" Hz");
-    }
+  }
    
   
     // With these settings the filter is updating at a ~145 Hz rate using the Madgwick scheme and 
@@ -490,9 +584,9 @@ void handleMPU9250()
     count = millis(); 
     sumCount = 0;
     sum = 0;    
-    }
-
 }
+
+
 
 //===================================================================================================================
 //====== Set of useful function to access acceleration. gyroscope, magnetometer, and temperature data
@@ -847,7 +941,7 @@ void magcalMPU9250(float * dest1, float * dest2)
   int16_t mag_max[3] = {-32767, -32767, -32767}, mag_min[3] = {32767, 32767, 32767}, mag_temp[3] = {0, 0, 0};
 
   Serial.println("Mag Calibration: Wave device in a figure eight until done!");
-  delay(4000);
+  //delay(4000);
   
     // shoot for ~fifteen seconds of mag data
     if(Mmode == 0x02) sample_count = 128;  // at 8 Hz ODR, new mag data is available every 125 ms

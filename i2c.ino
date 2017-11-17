@@ -4,7 +4,10 @@ bool sensorMPU925XPresent = false;
 
 
 void setupI2C() {
+  //Wire.setClock(0000L);
+
   Wire.begin();
+  Wire.setClock(400000); // choose 400 kHz I2C rate
   
   scanI2C();
 

@@ -55,6 +55,9 @@ ESP8266WebServer server(80);
 
 char myHostname[16];
 
+float systemHz = 0;
+
+
 //flag for saving data in FSConfig
 bool shouldSaveConfig = false;
 
@@ -173,7 +176,8 @@ void setup() {
   setupConfigReset();
   setup1Wire();
   setupI2C();
-  
+
+  setupSystemHz();
   Serial.printf("Ready!\n");
 
   
@@ -193,6 +197,7 @@ void loop() {
   
 
   //our stuff
+  handleSystemHz();
   handle1Wire();
   handleI2C();
   server.handleClient();
