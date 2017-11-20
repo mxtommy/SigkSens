@@ -58,6 +58,7 @@ void scanI2C() {
       newSensor->signalKPath[1] = "";
       newSensor->valueJson[0] = "null";
       newSensor->valueJson[1] = "null";
+      newSensor->isUpdated = false;
       sensorList.add(newSensor);         
       saveConfig();
     }    
@@ -87,6 +88,7 @@ void scanI2C() {
       newSensor->valueJson[0] = "null";
       newSensor->valueJson[1] = "null";
       newSensor->valueJson[2] = "null";
+      newSensor->isUpdated = false;
       sensorList.add(newSensor);         
       saveConfig();
     }    

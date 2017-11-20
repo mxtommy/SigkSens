@@ -46,19 +46,11 @@ void saveConfig() {
     tmpSens["address"] = tmpSensorInfo->address;
     tmpSens["type"] = tmpSensorInfo->type;
 
-    // set number of attributes by sensor type
-    if (strcmp(tmpSensorInfo->type, "oneWire") == 0) {
-      numAttr = 1;
-    } else if (strcmp(tmpSensorInfo->type, "sht30") == 0) {
-      numAttr = 2;
-    } else if (strcmp(tmpSensorInfo->type, "mpu925x") == 0) {
-      numAttr = 4;      
-    } else {
-      //default to all...
-      numAttr = MAX_SENSOR_ATTRIBUTES;
-    }
     JsonArray& jsonPaths = tmpSens.createNestedArray("signalKPaths");
-    for (int x=0;x<numAttr; x++) {
+    for (int x=0;x<MAX_SENSOR_ATTRIBUTES; x++) {
+      if (strcmp(tmpSensorInfo->attrName[x].c_str(), "") == 0 ) {
+        break; //no more attributes
+      }
       jsonPaths.add(tmpSensorInfo->signalKPath[x]);
     }
   }
@@ -112,13 +104,24 @@ void loadConfig() {
 
           strcpy(newSensor->address, json["sensors"][i]["address"]);
           strcpy(newSensor->type, json["sensors"][i]["type"]);
-
+          newSensor->isUpdated = false;
           
 
 
           // load paths and set valueJson to null of that sensor type
           //should probably do this elsewhere to keep concerns seperate...
-          if (strcmp(newSensor->type, "oneWire") == 0) {
+          if (strcmp(newSensor->type, "Local") == 0) {
+            // systemHz
+            strcpy(tempStr, json["sensors"][i]["signalKPaths"][0]);
+            newSensor->attrName[0] = "systemHz";
+            newSensor->signalKPath[0] = tempStr;            
+            newSensor->valueJson[0] = "null";
+            strcpy(tempStr, json["sensors"][i]["signalKPaths"][1]);
+            newSensor->attrName[1] = "freeMem";
+            newSensor->signalKPath[1] = tempStr;            
+            newSensor->valueJson[1] = "null";
+          
+          } else if (strcmp(newSensor->type, "oneWire") == 0) {
             // tempK
             strcpy(tempStr, json["sensors"][i]["signalKPaths"][0]);
             newSensor->attrName[0] = "tempK";

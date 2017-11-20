@@ -18,6 +18,10 @@ void setupHTTP() {
   server.on("/setSensorPath", HTTP_GET, htmlSetSensorPath);
   server.on("/setTimerDelay", HTTP_GET, htmlSetTimerDelay);
   server.on("/description.xml", HTTP_GET, [](){  SSDP.schema(server.client()); });
+
+  server.on("/signalk", HTTP_GET, htmlSignalKEndpoints);
+  server.on("/signalk/", HTTP_GET, htmlSignalKEndpoints);
+  
   server.begin();
 }
 
@@ -44,19 +48,11 @@ void htmlGetSensors() {
     tmpSens.set<String>("address", tmpSensorInfo->address);
     tmpSens.set<String>("type", tmpSensorInfo->type);
 
-    // set number of attributes by sensor type
-    if (strcmp(tmpSensorInfo->type, "oneWire") == 0) {
-      numAttr = 1;
-    } else if (strcmp(tmpSensorInfo->type, "sht30") == 0) {
-      numAttr = 2;
-    } else if (strcmp(tmpSensorInfo->type,"mpu925x") == 0) {
-      numAttr = 4;
-    } else {
-      //default to all...
-      numAttr = MAX_SENSOR_ATTRIBUTES;
-    }
     JsonArray& jsonAttr = tmpSens.createNestedArray("attr");
-    for (int x=0;x<numAttr; x++) {
+    for (int x=0;x<MAX_SENSOR_ATTRIBUTES; x++) {
+      if (strcmp(tmpSensorInfo->attrName[x].c_str(), "") == 0) {
+        break; // no more attrs
+      }
       JsonObject& tmpAttr = jsonAttr.createNestedObject();
       tmpAttr.set<String>("attrName", tmpSensorInfo->attrName[x]);
       tmpAttr.set<String>("signalKPath", tmpSensorInfo->signalKPath[x] );
@@ -165,10 +161,43 @@ void htmlGetTimers() {
 }
 
 
+void htmlSignalKEndpoints() {
+  IPAddress ip;  
+  DynamicJsonBuffer jsonBuffer;
+  char response[2048];
+  String wsURL;
+  ip = WiFi.localIP();
+ 
+  JsonObject& json = jsonBuffer.createObject();
+  String ipString = String(ip[0]);
+  for (uint8_t octet = 1; octet < 4; ++octet) {
+    ipString += '.' + String(ip[octet]);
+  }
+
+
+  wsURL = "ws://" + ipString + ":81/";
+
+  JsonObject& endpoints = json.createNestedObject("endpoints");
+  JsonObject& v1 = endpoints.createNestedObject("v1");
+  v1["version"] = "1.alpha1";
+  v1["signalk-ws"] = wsURL;
+  JsonObject& serverInfo = endpoints.createNestedObject("server");
+  serverInfo["id"] = "ESP-SigKSen";
+  json.printTo(response);
+  server.send ( 200, "application/json", response);
+  
+}
+
+
+void htmlReturnSignalKREST(){
+  DynamicJsonBuffer jsonBuffer; 
+  SensorInfo *thisSensorInfo;
 
 
 
 
+  
+}
 
 
 

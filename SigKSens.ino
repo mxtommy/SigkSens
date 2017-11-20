@@ -13,6 +13,9 @@
 
 #include <ArduinoJson.h>     //https://github.com/bblanchon/ArduinoJson
 
+#include <WebSocketsServer.h>
+#include <WebSocketsClient.h>
+
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include <Wire.h>
@@ -53,6 +56,10 @@ ESP8266WebServer server(80);
 
 
 
+//Websocet
+WebSocketsServer webSocketServer = WebSocketsServer(81);
+WebSocketsClient webSocketClient;
+
 char myHostname[16];
 
 float systemHz = 0;
@@ -70,6 +77,7 @@ class SensorInfo {
     String signalKPath[MAX_SENSOR_ATTRIBUTES];
     String valueJson[MAX_SENSOR_ATTRIBUTES];
     char type[10];
+    bool isUpdated;
 };
 
 
@@ -172,6 +180,8 @@ void setup() {
   setupOTA();
   setupDiscovery();
   setupHTTP();
+  setupWebSocket();
+  setupSignalK();
 
   setupConfigReset();
   setup1Wire();
@@ -200,6 +210,8 @@ void loop() {
   handleSystemHz();
   handle1Wire();
   handleI2C();
+  handleWebSocket();
+  handleSignalK();
   server.handleClient();
   
   handleConfigReset();

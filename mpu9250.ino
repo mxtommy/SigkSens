@@ -395,7 +395,7 @@ void configureMPU9250()
 
 
 ////////////////////////////////////////////////////////////////////////////////////////
-    magcalMPU9250(magBias, magScale);
+    //magcalMPU9250(magBias, magScale);
     Serial.println("AK8963 mag biases (mG)"); Serial.println(magBias[0]); Serial.println(magBias[1]); Serial.println(magBias[2]); 
     Serial.println("AK8963 mag scale (mG)"); Serial.println(magScale[0]); Serial.println(magScale[1]); Serial.println(magScale[2]); 
  
@@ -539,7 +539,8 @@ void updateMPUSensorInfo() {
       thisSensorInfo->valueJson[1] = String(yaw * (myPI/180.0f),4);
       thisSensorInfo->valueJson[2] = String(pitch * (myPI/180.0f),4);
       thisSensorInfo->valueJson[3] = String(roll * (myPI/180.0f),4);
-      
+      thisSensorInfo->isUpdated = true;
+
     }
 
   }

@@ -137,7 +137,7 @@ void readSHT() {
 
       thisSensorInfo->valueJson[0] = tempK;
       thisSensorInfo->valueJson[1] = humidity;
-
+      thisSensorInfo->isUpdated = true;
     }
   }
 }

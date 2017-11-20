@@ -144,6 +144,7 @@ void read1WSensors() {
         tempK = tempC + 273.15;
         thisSensorInfo->valueJson[0] = tempK;
       } 
+      thisSensorInfo->isUpdated = true;
     }
 
   }
