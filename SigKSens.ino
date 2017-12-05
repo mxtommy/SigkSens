@@ -40,7 +40,7 @@ Defines
 #define TEMPERATURE_PRECISION 9
 #define ONEWIRE_READ_DELAY 94
 
-#define MAX_SIGNALK_PATH_LEN 100
+#define MAX_SIGNALK_PATH_LEN 150
 #define MAX_SENSOR_ATTRIBUTES 10
 
 #define SHORT_BUTTON_PRESS_MS 1000
@@ -83,12 +83,21 @@ class SensorInfo {
 
 LinkedList<SensorInfo*> sensorList = LinkedList<SensorInfo*>();
 
+// Sensors present
+bool sensorSHT30Present = false;
+bool sensorMPU925XPresent = false;
+bool sensorOneWirePresent = false;
+
 // some timers 
 uint32_t oneWireReadDelay = 5000; //ms between reading
 uint32_t oneWireScanDelay = 30000; //ms between scan
 uint32_t sensorSHTReadDelay = 5000; //ms between reading
+uint32_t updateMPUDelay = 1000;
 
-
+// SignalK stuff
+String signalKHost = "";
+uint16_t signalKPort = 80;
+String signalKPath = "/signalk/v1/stream";
 
 /*---------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------

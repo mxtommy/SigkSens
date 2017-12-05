@@ -267,13 +267,12 @@ float myPI = 3.14159265359f;
 bool MPUisValid = false;
 os_timer_t  mpuUpdateSensorInfo; // repeating timer that fires ever X/time to start temp request cycle
 bool mpuUpdateReady = false;
-uint32_t updateDelay = 1000;
 
 void setupMPU9250() {
 
   configureMPU9250();
   os_timer_setfn(&mpuUpdateSensorInfo, interuptMPUSensorInfo, NULL);
-  os_timer_arm(&mpuUpdateSensorInfo, updateDelay, true);
+  os_timer_arm(&mpuUpdateSensorInfo, updateMPUDelay, true);
   attachInterrupt(12, interuptMPUNewData, RISING); // define interrupt for INT pin output of MPU9250
 
 }
@@ -303,6 +302,18 @@ void handleMPU9250() {
 
   
 }
+
+
+void setMPUUpdateDelay(uint32_t newDelay) {
+  os_timer_disarm(&mpuUpdateSensorInfo);
+  Serial.print("Restarting MPU polling timer at: ");
+  Serial.print(oneWireReadDelay);  
+  Serial.println("ms");
+  updateMPUDelay = newDelay;
+  os_timer_arm(&mpuUpdateSensorInfo, updateMPUDelay, true);
+
+}
+
 
 void interuptMPUSensorInfo(void *pArg) {
   mpuUpdateReady = true;

@@ -11,12 +11,16 @@ void setupHTTP() {
   server.onNotFound(handleNotFound);
   server.serveStatic("/", SPIFFS, "/web/index.html");
   server.serveStatic("/index.html", SPIFFS, "/web/index.html");
-  server.on("/getSensors", HTTP_GET, htmlGetSensors);
-  server.on("/getTimers", HTTP_GET, htmlGetTimers);
+  server.on("/getSensorInfo", HTTP_GET, htmlGetSensorInfo);
+
 
   //server.on("/getMPUCalibration", HTTP_GET, htmlGetMPUCalibration);
   server.on("/setSensorPath", HTTP_GET, htmlSetSensorPath);
   server.on("/setTimerDelay", HTTP_GET, htmlSetTimerDelay);
+  server.on("/setNewHostname", HTTP_GET, htmlNewHostname);
+  server.on("/setSignalKHost", HTTP_GET, htmlSetSignalKHost);
+
+  
   server.on("/description.xml", HTTP_GET, [](){  SSDP.schema(server.client()); });
 
   server.on("/signalk", HTTP_GET, htmlSignalKEndpoints);
@@ -30,13 +34,51 @@ void handleNotFound(){
   server.send(404, "text/plain", "404: Not found"); // Send HTTP status 404 (Not Found) when there's no handler for the URI in the request
 }
 
-void htmlGetSensors() {
+
+void htmlNewHostname() {
+  if(!server.hasArg("hostname")) {server.send(500, "text/plain", "missing arg 'hostname'"); return;}
+  server.arg("hostname").toCharArray(myHostname, 16);
+  saveConfig();
+  server.send(200, "application/json", "{ \"success\": true }");
+  delay(1000);
+  ESP.reset();
+}
+
+void htmlSetSignalKHost() {
+  if(!server.hasArg("host")) {server.send(500, "text/plain", "missing arg 'host'"); return;}
+  signalKHost = server.arg("host");
+  saveConfig();
+  server.send(200, "application/json", "{ \"success\": true }");
+}
+
+
+void htmlGetSensorInfo() {
   DynamicJsonBuffer jsonBuffer;
   SensorInfo *tmpSensorInfo;
   char response[2048];
   JsonObject& json = jsonBuffer.createObject();
   char strAddress[32];
   uint8_t numAttr;
+
+  //Info
+  json["hostname"] = myHostname;
+
+  //sigk
+  json["signalKHost"] = signalKHost;
+  json["signalKPort"] = signalKPort;
+  json["signalKPath"] = signalKPath;
+
+  //Sensor types present
+  json["sensorOneWire"] = sensorOneWirePresent;
+  json["sensorSHT30"] = sensorSHT30Present;
+  json["sensorMPU925X"] = sensorMPU925XPresent;
+  
+  //Timers
+  JsonObject& timers = json.createNestedObject("timers");
+
+  if (sensorOneWirePresent) { timers["oneWire"] = oneWireReadDelay; };
+  if (sensorSHT30Present) { timers["sht30"] = sensorSHTReadDelay;  };
+  if (sensorMPU925XPresent) { timers["mpu925x"] = updateMPUDelay; };
 
   //Sensors
   JsonArray& sensorArr = json.createNestedArray("sensors");
@@ -130,9 +172,11 @@ void htmlSetTimerDelay() {
       setOneWireReadDelay(newDelay);
     } else if (strcmp(timer, "sht30") == 0) {
       ok = true;
-      Serial.println("sht30");
+      setSHTReadDelay(newDelay);
+    } else if (strcmp(timer, "mpu925x") == 0) {
+      ok = true;
+      setMPUUpdateDelay(newDelay);
     }
-
     
   }
 
@@ -145,20 +189,6 @@ void htmlSetTimerDelay() {
   
 }
 
-void htmlGetTimers() {
-  DynamicJsonBuffer jsonBuffer;
-  char response[2048];
-
-  JsonObject& json = jsonBuffer.createObject();
-
-  json["oneWire"] = oneWireReadDelay;
-  json["sht30"] = sensorSHTReadDelay;
-
-  
-  json.printTo(response);
-  server.send ( 200, "application/json", response);
-  
-}
 
 
 void htmlSignalKEndpoints() {

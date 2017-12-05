@@ -43,11 +43,12 @@ void handleSHT30() {
 }
 
 
+
 void setSHTReadDelay(uint32_t newDelay) {
   os_timer_disarm(&sensorSHTPollTimer);
   sensorSHTReadDelay = newDelay;
   Serial.print("Restarting SHT30 polling timer at: ");
-  Serial.print(sensorSHTReadDelay);  
+  Serial.print(newDelay);  
   Serial.println("ms");  
   os_timer_arm(&sensorSHTPollTimer, sensorSHTReadDelay, true);  
 }

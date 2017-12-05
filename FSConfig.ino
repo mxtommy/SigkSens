@@ -37,6 +37,7 @@ void saveConfig() {
 
   JsonObject& json = jsonBuffer.createObject();
   json["hostname"] = myHostname;
+  json["signalKHost"] = signalKHost;
 
   //sensors
   JsonArray& jsonSensors = json.createNestedArray("sensors");
@@ -73,7 +74,7 @@ void saveConfig() {
 void loadConfig() {
   SensorInfo *tmpSensorInfo;
   uint8_t tempDeviceAddress[8];
-  char tempStr[MAX_SIGNALK_PATH_LEN];
+  char tempStr[255];
 
   if (SPIFFS.exists("/config.json")) {
     //file exists, reading and loading
@@ -95,6 +96,10 @@ void loadConfig() {
         
         // load hostname
         strcpy(myHostname, json["hostname"]);
+
+        //signalk
+        strcpy(tempStr, json["signalKHost"]);
+        signalKHost = tempStr;
 
         // load known sensors
         for (uint8_t i=0; i < json["sensors"].size(); i++) {

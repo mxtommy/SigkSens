@@ -1,7 +1,4 @@
 
-bool sensorSHT30Present = false;
-bool sensorMPU925XPresent = false;
-
 
 void setupI2C() {
   //Wire.setClock(0000L);
@@ -15,7 +12,9 @@ void setupI2C() {
     setupSHT30();
   }
 
-  setupMPU9250();
+  if (sensorMPU925XPresent) {
+    setupMPU9250();
+  }
 
   
 }
@@ -26,7 +25,9 @@ void handleI2C() {
     handleSHT30();  
   }
   
-  handleMPU9250();
+  if (sensorMPU925XPresent) {
+    handleMPU9250();
+  }
 }
 
 

@@ -84,7 +84,7 @@ void handle1Wire() {
 void setOneWireReadDelay(uint32_t newDelay) {
   os_timer_disarm(&oneWireRequestTimer);
   Serial.print("Restarting oneWire polling timer at: ");
-  Serial.print(oneWireReadDelay);  
+  Serial.print(newDelay);  
   Serial.println("ms");
   oneWireReadDelay = newDelay;
   os_timer_arm(&oneWireRequestTimer, oneWireReadDelay, true);
@@ -118,10 +118,12 @@ void interuptScan1WSensors(void *pArg) {
 void request1WSensors() {
   readyToRequest1Wire = false; // reset interupt
 
-  sensors.requestTemperatures();
+  if (sensorOneWirePresent) {
+      sensors.requestTemperatures();
 
-  // start ready timer
-  os_timer_arm(&oneWireReadyTimer, ONEWIRE_READ_DELAY, false); // false = no loop
+    // start ready timer
+    os_timer_arm(&oneWireReadyTimer, ONEWIRE_READ_DELAY, false); // false = no loop
+  }
   
 }
 
@@ -162,6 +164,10 @@ void oneWireScanBus() {
   sensors.begin(); //needed so the library searches for new sensors that came up since boot
 
   numberOfDevices = sensors.getDeviceCount();
+  if (numberOfDevices > 0) {
+    sensorOneWirePresent = true;
+  }
+
   SensorInfo *tmpSensorInfo;
 
   for(int i=0;i<numberOfDevices; i++) {
