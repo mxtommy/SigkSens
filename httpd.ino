@@ -18,7 +18,10 @@ void setupHTTP() {
   server.on("/setSensorPath", HTTP_GET, htmlSetSensorPath);
   server.on("/setTimerDelay", HTTP_GET, htmlSetTimerDelay);
   server.on("/setNewHostname", HTTP_GET, htmlNewHostname);
+  
   server.on("/setSignalKHost", HTTP_GET, htmlSetSignalKHost);
+  server.on("/setSignalKPort", HTTP_GET, htmlSetSignalKPort);
+  server.on("/setSignalKPath", HTTP_GET, htmlSetSignalKPath);
 
   
   server.on("/description.xml", HTTP_GET, [](){  SSDP.schema(server.client()); });
@@ -49,6 +52,23 @@ void htmlSetSignalKHost() {
   signalKHost = server.arg("host");
   saveConfig();
   server.send(200, "application/json", "{ \"success\": true }");
+  restartWebSocketClient();
+}
+
+void htmlSetSignalKPort() {
+  if(!server.hasArg("port")) {server.send(500, "text/plain", "missing arg 'port'"); return;}
+  signalKPort = server.arg("port").toInt();
+  saveConfig();
+  server.send(200, "application/json", "{ \"success\": true }");
+  restartWebSocketClient();
+}
+
+void htmlSetSignalKPath() {
+  if(!server.hasArg("path")) {server.send(500, "text/plain", "missing arg 'path'"); return;}
+  signalKPath = server.arg("path");
+  saveConfig();
+  server.send(200, "application/json", "{ \"success\": true }");
+  restartWebSocketClient();
 }
 
 

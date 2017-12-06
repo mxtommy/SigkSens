@@ -58,8 +58,11 @@ void handleSignalK() {
 
   if (needToSend) {
     delta.printTo(deltaText);
-    Serial.println(deltaText);
+    //Serial.println(deltaText);
     webSocketServer.broadcastTXT(deltaText);
+    if (websocketConnected) { // client
+      webSocketClient.sendTXT(deltaText);
+    }
   }
 
   

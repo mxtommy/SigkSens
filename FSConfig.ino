@@ -37,7 +37,12 @@ void saveConfig() {
 
   JsonObject& json = jsonBuffer.createObject();
   json["hostname"] = myHostname;
+  
   json["signalKHost"] = signalKHost;
+  json["signalKPort"] = signalKPort;
+  json["signalKPath"] = signalKPath;
+
+
 
   //sensors
   JsonArray& jsonSensors = json.createNestedArray("sensors");
@@ -98,8 +103,10 @@ void loadConfig() {
         strcpy(myHostname, json["hostname"]);
 
         //signalk
-        strcpy(tempStr, json["signalKHost"]);
-        signalKHost = tempStr;
+        strcpy(tempStr, json["signalKHost"]); signalKHost = tempStr;
+        strcpy(tempStr, json["signalKPath"]); signalKPath = tempStr;
+        signalKPort = json["signalKPort"];
+
 
         // load known sensors
         for (uint8_t i=0; i < json["sensors"].size(); i++) {

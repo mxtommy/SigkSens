@@ -8,7 +8,6 @@
 #include <ESP8266WebServer.h>     //Local WebServer used to serve the configuration portal
 #include <WiFiManager.h>          //https://github.com/tzapu/WiFiManager WiFi Configuration Magic
 
-#include <ArduinoOTA.h>
 #include <LinkedList.h>
 
 #include <ArduinoJson.h>     //https://github.com/bblanchon/ArduinoJson
@@ -59,6 +58,7 @@ ESP8266WebServer server(80);
 //Websocet
 WebSocketsServer webSocketServer = WebSocketsServer(81);
 WebSocketsClient webSocketClient;
+bool websocketConnected = false;
 
 char myHostname[16];
 
@@ -128,26 +128,6 @@ void setupWifi() {
 
 
 
-void setupOTA() {
-  ArduinoOTA.onStart([]() {
-    Serial.println("Start");
-  });
-  ArduinoOTA.onEnd([]() {
-    Serial.println("\nEnd");
-  });
-  ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
-    Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
-  });
-  ArduinoOTA.onError([](ota_error_t error) {
-    Serial.printf("Error[%u]: ", error);
-    if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
-    else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
-    else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
-    else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
-    else if (error == OTA_END_ERROR) Serial.println("End Failed");
-  });
-  ArduinoOTA.begin();
-}
 
 
 void setupDiscovery() {
@@ -186,7 +166,6 @@ void setup() {
 
   setupWifi();
   loadConfig();
-  setupOTA();
   setupDiscovery();
   setupHTTP();
   setupWebSocket();
@@ -211,7 +190,6 @@ Main Loop!
 
 void loop() {
   //device mgmt
-  ArduinoOTA.handle();
   yield();           
   
 
