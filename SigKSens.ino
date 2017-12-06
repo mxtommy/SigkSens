@@ -36,7 +36,7 @@ Defines
 // 10 is 0.25C in 187ms
 // 11 is 0.125C in 375ms
 // 12 is 0.0625C in 750ms
-#define TEMPERATURE_PRECISION 9
+#define TEMPERATURE_PRECISION 10
 #define ONEWIRE_READ_DELAY 94
 
 #define MAX_SIGNALK_PATH_LEN 150
