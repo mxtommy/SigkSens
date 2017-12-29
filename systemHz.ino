@@ -25,8 +25,8 @@ void setupSystemHz() {
     strcpy(newSensor->type,"Local");
     newSensor->attrName[0] = "systemHz";
     newSensor->attrName[1] = "freeMem";
-    newSensor->signalKPath[0] = "sensor.systemHz";
-    newSensor->signalKPath[1] = "sensor.freeMem";
+    newSensor->signalKPath[0] = "";
+    newSensor->signalKPath[1] = "";
     newSensor->valueJson[0] = "null";
     newSensor->valueJson[1] = "null";
     newSensor->isUpdated = false;

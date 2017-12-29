@@ -30,6 +30,8 @@ Defines
 #define RESET_CONFIG_PIN 0
 
 #define ONE_WIRE_BUS 13   // D7 pin on ESP
+#define D1_PIN 14 // D5 
+#define D2_PIN 12 // D6
 
 // set these together! Precision for OneWire
 // 9  is 0.5C in 94ms
@@ -93,11 +95,23 @@ uint32_t oneWireReadDelay = 5000; //ms between reading
 uint32_t oneWireScanDelay = 30000; //ms between scan
 uint32_t sensorSHTReadDelay = 5000; //ms between reading
 uint32_t updateMPUDelay = 1000;
+uint32_t updateDigitalInDelay = 1000;
 
 // SignalK stuff
 String signalKHost = "";
 uint16_t signalKPort = 80;
 String signalKPath = "/signalk/v1/stream";
+
+//Digital Input
+#define DIGITAL_MODE_OFF 0
+#define DIGITAL_MODE_STATE 1
+#define DIGITAL_MODE_FREQ 2
+
+int d1Mode = DIGITAL_MODE_OFF;
+int d2Mode = DIGITAL_MODE_OFF;
+
+
+
 
 /*---------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------
@@ -174,6 +188,7 @@ void setup() {
   setupConfigReset();
   setup1Wire();
   setupI2C();
+  setupDigitalIn();
 
   setupSystemHz();
   Serial.printf("Ready!\n");
@@ -199,6 +214,7 @@ void loop() {
   handleI2C();
   handleWebSocket();
   handleSignalK();
+  handleDigitalIn();
   server.handleClient();
   
   handleConfigReset();

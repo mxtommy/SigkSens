@@ -64,7 +64,12 @@ void saveConfig() {
   //Timers
   json["oneWireReadDelay"] = oneWireReadDelay;
   json["sensorSHTReadDelay"] = sensorSHTReadDelay;
+  json["updateMPUDelay"] = updateMPUDelay;
+  json["updateDigitalInDelay"] = updateDigitalInDelay;
 
+  //Digital
+  json["d1Mode"] = d1Mode;
+  json["d2Mode"] = d2Mode;
 
   File configFile = SPIFFS.open("/config.json", "w");
   if (!configFile) {
@@ -186,6 +191,12 @@ void loadConfig() {
     
         oneWireReadDelay = json["oneWireReadDelay"];
         sensorSHTReadDelay = json["sensorSHTReadDelay"];        
+        updateMPUDelay = json["updateMPUDelay"];
+        updateDigitalInDelay = json["updateDigitalInDelay"];
+
+        //Digital
+        d1Mode = json["d1Mode"];
+        d2Mode = json["d2Mode"];
 
       } else {
         Serial.println("failed to load json config");

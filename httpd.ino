@@ -18,6 +18,8 @@ void setupHTTP() {
   server.on("/setSensorPath", HTTP_GET, htmlSetSensorPath);
   server.on("/setTimerDelay", HTTP_GET, htmlSetTimerDelay);
   server.on("/setNewHostname", HTTP_GET, htmlNewHostname);
+
+  server.on("/setDigitalMode", HTTP_GET, htmlSetDigitalMode);
   
   server.on("/setSignalKHost", HTTP_GET, htmlSetSignalKHost);
   server.on("/setSignalKPort", HTTP_GET, htmlSetSignalKPort);
@@ -71,6 +73,23 @@ void htmlSetSignalKPath() {
   restartWebSocketClient();
 }
 
+void htmlSetDigitalMode() {
+  if(!server.hasArg("input")) {server.send(500, "text/plain", "missing arg 'input'"); return;}
+  if(!server.hasArg("mode")) {server.send(500, "text/plain", "missing arg 'mode'"); return;}
+  
+  if (server.arg("input").toInt() == 1) {
+    d1Mode = server.arg("mode").toInt();
+  }
+  if (server.arg("input").toInt() == 2) {
+    d2Mode = server.arg("mode").toInt();
+  }
+    
+  saveConfig();
+  server.send(200, "application/json", "{ \"success\": true }");
+
+  
+}
+
 
 void htmlGetSensorInfo() {
   DynamicJsonBuffer jsonBuffer;
@@ -92,13 +111,18 @@ void htmlGetSensorInfo() {
   json["sensorOneWire"] = sensorOneWirePresent;
   json["sensorSHT30"] = sensorSHT30Present;
   json["sensorMPU925X"] = sensorMPU925XPresent;
+
+  //Digital
+  json["d1Mode"] = d1Mode;
+  json["d2Mode"] = d2Mode;
   
   //Timers
   JsonObject& timers = json.createNestedObject("timers");
 
-  if (sensorOneWirePresent) { timers["oneWire"] = oneWireReadDelay; };
-  if (sensorSHT30Present) { timers["sht30"] = sensorSHTReadDelay;  };
-  if (sensorMPU925XPresent) { timers["mpu925x"] = updateMPUDelay; };
+  timers["oneWire"] = oneWireReadDelay;
+  timers["sht30"] = sensorSHTReadDelay;
+  timers["mpu925x"] = updateMPUDelay;
+  timers["digitalIn"] = updateDigitalInDelay;
 
   //Sensors
   JsonArray& sensorArr = json.createNestedArray("sensors");
@@ -196,6 +220,9 @@ void htmlSetTimerDelay() {
     } else if (strcmp(timer, "mpu925x") == 0) {
       ok = true;
       setMPUUpdateDelay(newDelay);
+    } else if (strcmp(timer, "digitalIn") == 0) {
+      ok = true;
+      setDigitalInUpdateDelay(newDelay);
     }
     
   }
