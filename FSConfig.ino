@@ -182,6 +182,17 @@ void loadConfig() {
             newSensor->attrName[3] = "roll";
             newSensor->signalKPath[3] = tempStr;              
             newSensor->valueJson[3] = "null";            
+          } else if (strcmp(newSensor->type, "digitalIn") == 0) {
+            // state
+            strcpy(tempStr, json["sensors"][i]["signalKPaths"][0]);
+            newSensor->attrName[0] = "state";
+            newSensor->signalKPath[0] = tempStr;            
+            newSensor->valueJson[0] = "null";
+            // freq
+            strcpy(tempStr, json["sensors"][i]["signalKPaths"][1]);
+            newSensor->attrName[1] = "freq";
+            newSensor->signalKPath[1] = tempStr;            
+            newSensor->valueJson[1] = "null";
           }
           
           sensorList.add(newSensor);

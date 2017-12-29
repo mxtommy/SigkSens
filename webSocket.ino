@@ -103,7 +103,7 @@ void webSocketServerEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t 
                 Serial.printf("[%u] Connected from %d.%d.%d.%d url: %s\n", num, ip[0], ip[1], ip[2], ip[3], payload);
         
                 // send message to client
-                webSocketServer.sendTXT(num, "Connected");
+                //webSocketServer.sendTXT(num, "Connected");
             }
             break;
         case WStype_TEXT:

@@ -258,7 +258,7 @@ void htmlSignalKEndpoints() {
   JsonObject& v1 = endpoints.createNestedObject("v1");
   v1["version"] = "1.alpha1";
   v1["signalk-ws"] = wsURL;
-  JsonObject& serverInfo = endpoints.createNestedObject("server");
+  JsonObject& serverInfo = json.createNestedObject("server");
   serverInfo["id"] = "ESP-SigKSen";
   json.printTo(response);
   server.send ( 200, "application/json", response);
