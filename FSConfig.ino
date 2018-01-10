@@ -199,7 +199,7 @@ void loadConfig() {
         }
 
         //Timers
-    
+
         oneWireReadDelay = json["oneWireReadDelay"];
         sensorSHTReadDelay = json["sensorSHTReadDelay"];        
         updateMPUDelay = json["updateMPUDelay"];

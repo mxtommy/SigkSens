@@ -21,13 +21,7 @@ void setupI2C() {
 
 void handleI2C() {
 
-  if (sensorSHT30Present) {
-    handleSHT30();  
-  }
-  
-  if (sensorMPU925XPresent) {
-    handleMPU9250();
-  }
+
 }
 
 
@@ -80,15 +74,18 @@ void scanI2C() {
       SensorInfo *newSensor = new SensorInfo();
       strcpy(newSensor->address, "68");
       strcpy(newSensor->type,"mpu925x");
-      newSensor->attrName[0] = "yaw";
-      newSensor->attrName[1] = "pitch";
-      newSensor->attrName[2] = "roll";
+      newSensor->attrName[0] = "tempK";
+      newSensor->attrName[1] = "yaw";
+      newSensor->attrName[2] = "pitch";
+      newSensor->attrName[3] = "roll";
       newSensor->signalKPath[0] = "";
       newSensor->signalKPath[1] = "";
       newSensor->signalKPath[2] = "";
+      newSensor->signalKPath[3] = "";
       newSensor->valueJson[0] = "null";
       newSensor->valueJson[1] = "null";
       newSensor->valueJson[2] = "null";
+      newSensor->valueJson[3] = "null";
       newSensor->isUpdated = false;
       sensorList.add(newSensor);         
       saveConfig();

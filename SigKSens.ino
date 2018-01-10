@@ -47,6 +47,8 @@ Defines
 #define SHORT_BUTTON_PRESS_MS 1000
 #define LONG_BUTTON_PRESS_MS 5000
 
+
+
 /*---------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------
 Global Variables
@@ -66,6 +68,7 @@ char myHostname[16];
 
 float systemHz = 0;
 
+uint16_t mainLoopCount = 0; //some stuff needs to run constantly, others not. so run some stuff only every X loops.
 
 //flag for saving data in FSConfig
 bool shouldSaveConfig = false;
@@ -173,7 +176,6 @@ void setupDiscovery() {
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(115200);
-  pinMode(LED_BUILTIN, OUTPUT);     // Initialize the LED_BUILTIN pin as an output
   pinMode(RESET_CONFIG_PIN, INPUT_PULLUP);
 
   setupFS();
@@ -208,16 +210,31 @@ void loop() {
   yield();           
   
 
-  //our stuff
+
+  //Stuff here run's all the time
   handleSystemHz();
-  handle1Wire();
-  handleI2C();
-  handleWebSocket();
-  handleSignalK();
-  handleDigitalIn();
-  server.handleClient();
+  if (sensorMPU925XPresent) {
+    handleMPU9250();
+  }
+
+  mainLoopCount++;
   
-  handleConfigReset();
+  //Stuff that runs  once every 250 loops. (still many many times/sec)
+  if (mainLoopCount > 1000) {
+     if (sensorSHT30Present) {
+        handleSHT30();  
+      }
+      handle1Wire();
+      handleI2C();
+      handleWebSocket();
+      handleSignalK();
+      handleDigitalIn();
+      server.handleClient();
+      
+      handleConfigReset(); 
+      mainLoopCount = 0;
+  }
+
 
 
 }

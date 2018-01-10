@@ -166,7 +166,7 @@
 #define MS5637_ADDRESS 0x76   // Address of altimeter
 #endif  
 
-#define SerialDebug false  // set to true to get Serial output for debugging
+#define SerialDebug true  // set to true to get Serial output for debugging
 
 // Set initial input parameters
 enum Ascale {
@@ -204,7 +204,7 @@ uint8_t OSR = ADC_8192;     // set pressure amd temperature oversample rate
 uint8_t Gscale = GFS_250DPS;
 uint8_t Ascale = AFS_2G;
 uint8_t Mscale = MFS_16BITS; // Choose either 14-bit or 16-bit magnetometer resolution
-uint8_t Mmode = 0x06;        // 2 for 8 Hz, 6 for 100 Hz continuous magnetometer data read
+uint8_t Mmode = 0x02;        // 2 for 8 Hz, 6 for 100 Hz continuous magnetometer data read
 float aRes, gRes, mRes;      // scale resolutions per LSB for the sensors
   
 volatile bool newData = false;
@@ -268,6 +268,13 @@ bool MPUisValid = false;
 os_timer_t  mpuUpdateSensorInfo; // repeating timer that fires ever X/time to start temp request cycle
 bool mpuUpdateReady = false;
 
+void ICACHE_RAM_ATTR interuptMPUNewData()
+{
+  newData = true;
+}
+
+
+
 void setupMPU9250() {
 
   configureMPU9250();
@@ -319,10 +326,6 @@ void interuptMPUSensorInfo(void *pArg) {
   mpuUpdateReady = true;
 }
 
-void interuptMPUNewData()
-{
-  newData = true;
-}
 
 /* ---------------------------------------------------------------------------------------------
    ---------------------------------------------------------------------------------------------
@@ -406,7 +409,7 @@ void configureMPU9250()
 
 
 ////////////////////////////////////////////////////////////////////////////////////////
-    //magcalMPU9250(magBias, magScale);
+    magcalMPU9250(magBias, magScale);
     Serial.println("AK8963 mag biases (mG)"); Serial.println(magBias[0]); Serial.println(magBias[1]); Serial.println(magBias[2]); 
     Serial.println("AK8963 mag scale (mG)"); Serial.println(magScale[0]); Serial.println(magScale[1]); Serial.println(magScale[2]); 
  
@@ -563,8 +566,7 @@ void updateMPUSensorInfo() {
     Serial.print(pitch, 2);
     Serial.print(", ");
     Serial.print(roll, 2);
-    Serial.print(" rate = "); Serial.print((float)sumCount/sum, 2); Serial.println(" Hz");
-
+    Serial.print(" rate = "); Serial.print((float)sumCount/sum, 2); Serial.print(" Hz. Freemem: "); Serial.println(ESP.getFreeHeap());
     Serial.print("Grav_x, Grav_y, Grav_z: ");
     Serial.print(-a31*1000, 2);
     Serial.print(", ");

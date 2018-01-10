@@ -61,22 +61,16 @@ void handle1Wire() {
 
   // If it's time to request temps, well request it...
   if (readyToRequest1Wire) {
-    digitalWrite(LED_BUILTIN, LOW);
     request1WSensors();
-    digitalWrite(LED_BUILTIN, HIGH);  
   }
 
   //ready to send temps! 
   if (readyToRead1Wire) {
-    digitalWrite(LED_BUILTIN, LOW);
     read1WSensors();
-    digitalWrite(LED_BUILTIN, HIGH);      
   }
 
   if (readyToScan1Wire) {
-    digitalWrite(LED_BUILTIN, LOW);
     oneWireScanBus();
-    digitalWrite(LED_BUILTIN, HIGH);       
   }
 
 }
