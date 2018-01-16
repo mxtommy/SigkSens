@@ -204,10 +204,9 @@ uint8_t OSR = ADC_8192;     // set pressure amd temperature oversample rate
 uint8_t Gscale = GFS_250DPS;
 uint8_t Ascale = AFS_2G;
 uint8_t Mscale = MFS_16BITS; // Choose either 14-bit or 16-bit magnetometer resolution
-uint8_t Mmode = 0x02;        // 2 for 8 Hz, 6 for 100 Hz continuous magnetometer data read
+uint8_t Mmode = 0x06;        // 2 for 8 Hz, 6 for 100 Hz continuous magnetometer data read
 float aRes, gRes, mRes;      // scale resolutions per LSB for the sensors
   
-volatile bool newData = false;
 bool newMagData = false;
 
 
@@ -258,109 +257,12 @@ enum MPUVersion {
 uint8_t MPUVersion;
 float myPI = 3.14159265359f;
 
-
 /* ---------------------------------------------------------------------------------------------
    ---------------------------------------------------------------------------------------------
    ---------------------------------------------------------------------------------------------
    --------------------------------------------------------------------------------------------- */
- 
-bool MPUisValid = false;
-os_timer_t  mpuUpdateSensorInfo; // repeating timer that fires ever X/time to start temp request cycle
-bool mpuUpdateReady = false;
-
-void ICACHE_RAM_ATTR interuptMPUNewData()
-{
-  newData = true;
-}
-
-
-
-void setupMPU9250() {
-
-  configureMPU9250();
-  os_timer_setfn(&mpuUpdateSensorInfo, interuptMPUSensorInfo, NULL);
-  os_timer_arm(&mpuUpdateSensorInfo, updateMPUDelay, true);
-  attachInterrupt(12, interuptMPUNewData, RISING); // define interrupt for INT pin output of MPU9250
-
-}
-
-
-void handleMPU9250() {
-
-  if (!MPUisValid) {
-    return;
-  }
-
-  //if (readByte(MPU9250_ADDRESS, INT_STATUS) & 0x01) {  //If there's new data
-  if(newData) {
-    newData = false; // reset newData flag
-    processMPU9250();
-  }
-
-  updateQuaternion();
-
-
-  if (mpuUpdateReady) {
-    // reset interupt
-    mpuUpdateReady = false;
-    updateMPUSensorInfo();
-  }
-
-
-  
-}
-
-
-void setMPUUpdateDelay(uint32_t newDelay) {
-  os_timer_disarm(&mpuUpdateSensorInfo);
-  Serial.print("Restarting MPU polling timer at: ");
-  Serial.print(oneWireReadDelay);  
-  Serial.println("ms");
-  updateMPUDelay = newDelay;
-  os_timer_arm(&mpuUpdateSensorInfo, updateMPUDelay, true);
-
-}
-
-
-void interuptMPUSensorInfo(void *pArg) {
-  mpuUpdateReady = true;
-}
-
-
-/* ---------------------------------------------------------------------------------------------
-   ---------------------------------------------------------------------------------------------
-   ---------------------------------------------------------------------------------------------
-   --------------------------------------------------------------------------------------------- */
-
-void htmlGetCalibration() {
-  Serial.println("Aaa");
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* ---------------------------------------------------------------------------------------------
-   ---------------------------------------------------------------------------------------------
-   ---------------------------------------------------------------------------------------------
-   --------------------------------------------------------------------------------------------- */
-
-
 void configureMPU9250()
 {
-
- 
   // Read the WHO_AM_I register, this is a good test of communication
   Serial.println("MPU9250 9-axis motion sensor...");
   byte c = readByte(MPU9250_ADDRESS, WHO_AM_I_MPU9250);  // Read WHO_AM_I register for MPU-9250
@@ -449,6 +351,7 @@ void processMPU9250() {
   // Include factory calibration per data sheet and user environmental corrections
   if(newMagData == true) {
     newMagData = false; // reset newMagData flag
+
     mx = (float)magCount[0]*mRes*magCalibration[0] - magBias[0];  // get actual magnetometer value, this depends on scale being set
     my = (float)magCount[1]*mRes*magCalibration[1] - magBias[1];  
     mz = (float)magCount[2]*mRes*magCalibration[2] - magBias[2];  
@@ -489,24 +392,7 @@ void updateMPUSensorInfo() {
   temperature = ((float) tempCount) / 333.87 + 21.0; // Gyro chip temperature in degrees Centigrade
   // Print temperature in degrees Centigrade      
  
-  if(SerialDebug) {
-    Serial.print("ax = "); Serial.print((int)1000*ax);  
-    Serial.print(" ay = "); Serial.print((int)1000*ay); 
-    Serial.print(" az = "); Serial.print((int)1000*az); Serial.println(" mg");
-    Serial.print("gx = "); Serial.print( gx, 2); 
-    Serial.print(" gy = "); Serial.print( gy, 2); 
-    Serial.print(" gz = "); Serial.print( gz, 2); Serial.println(" deg/s");
-    Serial.print("mx = "); Serial.print( (int)mx ); 
-    Serial.print(" my = "); Serial.print( (int)my ); 
-    Serial.print(" mz = "); Serial.print( (int)mz ); Serial.println(" mG");
-    
-    Serial.print("q0 = "); Serial.print(q[0]);
-    Serial.print(" qx = "); Serial.print(q[1]); 
-    Serial.print(" qy = "); Serial.print(q[2]); 
-    Serial.print(" qz = "); Serial.println(q[3]); 
-    Serial.print("Gyro temperature is ");  Serial.print(temperature, 1);  Serial.println(" degrees C"); // Print T values to tenths of s degree C
-   
-  }   
+  
   // Define output variables from updated quaternion---these are Tait-Bryan angles, commonly used in aircraft orientation.
   // In this coordinate system, the positive z-axis is down toward Earth. 
   // Yaw is the angle between Sensor x-axis and Earth magnetic North (or true North if corrected for local declination, looking down on the sensor positive yaw is counterclockwise.
@@ -560,25 +446,41 @@ void updateMPUSensorInfo() {
   }
 
   if(SerialDebug) {
-    Serial.print("Yaw, Pitch, Roll: ");
-    Serial.print(yaw, 2);
-    Serial.print(", ");
-    Serial.print(pitch, 2);
-    Serial.print(", ");
-    Serial.print(roll, 2);
-    Serial.print(" rate = "); Serial.print((float)sumCount/sum, 2); Serial.print(" Hz. Freemem: "); Serial.println(ESP.getFreeHeap());
-    Serial.print("Grav_x, Grav_y, Grav_z: ");
-    Serial.print(-a31*1000, 2);
-    Serial.print(", ");
-    Serial.print(-a32*1000, 2);
-    Serial.print(", ");
-    Serial.print(a33*1000, 2);  Serial.println(" mg");
-    Serial.print("Lin_ax, Lin_ay, Lin_az: ");
-    Serial.print(lin_ax*1000, 2);
-    Serial.print(", ");
-    Serial.print(lin_ay*1000, 2);
-    Serial.print(", ");
-    Serial.print(lin_az*1000, 2);  Serial.println(" mg");
+    //Serial.print("ax = "); Serial.print((int)1000*ax);  
+    //Serial.print(" ay = "); Serial.print((int)1000*ay); 
+    //Serial.print(" az = "); Serial.print((int)1000*az); Serial.println(" mg");
+    //Serial.print("gx = "); Serial.print( gx, 2); 
+    //Serial.print(" gy = "); Serial.print( gy, 2); 
+    //Serial.print(" gz = "); Serial.print( gz, 2); Serial.println(" deg/s");
+    //Serial.print("mx = "); Serial.print( (int)mx ); 
+    //Serial.print(" my = "); Serial.print( (int)my ); 
+    //Serial.print(" mz = "); Serial.print( (int)mz ); Serial.println(" mG");
+    
+    //Serial.print("q0 = "); Serial.print(q[0]);
+    //Serial.print(" qx = "); Serial.print(q[1]); 
+    //Serial.print(" qy = "); Serial.print(q[2]); 
+    //Serial.print(" qz = "); Serial.println(q[3]); 
+    //Serial.print("Gyro temperature is ");  Serial.print(temperature, 1);  Serial.println(" degrees C"); // Print T values to tenths of s degree C
+    
+    //Serial.print("Yaw, Pitch, Roll: ");
+    //Serial.print(yaw, 2);
+    //Serial.print(", ");
+    //Serial.print(pitch, 2);
+    //Serial.print(", ");
+    //Serial.print(roll, 2);
+    Serial.print(" rate = "); Serial.print((float)sumCount/sum, 2); Serial.println(" Hz");
+    //Serial.print("Grav_x, Grav_y, Grav_z: ");
+    //Serial.print(-a31*1000, 2);
+    //Serial.print(", ");
+    //Serial.print(-a32*1000, 2);
+    //Serial.print(", ");
+    //Serial.print(a33*1000, 2);  Serial.println(" mg");
+    //Serial.print("Lin_ax, Lin_ay, Lin_az: ");
+    //Serial.print(lin_ax*1000, 2);
+    //Serial.print(", ");
+    //Serial.print(lin_ay*1000, 2);
+    //Serial.print(", ");
+    //Serial.print(lin_az*1000, 2);  Serial.println(" mg");
     
   }
    
