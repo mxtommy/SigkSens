@@ -17,7 +17,7 @@ void handleSignalK() {
   //updated array
   JsonArray& updatesArr = delta.createNestedArray("updates");
 
-
+  //TODO initialize json only if updated needed.
   // source
 
 
