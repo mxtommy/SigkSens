@@ -4,8 +4,19 @@ One Wire
 -----------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------*/
 
+extern "C" {
+#include "user_interface.h"
+}
+
+#include "sigksens.h"
+#include "oneWire.h"
+
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
+
+// some timers
+uint32_t oneWireReadDelay = 5000; //ms between reading
+uint32_t oneWireScanDelay = 30000; //ms between scan
 
 os_timer_t  oneWireRequestTimer; // repeating timer that fires ever X/time to start temp request cycle
 os_timer_t  oneWireReadyTimer; // once request cycle starts, this timer set so we can send when ready
@@ -14,8 +25,19 @@ bool readyToRequest1Wire = false;
 bool readyToRead1Wire = false;
 bool readyToScan1Wire = false;
 
+// forward declarations
+bool oneWireScanBus(bool&);
+void interuptRequest1WSensors(void *pArg);
+void interuptReady1WSensors(void *pArg);
+void interuptScan1WSensors(void *pArg);
+void request1WSensors(bool);
+void read1WSensors();
 
-void setup1Wire() {
+void getOneWireReadDelay(uint32_t &readDelay) { readDelay = oneWireReadDelay; }
+
+bool setup1Wire(bool &need_save) {
+  bool present = false;
+
   sensors.begin();
   
   sensors.setWaitForConversion(false);
@@ -41,27 +63,24 @@ void setup1Wire() {
 
   Serial.println("Scanning OneWire Bus");
 
-  oneWireScanBus();
+  present = oneWireScanBus(need_save);
 
   os_timer_setfn(&oneWireRequestTimer, interuptRequest1WSensors, NULL);
   os_timer_setfn(&oneWireReadyTimer, interuptReady1WSensors, NULL);
   os_timer_setfn(&oneWireScanTimer, interuptScan1WSensors, NULL);
 
-
-
   os_timer_arm(&oneWireRequestTimer, oneWireReadDelay, true);
   os_timer_arm(&oneWireScanTimer, oneWireScanDelay, true);
 
-
-
+  return present;
 }
 
 //called once every loop()
-void handle1Wire() {
+void handle1Wire(bool &present, bool &need_save) {
 
   // If it's time to request temps, well request it...
   if (readyToRequest1Wire) {
-    request1WSensors();
+    request1WSensors(present);
   }
 
   //ready to send temps! 
@@ -70,7 +89,7 @@ void handle1Wire() {
   }
 
   if (readyToScan1Wire) {
-    oneWireScanBus();
+    present = oneWireScanBus(need_save);
   }
 
 }
@@ -109,10 +128,10 @@ void interuptScan1WSensors(void *pArg) {
   readyToScan1Wire = true;
 } 
 
-void request1WSensors() {
+void request1WSensors(bool present) {
   readyToRequest1Wire = false; // reset interupt
 
-  if (sensorOneWirePresent) {
+  if (present) {
       sensors.requestTemperatures();
 
     // start ready timer
@@ -147,7 +166,9 @@ void read1WSensors() {
 }
 
 
-void oneWireScanBus() {
+bool oneWireScanBus(bool &need_save) {
+  bool present = false;
+
   readyToScan1Wire = false; // reset Interupt
 
   uint8_t tempDeviceAddress[8];
@@ -155,11 +176,13 @@ void oneWireScanBus() {
 
   int numberOfDevices = 0;
 
+  need_save = false;
+
   sensors.begin(); //needed so the library searches for new sensors that came up since boot
 
   numberOfDevices = sensors.getDeviceCount();
   if (numberOfDevices > 0) {
-    sensorOneWirePresent = true;
+    present = true;
   }
 
   SensorInfo *tmpSensorInfo;
@@ -167,7 +190,6 @@ void oneWireScanBus() {
   for(int i=0;i<numberOfDevices; i++) {
     if(sensors.getAddress(tempDeviceAddress, i))
     {
-
       // convert to string
         sprintf(strAddress, "%02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X", 
         tempDeviceAddress[0], 
@@ -186,8 +208,8 @@ void oneWireScanBus() {
         if (strcmp(tmpSensorInfo->address, strAddress) == 0) {
           known = true;                
         }
-        
       }
+
       if (!known) {
         Serial.print("New Sensor found: ");
         Serial.print(strAddress);
@@ -199,12 +221,12 @@ void oneWireScanBus() {
         strcpy(newSensor->type,"oneWire");
         newSensor->valueJson[0] = "{ \"tempK\": null }";
         sensorList.add(newSensor);
-        saveConfig();
+        need_save = true;
       }
-
     }
   }
-  
+
+  return present;
 }
 
 
