@@ -15,26 +15,9 @@
 
 #include <Wire.h>
 
+#include "config.h"
 #include "oneWire.h"
 #include "sigksens.h"
-
-/*---------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------
-Defines
------------------------------------------------------------------------------------------------------
----------------------------------------------------------------------------------------------------*/
-
-
-#define RESET_CONFIG_PIN 0
-
-#define D1_PIN 14 // D5 
-#define D2_PIN 12 // D6
-
-#define MAX_SIGNALK_PATH_LEN 150
-
-#define SHORT_BUTTON_PRESS_MS 1000
-#define LONG_BUTTON_PRESS_MS 5000
-
 
 
 /*---------------------------------------------------------------------------------------------------
@@ -145,7 +128,7 @@ void setupDiscovery() {
 
 
 void setup() {
-  bool need_save;
+  bool need_save = false;
   // put your setup code here, to run once:
   Serial.begin(115200);
   pinMode(RESET_CONFIG_PIN, INPUT_PULLUP);
