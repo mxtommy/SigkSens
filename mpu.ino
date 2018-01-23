@@ -15,6 +15,8 @@ void htmlGetCalibration() {
 void setMPUUpdateDelay(uint32_t newDelay) {
   os_timer_disarm(&mpuUpdateSensorInfo);
   Serial.print("Restarting MPU polling timer at: ");
+  uint32_t oneWireReadDelay;
+  getOneWireReadDelay(oneWireReadDelay);
   Serial.print(oneWireReadDelay);  
   Serial.println("ms");
   updateMPUDelay = newDelay;

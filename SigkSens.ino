@@ -8,45 +8,16 @@
 #include <ESP8266WebServer.h>     //Local WebServer used to serve the configuration portal
 #include <WiFiManager.h>          //https://github.com/tzapu/WiFiManager WiFi Configuration Magic
 
-#include <LinkedList.h>
-
 #include <ArduinoJson.h>     //https://github.com/bblanchon/ArduinoJson
 
 #include <WebSocketsServer.h>
 #include <WebSocketsClient.h>
 
-#include <OneWire.h>
-#include <DallasTemperature.h>
 #include <Wire.h>
 
-
-/*---------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------
-Defines
------------------------------------------------------------------------------------------------------
----------------------------------------------------------------------------------------------------*/
-
-
-#define RESET_CONFIG_PIN 0
-
-#define ONE_WIRE_BUS 13   // D7 pin on ESP
-#define D1_PIN 14 // D5 
-#define D2_PIN 12 // D6
-
-// set these together! Precision for OneWire
-// 9  is 0.5C in 94ms
-// 10 is 0.25C in 187ms
-// 11 is 0.125C in 375ms
-// 12 is 0.0625C in 750ms
-#define TEMPERATURE_PRECISION 10
-#define ONEWIRE_READ_DELAY 187
-
-#define MAX_SIGNALK_PATH_LEN 150
-#define MAX_SENSOR_ATTRIBUTES 10
-
-#define SHORT_BUTTON_PRESS_MS 1000
-#define LONG_BUTTON_PRESS_MS 5000
-
+#include "config.h"
+#include "oneWire.h"
+#include "sigksens.h"
 
 
 /*---------------------------------------------------------------------------------------------------
@@ -73,29 +44,12 @@ uint16_t mainLoopCount = 0; //some stuff needs to run constantly, others not. so
 //flag for saving data in FSConfig
 bool shouldSaveConfig = false;
 
-
-// memory to save sensor info
-class SensorInfo {
-  public:
-    char address[32];
-    String attrName[MAX_SENSOR_ATTRIBUTES];
-    String signalKPath[MAX_SENSOR_ATTRIBUTES];
-    String valueJson[MAX_SENSOR_ATTRIBUTES];
-    char type[10];
-    bool isUpdated;
-};
-
-
-LinkedList<SensorInfo*> sensorList = LinkedList<SensorInfo*>();
-
 // Sensors present
 bool sensorSHT30Present = false;
 bool sensorMPU925XPresent = false;
 bool sensorOneWirePresent = false;
 
 // some timers 
-uint32_t oneWireReadDelay = 5000; //ms between reading
-uint32_t oneWireScanDelay = 30000; //ms between scan
 uint32_t sensorSHTReadDelay = 5000; //ms between reading
 uint32_t updateMPUDelay = 1000;
 uint32_t updateDigitalInDelay = 1000;
@@ -174,6 +128,7 @@ void setupDiscovery() {
 
 
 void setup() {
+  bool need_save = false;
   // put your setup code here, to run once:
   Serial.begin(115200);
   pinMode(RESET_CONFIG_PIN, INPUT_PULLUP);
@@ -188,7 +143,10 @@ void setup() {
   setupSignalK();
 
   setupConfigReset();
-  setup1Wire();
+  sensorOneWirePresent = setup1Wire(need_save);
+  if (need_save) {
+    saveConfig();
+  }
   setupI2C();
   setupDigitalIn();
 
@@ -206,6 +164,7 @@ Main Loop!
 
 
 void loop() {
+  bool need_save = false;
   //device mgmt
   yield();           
   
@@ -224,7 +183,12 @@ void loop() {
      if (sensorSHT30Present) {
         handleSHT30();  
       }
-      handle1Wire();
+
+      handle1Wire(sensorOneWirePresent, need_save);
+      if (need_save) {
+        saveConfig();
+      }
+  
       handleI2C();
       handleWebSocket();
       handleSignalK();
@@ -237,20 +201,3 @@ void loop() {
 
 }
 
-/*---------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------
-Helper functions
------------------------------------------------------------------------------------------------------
----------------------------------------------------------------------------------------------------*/
-
-
-void parseBytes(const char* str, char sep, byte* bytes, int maxBytes, int base) {
-  for (int i = 0; i < maxBytes; i++) {
-      bytes[i] = strtoul(str, NULL, base);  // Convert byte
-      str = strchr(str, sep);               // Find next separator
-      if (str == NULL || *str == '\0') {
-          break;                            // No more separators, exit
-      }
-      str++;                                // Point to next character after separator
-  }
-}
