@@ -15,7 +15,7 @@ Defines
 
 // One-Wire settings
 
-#define ONE_WIRE_BUS 2   // D7 pin on ESP
+#define ONE_WIRE_BUS 13   // D7 pin on ESP
 
 // set these together! Precision for OneWire
 // 9  is 0.5C in 94ms
