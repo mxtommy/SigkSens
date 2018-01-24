@@ -61,9 +61,8 @@ void saveConfig() {
     }
   }
 
-  uint32_t oneWireReadDelay;
-  getOneWireReadDelay(oneWireReadDelay);
-
+  uint32_t oneWireReadDelay = getOneWireReadDelay();
+  
   //Timers
   json["oneWireReadDelay"] = oneWireReadDelay;
   json["sensorSHTReadDelay"] = sensorSHTReadDelay;

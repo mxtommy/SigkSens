@@ -119,9 +119,7 @@ void htmlGetSensorInfo() {
   //Timers
   JsonObject& timers = json.createNestedObject("timers");
 
-  uint32_t oneWireReadDelay;
-  getOneWireReadDelay(oneWireReadDelay);
-  timers["oneWire"] = oneWireReadDelay;
+  timers["oneWire"] = getOneWireReadDelay();
   timers["sht30"] = sensorSHTReadDelay;
   timers["mpu925x"] = updateMPUDelay;
   timers["digitalIn"] = updateDigitalInDelay;

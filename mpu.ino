@@ -11,18 +11,15 @@ void htmlGetCalibration() {
 }
 
 
-
 void setMPUUpdateDelay(uint32_t newDelay) {
   os_timer_disarm(&mpuUpdateSensorInfo);
   Serial.print("Restarting MPU polling timer at: ");
-  uint32_t oneWireReadDelay;
-  getOneWireReadDelay(oneWireReadDelay);
-  Serial.print(oneWireReadDelay);  
+  Serial.print(getOneWireReadDelay());  
   Serial.println("ms");
   updateMPUDelay = newDelay;
   os_timer_arm(&mpuUpdateSensorInfo, updateMPUDelay, true);
-
 }
+
 
 void ICACHE_RAM_ATTR interuptMPUNewData()
 {
