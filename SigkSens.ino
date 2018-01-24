@@ -17,6 +17,7 @@
 
 #include "config.h"
 #include "oneWire.h"
+#include "digitalIn.h"
 #include "sigksens.h"
 
 
@@ -52,22 +53,11 @@ bool sensorOneWirePresent = false;
 // some timers 
 uint32_t sensorSHTReadDelay = 5000; //ms between reading
 uint32_t updateMPUDelay = 1000;
-uint32_t updateDigitalInDelay = 1000;
 
 // SignalK stuff
 String signalKHost = "";
 uint16_t signalKPort = 80;
 String signalKPath = "/signalk/v1/stream";
-
-//Digital Input
-#define DIGITAL_MODE_OFF 0
-#define DIGITAL_MODE_STATE 1
-#define DIGITAL_MODE_FREQ 2
-
-int d1Mode = DIGITAL_MODE_OFF;
-int d2Mode = DIGITAL_MODE_OFF;
-
-
 
 
 /*---------------------------------------------------------------------------------------------------
@@ -144,12 +134,12 @@ void setup() {
 
   setupConfigReset();
   sensorOneWirePresent = setup1Wire(need_save);
+  setupI2C();
+  setupDigitalIn(need_save);
   if (need_save) {
     saveConfig();
   }
-  setupI2C();
-  setupDigitalIn();
-
+  
   setupSystemHz();
   Serial.printf("Ready!\n");
 
