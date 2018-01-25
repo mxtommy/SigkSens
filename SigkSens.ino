@@ -18,6 +18,7 @@
 #include "config.h"
 #include "oneWire.h"
 #include "digitalIn.h"
+#include "systemHz.h"
 #include "sigksens.h"
 
 
@@ -37,8 +38,6 @@ WebSocketsClient webSocketClient;
 bool websocketConnected = false;
 
 char myHostname[16];
-
-float systemHz = 0;
 
 uint16_t mainLoopCount = 0; //some stuff needs to run constantly, others not. so run some stuff only every X loops.
 
@@ -136,11 +135,12 @@ void setup() {
   sensorOneWirePresent = setup1Wire(need_save);
   setupI2C();
   setupDigitalIn(need_save);
+  setupSystemHz(need_save);
+  
   if (need_save) {
     saveConfig();
   }
   
-  setupSystemHz();
   Serial.printf("Ready!\n");
 
   

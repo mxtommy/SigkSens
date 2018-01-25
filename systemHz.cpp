@@ -1,10 +1,26 @@
+
+extern "C" {
+#include "user_interface.h"
+}
+
+#include "sigksens.h"
+#include "systemHz.h"
+
 os_timer_t  updateHz; // once request cycle starts, this timer set so we can send when ready
 bool readyToUpdateHz = false;
 
 uint32_t systemHzCount = 0, systemHzMs = 0;
 
-void setupSystemHz() {
-  os_timer_setfn(&updateHz, interuptSystemHz, NULL);
+float systemHz = 0;
+
+
+void interruptSystemHz(void *pArg) {
+  readyToUpdateHz = true;
+}
+
+
+void setupSystemHz(bool &need_save) {
+  os_timer_setfn(&updateHz, interruptSystemHz, NULL);
   os_timer_arm(&updateHz, 1000, true);
   systemHzMs = millis();
   SensorInfo *tmpSensorInfo;
@@ -30,28 +46,9 @@ void setupSystemHz() {
     newSensor->valueJson[0] = "null";
     newSensor->valueJson[1] = "null";
     newSensor->isUpdated = false;
-    sensorList.add(newSensor);         
-    saveConfig();
+    sensorList.add(newSensor);
+    need_save = true;
   }    
-
-
-  
-}
-
-
-void handleSystemHz() {
-  if (readyToUpdateHz) {
-    // reset interupt
-    readyToUpdateHz = false;
-    updateSystemHz();
-  }
-  systemHzCount++;
-  
-}
-
-
-void interuptSystemHz(void *pArg) {
-  readyToUpdateHz = true;
 }
 
 
@@ -76,3 +73,12 @@ void updateSystemHz() {
   systemHzMs = millis();
 }
 
+
+void handleSystemHz() {
+  if (readyToUpdateHz) {
+    // reset interupt
+    readyToUpdateHz = false;
+    updateSystemHz();
+  }
+  systemHzCount++;
+}
