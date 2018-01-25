@@ -4,6 +4,9 @@ One Wire
 -----------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------*/
 
+#include <OneWire.h>
+#include <DallasTemperature.h>
+
 extern "C" {
 #include "user_interface.h"
 }
@@ -33,7 +36,7 @@ void interuptScan1WSensors(void *pArg);
 void request1WSensors(bool);
 void read1WSensors();
 
-void getOneWireReadDelay(uint32_t &readDelay) { readDelay = oneWireReadDelay; }
+uint32_t getOneWireReadDelay() { return oneWireReadDelay; }
 
 bool setup1Wire(bool &need_save) {
   bool present = false;
@@ -175,8 +178,6 @@ bool oneWireScanBus(bool &need_save) {
   char strAddress[32];
 
   int numberOfDevices = 0;
-
-  need_save = false;
 
   sensors.begin(); //needed so the library searches for new sensors that came up since boot
 

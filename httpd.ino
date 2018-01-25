@@ -78,10 +78,10 @@ void htmlSetDigitalMode() {
   if(!server.hasArg("mode")) {server.send(500, "text/plain", "missing arg 'mode'"); return;}
   
   if (server.arg("input").toInt() == 1) {
-    d1Mode = server.arg("mode").toInt();
+    setD1Mode(server.arg("mode").toInt());
   }
   if (server.arg("input").toInt() == 2) {
-    d2Mode = server.arg("mode").toInt();
+    setD2Mode(server.arg("mode").toInt());
   }
     
   saveConfig();
@@ -113,18 +113,16 @@ void htmlGetSensorInfo() {
   json["sensorMPU925X"] = sensorMPU925XPresent;
 
   //Digital
-  json["d1Mode"] = d1Mode;
-  json["d2Mode"] = d2Mode;
+  json["d1Mode"] = getD1Mode();
+  json["d2Mode"] = getD2Mode();
   
   //Timers
   JsonObject& timers = json.createNestedObject("timers");
 
-  uint32_t oneWireReadDelay;
-  getOneWireReadDelay(oneWireReadDelay);
-  timers["oneWire"] = oneWireReadDelay;
+  timers["oneWire"] = getOneWireReadDelay();
   timers["sht30"] = sensorSHTReadDelay;
   timers["mpu925x"] = updateMPUDelay;
-  timers["digitalIn"] = updateDigitalInDelay;
+  timers["digitalIn"] = getUpdateDigitalInDelay();
 
   //Sensors
   JsonArray& sensorArr = json.createNestedArray("sensors");
