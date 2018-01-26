@@ -1,3 +1,16 @@
+
+extern "C" {
+#include "user_interface.h"
+}
+
+#include <Wire.h>
+
+#include "arduino.h"
+
+#include "sigksens.h"
+#include "quaternionFilters.h"
+#include "mpu9250.h"
+
 // Based on https://raw.githubusercontent.com/kriswiner/MPU9250/master/MPU9250_MS5637_AHRS_t3.ino
 
 // See also MPU-9250 Register Map and Descriptions, Revision 4.0, RM-MPU-9250A-00, Rev. 1.4, 9/9/2013 for registers not listed in 
@@ -222,33 +235,15 @@ int16_t tempCount;            // temperature raw count output
 float   temperature;          // Stores the MPU9250 gyro internal chip temperature in degrees Celsius
 float SelfTest[6];            // holds results of gyro and accelerometer self test
 
-// global constants for 9 DoF fusion and AHRS (Attitude and Heading Reference System)
-float GyroMeasError = PI * (4.0f / 180.0f);   // gyroscope measurement error in rads/s (start at 40 deg/s)
-float GyroMeasDrift = PI * (0.0f  / 180.0f);   // gyroscope measurement drift in rad/s/s (start at 0.0 deg/s/s)
-// There is a tradeoff in the beta parameter between accuracy and response speed.
-// In the original Madgwick study, beta of 0.041 (corresponding to GyroMeasError of 2.7 degrees/s) was found to give optimal accuracy.
-// However, with this value, the LSM9SD0 response time is about 10 seconds to a stable initial quaternion.
-// Subsequent changes also require a longish lag time to a stable output, not fast enough for a quadcopter or robot car!
-// By increasing beta (GyroMeasError) by about a factor of fifteen, the response time constant is reduced to ~2 sec
-// I haven't noticed any reduction in solution accuracy. This is essentially the I coefficient in a PID control sense; 
-// the bigger the feedback coefficient, the faster the solution converges, usually at the expense of accuracy. 
-// In any case, this is the free parameter in the Madgwick filtering and fusion scheme.
-float beta = sqrt(3.0f / 4.0f) * GyroMeasError;   // compute beta
-float zeta = sqrt(3.0f / 4.0f) * GyroMeasDrift;   // compute zeta, the other free parameter in the Madgwick scheme usually set to a small or zero value
-#define Kp 2.0f * 5.0f // these are the free parameters in the Mahony filter and fusion scheme, Kp for proportional feedback, Ki for integral
-#define Ki 0.0f
-
 uint32_t delt_t = 0, count = 0, sumCount = 0;  // used to control display output rate
 float pitch, yaw, roll;
 float a12, a22, a31, a32, a33;            // rotation matrix coefficients for Euler angles and gravity components
-float deltat = 0.0f, sum = 0.0f;          // integration interval for both filter schemes
+float sum = 0.0f;          // integration interval for both filter schemes
 uint32_t lastUpdate = 0, firstUpdate = 0; // used to calculate integration interval
 uint32_t Now = 0;                         // used to calculate integration interval
 
 float ax, ay, az, gx, gy, gz, mx, my, mz; // variables to hold latest sensor data values 
 float lin_ax, lin_ay, lin_az;             // linear acceleration (acceleration with gravity component subtracted)
-float q[4] = {1.0f, 0.0f, 0.0f, 0.0f};    // vector to hold quaternion
-float eInt[3] = {0.0f, 0.0f, 0.0f};       // vector to hold integral error for Mahony method
 
 enum MPUVersion {
   MPU9250 = 0,
@@ -258,12 +253,30 @@ enum MPUVersion {
 uint8_t MPUVersion;
 float myPI = 3.14159265359f;
 
+// forward declarations
+
+void MPU9250SelfTest(float * destination);
+void writeByte(uint8_t address, uint8_t subAddress, uint8_t data);
+uint8_t readByte(uint8_t address, uint8_t subAddress);
+void readBytes(uint8_t address, uint8_t subAddress, uint8_t count, uint8_t * dest);
+void getMres();
+void getGres();
+void getAres();
+void readMPU9250Data(int16_t * destination);
+int16_t readTempData();
+void initAK8963(float * destination);
+void initMPU9250();
+void magcalMPU9250(float * dest1, float * dest2);
+void accelgyrocalMPU9250(int32_t * dest1, int32_t * dest2);
+void loadAccelAndGyroBiases(int32_t * gyro_bias, int32_t * accel_bias);
+void readMagData(int16_t * destination);
+
+
 /* ---------------------------------------------------------------------------------------------
    ---------------------------------------------------------------------------------------------
    ---------------------------------------------------------------------------------------------
    --------------------------------------------------------------------------------------------- */
-void configureMPU9250()
-{
+bool configureMPU9250() {
   // Read the WHO_AM_I register, this is a good test of communication
   Serial.println("MPU9250 9-axis motion sensor...");
   byte c = readByte(MPU9250_ADDRESS, WHO_AM_I_MPU9250);  // Read WHO_AM_I register for MPU-9250
@@ -299,8 +312,6 @@ void configureMPU9250()
     Serial.println("accel biases (mg)"); Serial.println(1000.*accelBias[0]); Serial.println(1000.*accelBias[1]); Serial.println(1000.*accelBias[2]);
     Serial.println("gyro biases (dps)"); Serial.println(gyroBias[0]); Serial.println(gyroBias[1]); Serial.println(gyroBias[2]);
 
-
- 
     initMPU9250(); 
     Serial.println("MPU925X initialized for active data mode...."); // Initialize device for active mode read of acclerometer, gyroscope, and temperature
   
@@ -308,7 +319,6 @@ void configureMPU9250()
     byte d = readByte(AK8963_ADDRESS, AK8963_WHO_AM_I);  // Read WHO_AM_I register for AK8963
     Serial.print("AK8963 "); Serial.print("I AM "); Serial.print(d, HEX); Serial.print(" I should be "); Serial.println(0x48, HEX);
  
-
     // Get magnetometer calibration from AK8963 ROM
     initAK8963(magCalibration); Serial.println("AK8963 initialized for active data mode...."); // Initialize device for active mode read of magnetometer
 
@@ -318,24 +328,24 @@ void configureMPU9250()
     Serial.println("AK8963 mag biases (mG)"); Serial.println(magBias[0]); Serial.println(magBias[1]); Serial.println(magBias[2]); 
     Serial.println("AK8963 mag scale (mG)"); Serial.println(magScale[0]); Serial.println(magScale[1]); Serial.println(magScale[2]); 
  
-   
     if(SerialDebug) {
       //  Serial.println("Calibration values: ");
       Serial.print("X-Axis sensitivity adjustment value "); Serial.println(magCalibration[0], 2);
       Serial.print("Y-Axis sensitivity adjustment value "); Serial.println(magCalibration[1], 2);
       Serial.print("Z-Axis sensitivity adjustment value "); Serial.println(magCalibration[2], 2);
     }
-    MPUisValid = true;
+    return true;
   }
   else
   {
     Serial.print("Could not connect to MPU9250: 0x");
     Serial.println(c, HEX);
+    return false;
   }
 }
 
+
 void processMPU9250() {  
-    
   readMPU9250Data(MPU9250Data); // INT cleared on any read
     
   // Now we'll calculate the accleration value into actual g's
@@ -387,6 +397,7 @@ void updateQuaternion() {
    MahonyQuaternionUpdate(-ax, ay, az, gx*myPI/180.0f, -gy*myPI/180.0f, -gz*myPI/180.0f,  my,  -mx, mz);
 }
 
+
 void updateMPUSensorInfo() {
   SensorInfo *thisSensorInfo;
   uint8_t address;
@@ -431,8 +442,6 @@ void updateMPUSensorInfo() {
   lin_ay = ay + a32;
   lin_az = az - a33;
 
-
-
   for (uint8_t i=0; i < sensorList.size(); i++) {
     thisSensorInfo = sensorList.get(i);
     if (strcmp(thisSensorInfo->type, "mpu925x") == 0) {
@@ -443,9 +452,7 @@ void updateMPUSensorInfo() {
       thisSensorInfo->valueJson[2] = String(pitch * (myPI/180.0f),4);
       thisSensorInfo->valueJson[3] = String(roll * (myPI/180.0f),4);
       thisSensorInfo->isUpdated = true;
-
     }
-
   }
 
   if(SerialDebug) {
@@ -488,21 +495,21 @@ void updateMPUSensorInfo() {
   }
    
   
-    // With these settings the filter is updating at a ~145 Hz rate using the Madgwick scheme and 
-    // >200 Hz using the Mahony scheme even though the display refreshes at only 2 Hz.
-    // The filter update rate is determined mostly by the mathematical steps in the respective algorithms, 
-    // the processor speed (8 MHz for the 3.3V Pro Mini), and the magnetometer ODR:
-    // an ODR of 10 Hz for the magnetometer produce the above rates, maximum magnetometer ODR of 100 Hz produces
-    // filter update rates of 36 - 145 and ~38 Hz for the Madgwick and Mahony schemes, respectively. 
-    // This is presumably because the magnetometer read takes longer than the gyro or accelerometer reads.
-    // This filter update rate should be fast enough to maintain accurate platform orientation for 
-    // stabilization control of a fast-moving robot or quadcopter. Compare to the update rate of 200 Hz
-    // produced by the on-board Digital Motion Processor of Invensense's MPU6050 6 DoF and MPU9150 9DoF sensors.
-    // The 3.3 V 8 MHz Pro Mini is doing pretty well!
+  // With these settings the filter is updating at a ~145 Hz rate using the Madgwick scheme and 
+  // >200 Hz using the Mahony scheme even though the display refreshes at only 2 Hz.
+  // The filter update rate is determined mostly by the mathematical steps in the respective algorithms, 
+  // the processor speed (8 MHz for the 3.3V Pro Mini), and the magnetometer ODR:
+  // an ODR of 10 Hz for the magnetometer produce the above rates, maximum magnetometer ODR of 100 Hz produces
+  // filter update rates of 36 - 145 and ~38 Hz for the Madgwick and Mahony schemes, respectively. 
+  // This is presumably because the magnetometer read takes longer than the gyro or accelerometer reads.
+  // This filter update rate should be fast enough to maintain accurate platform orientation for 
+  // stabilization control of a fast-moving robot or quadcopter. Compare to the update rate of 200 Hz
+  // produced by the on-board Digital Motion Processor of Invensense's MPU6050 6 DoF and MPU9150 9DoF sensors.
+  // The 3.3 V 8 MHz Pro Mini is doing pretty well!
 
-    count = millis(); 
-    sumCount = 0;
-    sum = 0;    
+  count = millis(); 
+  sumCount = 0;
+  sum = 0;    
 }
 
 
@@ -1039,4 +1046,3 @@ void readBytes(uint8_t address, uint8_t subAddress, uint8_t count, uint8_t * des
   while (Wire.available()) {
         dest[i++] = Wire.read(); }         // Put read results in the Rx buffer
 }
-

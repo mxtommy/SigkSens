@@ -1,3 +1,16 @@
+extern "C" {
+#include "user_interface.h"
+}
+
+#include "sigksens.h"
+#include "oneWire.h"
+#include "mpu9250.h"
+#include "mpu.h"
+
+// timer delay
+uint32_t updateMPUDelay = 1000;
+
+uint32_t getUpdateMPUDelay() { return updateMPUDelay; }
 
 bool MPUisValid = false;
 os_timer_t  mpuUpdateSensorInfo; // repeating timer that fires ever X/time to start temp request cycle
@@ -21,23 +34,22 @@ void setMPUUpdateDelay(uint32_t newDelay) {
 }
 
 
-void ICACHE_RAM_ATTR interuptMPUNewData()
-{
+void ICACHE_RAM_ATTR interruptMPUNewData() {
   newData = true;
 }
 
 
-
-void setupMPU9250() {
-
-  configureMPU9250();
-  os_timer_setfn(&mpuUpdateSensorInfo, interuptMPUSensorInfo, NULL);
-  os_timer_arm(&mpuUpdateSensorInfo, updateMPUDelay, true);
-  attachInterrupt(12, interuptMPUNewData, RISING); // define interrupt for INT pin output of MPU9250
-
+void interruptMPUSensorInfo(void *pArg) {
+  mpuUpdateReady = true;
 }
 
 
+void setupMPU9250() {
+  MPUisValid = configureMPU9250();
+  os_timer_setfn(&mpuUpdateSensorInfo, interruptMPUSensorInfo, NULL);
+  os_timer_arm(&mpuUpdateSensorInfo, updateMPUDelay, true);
+  attachInterrupt(12, interruptMPUNewData, RISING); // define interrupt for INT pin output of MPU9250
+}
 
 
 void handleMPU9250() {
@@ -54,20 +66,9 @@ void handleMPU9250() {
 
   updateQuaternion();
 
-
   if (mpuUpdateReady) {
     // reset interupt
     mpuUpdateReady = false;
     updateMPUSensorInfo();
   }
-
-
-  
 }
-
-
-void interuptMPUSensorInfo(void *pArg) {
-  mpuUpdateReady = true;
-}
-
-

@@ -106,8 +106,8 @@ void htmlGetSensorInfo() {
 
   //Sensor types present
   json["sensorOneWire"] = sensorOneWirePresent;
-  json["sensorSHT30"] = sensorSHT30Present;
-  json["sensorMPU925X"] = sensorMPU925XPresent;
+  json["sensorSHT30"] = getSensorSHT30Present();
+  json["sensorMPU925X"] = getSensorMPU925XPresent();
 
   //Digital
   JsonObject& digitalPins = json.createNestedObject("digitalPins");
@@ -120,8 +120,8 @@ void htmlGetSensorInfo() {
   JsonObject& timers = json.createNestedObject("timers");
 
   timers["oneWire"] = getOneWireReadDelay();
-  timers["sht30"] = sensorSHTReadDelay;
-  timers["mpu925x"] = updateMPUDelay;
+  timers["sht30"] = getSensorSHTReadDelay();
+  timers["mpu925x"] = getUpdateMPUDelay();
   timers["digitalIn"] = getUpdateDigitalInDelay();
 
   //Sensors

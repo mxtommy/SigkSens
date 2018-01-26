@@ -1,35 +1,37 @@
-
-
-void setupI2C() {
-  //Wire.setClock(0000L);
-
-  Wire.begin();
-  Wire.setClock(400000); // choose 400 kHz I2C rate
-  
-  scanI2C();
-
-  if (sensorSHT30Present) {
-    setupSHT30();
-  }
-
-  if (sensorMPU925XPresent) {
-    setupMPU9250();
-  }
-
-  
+extern "C" {
+#include "user_interface.h"
 }
 
-void handleI2C() {
+#include <Wire.h>
+
+#include "sigksens.h"
+#include "sht30.h"
+#include "mpu.h"
+#include "i2c.h"
+
+bool sensorSHT30Present = false;
+bool sensorMPU925XPresent = false;
 
 
+bool getSensorSHT30Present() { return sensorSHT30Present; }
+bool getSensorMPU925XPresent() { return sensorMPU925XPresent; }
+
+
+bool scanI2CAddress(uint8_t address) {
+  uint8_t errorCode;
+  
+  Wire.beginTransmission(address);
+  errorCode = Wire.endTransmission();
+  if (errorCode == 0) {
+    return true;
+  }
+  return false;
 }
 
 
-
-void scanI2C() {
+void scanI2C(bool &need_save) {
   SensorInfo *tmpSensorInfo;
 
-  
   Serial.println("Scanning for i2c Sensors...");
 
   //SHT30
@@ -55,7 +57,7 @@ void scanI2C() {
       newSensor->valueJson[1] = "null";
       newSensor->isUpdated = false;
       sensorList.add(newSensor);         
-      saveConfig();
+      need_save = true;
     }    
   }
 
@@ -88,29 +90,39 @@ void scanI2C() {
       newSensor->valueJson[3] = "null";
       newSensor->isUpdated = false;
       sensorList.add(newSensor);         
-      saveConfig();
+      need_save = true;
     }    
   }
-
-
-
-
 }
 
 
-bool scanI2CAddress(uint8_t address) {
+void setupI2C(bool &need_save) {
+  //Wire.setClock(0000L);
 
-  uint8_t errorCode;
+  Wire.begin();
+  Wire.setClock(400000); // choose 400 kHz I2C rate
   
-  Wire.beginTransmission(address);
-  errorCode = Wire.endTransmission();
-  if (errorCode == 0) {
-    return true;
+  scanI2C(need_save);
+
+  if (sensorSHT30Present) {
+    setupSHT30();
   }
-  return false;
+
+  if (sensorMPU925XPresent) {
+    setupMPU9250();
+  } 
 }
 
 
+void handleI2C() {
+  if (sensorMPU925XPresent) {
+    handleMPU9250();
+  }
+}
 
 
-
+void handleI2C_slow() {
+  if (sensorSHT30Present) {
+    handleSHT30();  
+  }
+}
