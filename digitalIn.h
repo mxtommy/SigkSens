@@ -3,14 +3,18 @@
 
 #include "config.h"
 
-void setupDigitalIn(bool&);
+void setupDigitalIn(bool &need_save);
 void handleDigitalIn();
-void setDigitalInUpdateDelay(uint32_t newDelay);
+void initializeDigitalPin(uint8_t index, bool &need_save);
+void digitalCheckState(uint8_t index);
+void updateDigitalIn(uint8_t index);
 
+void setDigitalInUpdateDelay(uint32_t newDelay);
 uint32_t getUpdateDigitalInDelay();
-int getD1Mode();
-int getD2Mode();
-void setD1Mode(int mode);
-void setD2Mode(int mode);
+
+uint8_t getDigitalMode(uint8_t index);
+bool setDigitalMode(const char *nameCharArr, uint8_t mode);
+
+void getDigitalPinName(uint8_t index, char *dstCharArr);
 
 #endif

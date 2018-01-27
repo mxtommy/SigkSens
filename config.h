@@ -10,8 +10,9 @@ Defines
 
 // Digital input pins
 
-#define D1_PIN 14 // D5 
-#define D2_PIN 12 // D6
+#define NUMBER_DIGITAL_INPUT 2  // set to number of elements in next two arrays...s
+#define DIGITAL_INPUT_PINS { 14, 12 } 
+#define DIGITAL_INPUT_NAME {"D1", "D2"}
 
 // One-Wire settings
 
@@ -32,6 +33,6 @@ Defines
 #define SHORT_BUTTON_PRESS_MS 1000
 #define LONG_BUTTON_PRESS_MS 5000
 
-#if __has_include("my-config.h")
+//#if __has_include("my-config.h")
 #include "my-config.h"
-#endif
+//#endif

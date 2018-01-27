@@ -34,6 +34,7 @@ void saveConfig() {
   DynamicJsonBuffer jsonBuffer;
   SensorInfo *tmpSensorInfo;
   uint8_t numAttr;
+  char tmpPinStr[NUMBER_DIGITAL_INPUT][10];
 
   JsonObject& json = jsonBuffer.createObject();
   json["hostname"] = myHostname;
@@ -69,9 +70,17 @@ void saveConfig() {
   json["updateMPUDelay"] = updateMPUDelay;
   json["updateDigitalInDelay"] = getUpdateDigitalInDelay();
 
-  //Digital
-  json["d1Mode"] = getD1Mode();
-  json["d2Mode"] = getD2Mode();
+
+  //Digital Pins
+  JsonObject& digitalPins = json.createNestedObject("digitalPinModes");
+  for (uint8_t x=0; x < NUMBER_DIGITAL_INPUT; x++) {
+    ;
+    getDigitalPinName(x, tmpPinStr[x]); // sets tmpPinStr to the name of pin (array of char)
+    Serial.print(tmpPinStr[x]);
+    digitalPins.set(tmpPinStr[x], getDigitalMode(x));
+    Serial.println(x);
+  }
+
 
   File configFile = SPIFFS.open("/config.json", "w");
   if (!configFile) {
@@ -210,8 +219,11 @@ void loadConfig() {
         setDigitalInUpdateDelay(json["updateDigitalInDelay"]);
 
         //Digital
-        setD1Mode(json["d1Mode"]);
-        setD2Mode(json["d2Mode"]);
+        JsonObject& digitalPins = json["digitalPinModes"];
+        for (auto keyValue : digitalPins) {
+          setDigitalMode(keyValue.key, keyValue.value.as<uint8_t>());
+        }
+
 
       } else {
         Serial.println("failed to load json config");

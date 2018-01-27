@@ -76,17 +76,13 @@ void htmlSetSignalKPath() {
 void htmlSetDigitalMode() {
   if(!server.hasArg("input")) {server.send(500, "text/plain", "missing arg 'input'"); return;}
   if(!server.hasArg("mode")) {server.send(500, "text/plain", "missing arg 'mode'"); return;}
-  
-  if (server.arg("input").toInt() == 1) {
-    setD1Mode(server.arg("mode").toInt());
-  }
-  if (server.arg("input").toInt() == 2) {
-    setD2Mode(server.arg("mode").toInt());
-  }
-    
-  saveConfig();
-  server.send(200, "application/json", "{ \"success\": true }");
 
+  if (setDigitalMode(server.arg("input").c_str(), server.arg("mode").toInt())) {
+    saveConfig();
+    server.send(200, "application/json", "{ \"success\": true }");    
+  } else {
+    server.send(404, "text/plain", "404: Not found"); // Send HTTP status 404 (Not Found) when there's no handler for the URI in the request
+  }
   
 }
 
@@ -97,6 +93,7 @@ void htmlGetSensorInfo() {
   char response[2048];
   JsonObject& json = jsonBuffer.createObject();
   char strAddress[32];
+  char tmpPinStr[10];
   uint8_t numAttr;
 
   //Info
@@ -113,8 +110,11 @@ void htmlGetSensorInfo() {
   json["sensorMPU925X"] = sensorMPU925XPresent;
 
   //Digital
-  json["d1Mode"] = getD1Mode();
-  json["d2Mode"] = getD2Mode();
+  JsonObject& digitalPins = json.createNestedObject("digitalPins");
+  for (uint8_t x=0; x < NUMBER_DIGITAL_INPUT; x++) {
+    getDigitalPinName(x, tmpPinStr); // sets tmpPinStr to the name of pin (array of char)
+    digitalPins[tmpPinStr] = getDigitalMode(x);
+  }
   
   //Timers
   JsonObject& timers = json.createNestedObject("timers");
