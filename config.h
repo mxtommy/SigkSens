@@ -33,6 +33,6 @@ Defines
 #define SHORT_BUTTON_PRESS_MS 1000
 #define LONG_BUTTON_PRESS_MS 5000
 
-//#if __has_include("my-config.h")
+#if __has_include("my-config.h")
 #include "my-config.h"
-//#endif
+#endif
