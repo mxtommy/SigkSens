@@ -6,9 +6,28 @@ void setupSignalK() {
 
 
 void handleSignalK() {
-  String deltaText;
   SensorInfo *thisSensorInfo;
   bool needToSend = false;
+  
+  for (uint8_t i=0; i < sensorList.size(); i++) {
+
+    thisSensorInfo = sensorList.get(i);
+    if (thisSensorInfo->isUpdated) {
+      needToSend = true;
+    }
+  }
+  if (needToSend) {
+    sendDelta();
+  }
+
+    
+}
+
+void sendDelta() {
+
+  String deltaText;
+  SensorInfo *thisSensorInfo;
+
   DynamicJsonBuffer jsonBuffer; 
 
   //  build delta message
@@ -16,17 +35,11 @@ void handleSignalK() {
 
   //updated array
   JsonArray& updatesArr = delta.createNestedArray("updates");
-
-  //TODO initialize json only if updated needed.
-  // source
-
-
   
   for (uint8_t i=0; i < sensorList.size(); i++) {
 
     thisSensorInfo = sensorList.get(i);
     if (thisSensorInfo->isUpdated) {
-      needToSend = true;
       JsonObject& thisUpdate = updatesArr.createNestedObject();
 
       JsonObject& source = thisUpdate.createNestedObject("source");
@@ -48,23 +61,17 @@ void handleSignalK() {
         thisValue["value"] = RawJson(thisSensorInfo->valueJson[x].c_str());
         
       }
-    
-
-      
       //reset updated
       thisSensorInfo->isUpdated = false;
     }
   }
 
-  if (needToSend) {
-    delta.printTo(deltaText);
-    //Serial.println(deltaText);
-    webSocketServer.broadcastTXT(deltaText);
-    if (websocketConnected) { // client
-      webSocketClient.sendTXT(deltaText);
-    }
+  delta.printTo(deltaText);
+  //Serial.println(deltaText);
+  webSocketServer.broadcastTXT(deltaText);
+  if (websocketConnected) { // client
+    webSocketClient.sendTXT(deltaText);
   }
-
   
 }
 
