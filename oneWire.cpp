@@ -172,7 +172,7 @@ void read1WSensors() {
 bool oneWireScanBus(bool &need_save) {
   bool present = false;
 
-  readyToScan1Wire = false; // reset Interupt
+  readyToScan1Wire = false; // reset Interrupt
 
   uint8_t tempDeviceAddress[8];
   char strAddress[32];
@@ -214,7 +214,7 @@ bool oneWireScanBus(bool &need_save) {
       if (!known) {
         Serial.print("New Sensor found: ");
         Serial.print(strAddress);
-        Serial.println("");        
+        Serial.println("");
         SensorInfo *newSensor = new SensorInfo();
         strcpy(newSensor->address, strAddress);
         newSensor->signalKPath[0] = "";

@@ -1,3 +1,12 @@
+extern "C" {
+#include "user_interface.h"
+}
+
+#include <Wire.h>
+
+#include "sigksens.h"
+#include "sht30.h"
+
 /* SensorType info
 
 type="sht30"
@@ -6,6 +15,11 @@ type="sht30"
 
 */
 
+// timer delay
+uint32_t sensorSHTReadDelay = 5000; //ms between reading
+
+uint32_t getSensorSHTReadDelay() { return sensorSHTReadDelay; }
+
 os_timer_t  sensorSHTPollTimer; // repeating timer that fires ever X/time to start poll cycle
 os_timer_t  sensorSHTReadTimer; // once request cycle starts, this timer set so we can send when ready
 
@@ -13,11 +27,20 @@ bool readytoPollSHT = false;
 bool readytoReadSHT = false;
 
 
+void interruptSHTPoll(void *pArg) {
+  readytoPollSHT = true;
+}
+
+void interruptSHTRead(void *pArg) {
+  readytoReadSHT = true;
+}
+
+
 void setupSHT30() {
 
   // prepare SHT Timers 
-  os_timer_setfn(&sensorSHTPollTimer, interuptSHTPoll, NULL);
-  os_timer_setfn(&sensorSHTReadTimer, interuptSHTRead, NULL);
+  os_timer_setfn(&sensorSHTPollTimer, interruptSHTPoll, NULL);
+  os_timer_setfn(&sensorSHTReadTimer, interruptSHTRead, NULL);
 
   Serial.print("Starting SHT polling timer at: ");
   Serial.print(sensorSHTReadDelay);  
@@ -26,43 +49,8 @@ void setupSHT30() {
   
 }
 
-void handleSHT30() {
-  
-  if (readytoPollSHT){
-    digitalWrite(LED_BUILTIN, LOW);
-    pollSHT();
-    digitalWrite(LED_BUILTIN, HIGH);  
-  }
-  
-  if (readytoReadSHT){
-    digitalWrite(LED_BUILTIN, LOW);
-    readSHT();
-    digitalWrite(LED_BUILTIN, HIGH);  
-  }
-  
-}
-
-
-
-void setSHTReadDelay(uint32_t newDelay) {
-  os_timer_disarm(&sensorSHTPollTimer);
-  sensorSHTReadDelay = newDelay;
-  Serial.print("Restarting SHT30 polling timer at: ");
-  Serial.print(newDelay);  
-  Serial.println("ms");  
-  os_timer_arm(&sensorSHTPollTimer, sensorSHTReadDelay, true);  
-}
-
-void interuptSHTPoll(void *pArg) {
-  readytoPollSHT = true;
-}
-
-void interuptSHTRead(void *pArg) {
-  readytoReadSHT = true;
-}
 
 void pollSHT() {
-  
   SensorInfo *thisSensorInfo;
   uint8_t address;
   uint8_t errorCode;
@@ -87,10 +75,9 @@ void pollSHT() {
       }
     }
   }
- 
-
   os_timer_arm(&sensorSHTReadTimer, 100, false); // prepare to read after 100ms
 }
+
 
 void readSHT() {
   SensorInfo *thisSensorInfo;
@@ -143,3 +130,30 @@ void readSHT() {
   }
 }
 
+
+void handleSHT30() {
+  
+  if (readytoPollSHT){
+    digitalWrite(LED_BUILTIN, LOW);
+    pollSHT();
+    digitalWrite(LED_BUILTIN, HIGH);  
+  }
+  
+  if (readytoReadSHT){
+    digitalWrite(LED_BUILTIN, LOW);
+    readSHT();
+    digitalWrite(LED_BUILTIN, HIGH);  
+  }
+  
+}
+
+
+
+void setSHTReadDelay(uint32_t newDelay) {
+  os_timer_disarm(&sensorSHTPollTimer);
+  sensorSHTReadDelay = newDelay;
+  Serial.print("Restarting SHT30 polling timer at: ");
+  Serial.print(newDelay);  
+  Serial.println("ms");  
+  os_timer_arm(&sensorSHTPollTimer, sensorSHTReadDelay, true);  
+}

@@ -66,8 +66,8 @@ void saveConfig() {
   
   //Timers
   json["oneWireReadDelay"] = oneWireReadDelay;
-  json["sensorSHTReadDelay"] = sensorSHTReadDelay;
-  json["updateMPUDelay"] = updateMPUDelay;
+  json["sensorSHTReadDelay"] = getSensorSHTReadDelay();
+  json["updateMPUDelay"] = getUpdateMPUDelay();
   json["updateDigitalInDelay"] = getUpdateDigitalInDelay();
 
 
@@ -214,8 +214,8 @@ void loadConfig() {
         uint32_t oneWireReadDelay = json["oneWireReadDelay"];
         setOneWireReadDelay(oneWireReadDelay);
 
-        sensorSHTReadDelay = json["sensorSHTReadDelay"];        
-        updateMPUDelay = json["updateMPUDelay"];
+        setSHTReadDelay(json["sensorSHTReadDelay"]);
+        setMPUUpdateDelay(json["updateMPUDelay"]);
         setDigitalInUpdateDelay(json["updateDigitalInDelay"]);
 
         //Digital

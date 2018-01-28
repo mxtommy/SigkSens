@@ -13,11 +13,13 @@
 #include <WebSocketsServer.h>
 #include <WebSocketsClient.h>
 
-#include <Wire.h>
-
 #include "config.h"
+#include "i2c.h"
+#include "mpu.h"
+#include "sht30.h"
 #include "oneWire.h"
 #include "digitalIn.h"
+#include "systemHz.h"
 #include "sigksens.h"
 
 
@@ -38,21 +40,13 @@ bool websocketConnected = false;
 
 char myHostname[16];
 
-float systemHz = 0;
-
 uint16_t mainLoopCount = 0; //some stuff needs to run constantly, others not. so run some stuff only every X loops.
 
 //flag for saving data in FSConfig
 bool shouldSaveConfig = false;
 
 // Sensors present
-bool sensorSHT30Present = false;
-bool sensorMPU925XPresent = false;
 bool sensorOneWirePresent = false;
-
-// some timers 
-uint32_t sensorSHTReadDelay = 5000; //ms between reading
-uint32_t updateMPUDelay = 1000;
 
 // SignalK stuff
 String signalKHost = "";
@@ -84,11 +78,7 @@ void setupWifi() {
     strcpy(myHostname, custom_hostname.getValue());
     saveConfig();
   }
-
 }
-
-
-
 
 
 void setupDiscovery() {
@@ -134,16 +124,15 @@ void setup() {
 
   setupConfigReset();
   sensorOneWirePresent = setup1Wire(need_save);
-  setupI2C();
+  setupI2C(need_save);
   setupDigitalIn(need_save);
+  setupSystemHz(need_save);
+  
   if (need_save) {
     saveConfig();
   }
   
-  setupSystemHz();
   Serial.printf("Ready!\n");
-
-  
 }
 
 /*---------------------------------------------------------------------------------------------------
@@ -158,28 +147,20 @@ void loop() {
   //device mgmt
   yield();           
   
-
-
   //Stuff here run's all the time
   handleSystemHz();
-  if (sensorMPU925XPresent) {
-    handleMPU9250();
-  }
+  handleI2C();
 
   mainLoopCount++;
   
   //Stuff that runs  once every 1000 loops. (still many many times/sec)
   if (mainLoopCount > 1000) {
-     if (sensorSHT30Present) {
-        handleSHT30();  
-      }
-
+      handleI2C_slow();
       handle1Wire(sensorOneWirePresent, need_save);
       if (need_save) {
         saveConfig();
       }
   
-      handleI2C();
       handleWebSocket();
       handleSignalK();
       handleDigitalIn();
@@ -188,6 +169,4 @@ void loop() {
       handleConfigReset(); 
       mainLoopCount = 0;
   }
-
 }
-
