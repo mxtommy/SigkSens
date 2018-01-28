@@ -1,3 +1,6 @@
+#ifndef _sigksens_H_
+#define _sigksens_H_
+
 #include <Arduino.h>
 #include <WString.h>
 #include <LinkedList.h>
@@ -10,6 +13,7 @@
 #define DIGITAL_MODE_IN_STATE 1
 #define DIGITAL_MODE_IN_FREQ 2
 
+extern char myHostname[16];
 
 // memory to save sensor info
 class SensorInfo {
@@ -26,3 +30,5 @@ class SensorInfo {
 extern LinkedList<SensorInfo*> sensorList;
 
 void parseBytes(const char* str, char sep, byte* bytes, int maxBytes, int base);
+
+#endif

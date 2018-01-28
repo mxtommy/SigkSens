@@ -11,6 +11,7 @@
 #include <ArduinoJson.h>     //https://github.com/bblanchon/ArduinoJson
 
 #include "config.h"
+#include "FSConfig.h"
 #include "i2c.h"
 #include "mpu.h"
 #include "sht30.h"
@@ -33,9 +34,6 @@ ESP8266WebServer server(80);
 char myHostname[16];
 
 uint16_t mainLoopCount = 0; //some stuff needs to run constantly, others not. so run some stuff only every X loops.
-
-//flag for saving data in FSConfig
-bool shouldSaveConfig = false;
 
 // Sensors present
 bool sensorOneWirePresent = false;
