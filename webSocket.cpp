@@ -1,22 +1,40 @@
+extern "C" {
+#include "user_interface.h"
+}
 
+#include <WebSocketsServer.h>
+#include <WebSocketsClient.h>
+
+#include "webSocket.h"
+
+WebSocketsServer webSocketServer = WebSocketsServer(81);
+
+SignalKClientInfo signalKClientInfo = { 
+  .host = "", 
+  .port = 80, 
+  .path = "/signalk/v1/stream",
+  .connected = false
+};
 
 os_timer_t  wsClientReconnectTimer; // once request cycle starts, this timer set so we can send when ready
 bool  readyToReconnectWs = false;
 
+// forward declarations
+
+void webSocketServerEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length);
+void interruptWsReconnect(void *pArg);
+void connectWebSocketClient();
+void webSocketClientEvent(WStype_t type, uint8_t * payload, size_t length);
 
 void setupWebSocket() {
+  os_timer_setfn(&wsClientReconnectTimer, interruptWsReconnect, NULL);
 
-  os_timer_setfn(&wsClientReconnectTimer, interuptWsReconnect, NULL);
-
-  
   webSocketServer.begin();
   webSocketServer.onEvent(webSocketServerEvent);
-  webSocketClient.onEvent(webSocketClientEvent);
+  signalKClientInfo.client.onEvent(webSocketClientEvent);
 
   connectWebSocketClient();
 }
-
-
 
 
 void handleWebSocket() {
@@ -26,48 +44,49 @@ void handleWebSocket() {
     connectWebSocketClient();
   }
   
-  if (websocketConnected) {
-    webSocketClient.loop();    
+  if (signalKClientInfo.connected) {
+    signalKClientInfo.client.loop();    
   }
-  
 }
 
+
 void restartWebSocketClient() {
-  if (websocketConnected) {
-    webSocketClient.disconnect(); // disconnect will set timer to reconnect. if not connected it was already running
+  if (signalKClientInfo.connected) {
+    signalKClientInfo.client.disconnect(); // disconnect will set timer to reconnect. if not connected it was already running
   }
 }
 
 
 void connectWebSocketClient() {
-  if ( (signalKHost.length() > 0) && (signalKPort > 0) && (signalKPort < 65535) && (signalKPath.length() > 0)) {
+  SignalKClientInfo *skci = &signalKClientInfo;  // save some typing
+  if ( (skci->host.length() > 0) && 
+       (skci->port > 0) && (skci->port < 65535) && 
+       (skci->path.length() > 0)) {
     Serial.println("Websocket client starting!");
   } else {
       os_timer_arm(&wsClientReconnectTimer, 10000, false);
       return;
   }
 
-  webSocketClient.begin(signalKHost, signalKPort, signalKPath + "?subscribe=none");
-  websocketConnected = true;
-  
+  skci->client.begin(skci->host, skci->port, skci->path + "?subscribe=none");
+  skci->connected = true;
 }
 
-void interuptWsReconnect(void *pArg) {
+
+void interruptWsReconnect(void *pArg) {
   readyToReconnectWs = true;
 }
 
 
-
 void webSocketClientEvent(WStype_t type, uint8_t * payload, size_t length) {
-
   switch(type) {
     case WStype_DISCONNECTED:
-      websocketConnected = false;
+      signalKClientInfo.connected = false;
       os_timer_arm(&wsClientReconnectTimer, 10000, false);
       Serial.printf("[WSc] Disconnected!\n");
       break;
     case WStype_CONNECTED: {
-      websocketConnected = true;
+      signalKClientInfo.connected = true;
       Serial.printf("[WSc] Connected to url: %s\n", payload);
       // send message to server when Connected
       // webSocket.sendTXT("Connected");
@@ -92,7 +111,6 @@ void webSocketClientEvent(WStype_t type, uint8_t * payload, size_t length) {
 
 
 void webSocketServerEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length) {
-
     switch(type) {
         case WStype_DISCONNECTED:
             Serial.printf("[%u] Disconnected!\n", num);

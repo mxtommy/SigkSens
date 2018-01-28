@@ -10,9 +10,6 @@
 
 #include <ArduinoJson.h>     //https://github.com/bblanchon/ArduinoJson
 
-#include <WebSocketsServer.h>
-#include <WebSocketsClient.h>
-
 #include "config.h"
 #include "i2c.h"
 #include "mpu.h"
@@ -21,6 +18,7 @@
 #include "digitalIn.h"
 #include "systemHz.h"
 #include "configReset.h"
+#include "webSocket.h"
 #include "sigksens.h"
 
 
@@ -32,13 +30,6 @@ Global Variables
 
 ESP8266WebServer server(80);
 
-
-
-//Websocet
-WebSocketsServer webSocketServer = WebSocketsServer(81);
-WebSocketsClient webSocketClient;
-bool websocketConnected = false;
-
 char myHostname[16];
 
 uint16_t mainLoopCount = 0; //some stuff needs to run constantly, others not. so run some stuff only every X loops.
@@ -48,12 +39,6 @@ bool shouldSaveConfig = false;
 
 // Sensors present
 bool sensorOneWirePresent = false;
-
-// SignalK stuff
-String signalKHost = "";
-uint16_t signalKPort = 80;
-String signalKPath = "/signalk/v1/stream";
-
 
 /*---------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------

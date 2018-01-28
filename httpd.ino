@@ -51,7 +51,7 @@ void htmlNewHostname() {
 
 void htmlSetSignalKHost() {
   if(!server.hasArg("host")) {server.send(500, "text/plain", "missing arg 'host'"); return;}
-  signalKHost = server.arg("host");
+  signalKClientInfo.host = server.arg("host");
   saveConfig();
   server.send(200, "application/json", "{ \"success\": true }");
   restartWebSocketClient();
@@ -59,7 +59,7 @@ void htmlSetSignalKHost() {
 
 void htmlSetSignalKPort() {
   if(!server.hasArg("port")) {server.send(500, "text/plain", "missing arg 'port'"); return;}
-  signalKPort = server.arg("port").toInt();
+  signalKClientInfo.port = server.arg("port").toInt();
   saveConfig();
   server.send(200, "application/json", "{ \"success\": true }");
   restartWebSocketClient();
@@ -67,7 +67,7 @@ void htmlSetSignalKPort() {
 
 void htmlSetSignalKPath() {
   if(!server.hasArg("path")) {server.send(500, "text/plain", "missing arg 'path'"); return;}
-  signalKPath = server.arg("path");
+  signalKClientInfo.path = server.arg("path");
   saveConfig();
   server.send(200, "application/json", "{ \"success\": true }");
   restartWebSocketClient();
@@ -100,9 +100,9 @@ void htmlGetSensorInfo() {
   json["hostname"] = myHostname;
 
   //sigk
-  json["signalKHost"] = signalKHost;
-  json["signalKPort"] = signalKPort;
-  json["signalKPath"] = signalKPath;
+  json["signalKHost"] = signalKClientInfo.host;
+  json["signalKPort"] = signalKClientInfo.port;
+  json["signalKPath"] = signalKClientInfo.path;
 
   //Sensor types present
   json["sensorOneWire"] = sensorOneWirePresent;
@@ -268,15 +268,5 @@ void htmlSignalKEndpoints() {
 
 void htmlReturnSignalKREST(){
   DynamicJsonBuffer jsonBuffer; 
-  SensorInfo *thisSensorInfo;
-
-
-
-
-  
+  SensorInfo *thisSensorInfo;  
 }
-
-
-
-
-
