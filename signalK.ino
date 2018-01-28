@@ -69,8 +69,8 @@ void sendDelta() {
   delta.printTo(deltaText);
   //Serial.println(deltaText);
   webSocketServer.broadcastTXT(deltaText);
-  if (websocketConnected) { // client
-    webSocketClient.sendTXT(deltaText);
+  if (signalKClientInfo.connected) { // client
+    signalKClientInfo.client.sendTXT(deltaText);
   }
   
 }

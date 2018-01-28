@@ -39,11 +39,9 @@ void saveConfig() {
   JsonObject& json = jsonBuffer.createObject();
   json["hostname"] = myHostname;
   
-  json["signalKHost"] = signalKHost;
-  json["signalKPort"] = signalKPort;
-  json["signalKPath"] = signalKPath;
-
-
+  json["signalKHost"] = signalKClientInfo.host;
+  json["signalKPort"] = signalKClientInfo.port;
+  json["signalKPath"] = signalKClientInfo.path;
 
   //sensors
   JsonArray& jsonSensors = json.createNestedArray("sensors");
@@ -119,9 +117,9 @@ void loadConfig() {
         strcpy(myHostname, json["hostname"]);
 
         //signalk
-        strcpy(tempStr, json["signalKHost"]); signalKHost = tempStr;
-        strcpy(tempStr, json["signalKPath"]); signalKPath = tempStr;
-        signalKPort = json["signalKPort"];
+        strcpy(tempStr, json["signalKHost"]); signalKClientInfo.host = tempStr;
+        strcpy(tempStr, json["signalKPath"]); signalKClientInfo.path = tempStr;
+        signalKClientInfo.port = json["signalKPort"];
 
 
         // load known sensors
