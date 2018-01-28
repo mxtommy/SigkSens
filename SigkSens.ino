@@ -20,6 +20,7 @@
 #include "oneWire.h"
 #include "digitalIn.h"
 #include "systemHz.h"
+#include "configReset.h"
 #include "sigksens.h"
 
 
