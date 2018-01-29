@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include <WString.h>
 #include <LinkedList.h>
+#include <ArduinoJson.h>
 
 
 #define MAX_SENSOR_ATTRIBUTES 10
@@ -24,6 +25,9 @@ class SensorInfo {
     String valueJson[MAX_SENSOR_ATTRIBUTES];
     char type[10];
     bool isUpdated;
+
+    bool isSerializable();
+    void toJson(JsonObject&);
 };
 
 // memory to save sensor info

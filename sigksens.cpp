@@ -19,3 +19,13 @@ void parseBytes(const char* str, char sep, byte* bytes, int maxBytes, int base) 
       str++;                                // Point to next character after separator
   }
 }
+
+// SensorInfo
+
+bool SensorInfo::isSerializable() {
+    // default SensorInfo object can't serialize itself
+    return false;
+}
+
+// should return an error
+void SensorInfo::toJson(JsonObject &jsonSens) { }
