@@ -172,28 +172,16 @@ void loadConfig() {
             newSensor->valueJson[1] = "null";
           
           } else if (type == "oneWire") {
-            strcpy(tempStr, json["sensors"][i]["signalKPaths"][0]);
             newSensor = new OneWireSensorInfo(
               json["sensors"][i]["address"],
               json["sensors"][i]["signalKPaths"][0]);
           }
           else if (type == "sht30") {
-            newSensor = new SensorInfo();
-            strcpy(newSensor->address, json["sensors"][i]["address"]);
-            strcpy(newSensor->type, type.c_str());
-            newSensor->isUpdated = false;
-
-            //tempK            
-            strcpy(tempStr, json["sensors"][i]["signalKPaths"][0]);
-            newSensor->attrName[0] = "tempK";
-            newSensor->signalKPath[0] = tempStr;                
-            newSensor->valueJson[0] = "null";
-
-            //humidity
-            strcpy(tempStr, json["sensors"][i]["signalKPaths"][1]);
-            newSensor->attrName[1] = "humidity";
-            newSensor->signalKPath[1] = tempStr;              
-            newSensor->valueJson[1] = "null";
+            newSensor = new SHT30SensorInfo(
+              json["sensors"][i]["address"],
+              json["sensors"][i]["signalKPaths"][0],
+              json["sensors"][i]["signalKPaths"][1]
+            );
           }
           else if (type == "mpu925x") {
             newSensor = new SensorInfo();

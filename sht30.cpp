@@ -7,6 +7,48 @@ extern "C" {
 #include "sigksens.h"
 #include "sht30.h"
 
+
+SHT30SensorInfo::SHT30SensorInfo(String addr) {
+  strcpy(address, addr.c_str());
+  signalKPath[0] = "";
+  signalKPath[1] = "";
+  attrName[0] = "tempK";
+  attrName[1] = "humidity";
+  strcpy(type, "sht30");
+  valueJson[0] = "null";
+  valueJson[1] = "null";
+  isUpdated = false;
+}
+
+SHT30SensorInfo::SHT30SensorInfo(String addr, String path1, String path2) {
+  strcpy(address, addr.c_str());
+  signalKPath[0] = path1;
+  signalKPath[1] = path2;
+  attrName[0] = "tempK";
+  attrName[1] = "humidity";
+  strcpy(type, "sht30");
+  valueJson[0] = "null";
+  valueJson[1] = "null";
+  isUpdated = false;
+}
+
+bool SHT30SensorInfo::isSerializable() {
+  return true;
+}
+
+void SHT30SensorInfo::toJson(JsonObject &jsonSens) {
+  jsonSens["address"] = address;
+  jsonSens["type"] = "sht30";
+  JsonArray& jsonPaths = jsonSens.createNestedArray("signalKPaths");
+  for (int x=0 ; x < MAX_SENSOR_ATTRIBUTES ; x++) {
+    if (strcmp(attrName[x].c_str(), "") == 0 ) {
+      break; //no more attributes
+    }
+    jsonPaths.add(signalKPath[x]);
+  }
+}
+
+
 /* SensorType info
 
 type="sht30"
