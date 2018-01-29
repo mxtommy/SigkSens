@@ -1,8 +1,27 @@
-/*---------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------
+extern "C" {
+#include "user_interface.h"
+}
+
+#include <FS.h> //this needs to be first, or it all crashes and burns...
+
+#include <ArduinoJson.h>     //https://github.com/bblanchon/ArduinoJson
+
+#include "FSConfig.h"
+#include "webSocket.h"
+#include "oneWire.h"
+#include "sht30.h"
+#include "mpu.h"
+#include "digitalIn.h"
+#include "sigksens.h"
+
+/*----------------------------------------------------------------------------
+------------------------------------------------------------------------------
 Config Save/Load/Reset
------------------------------------------------------------------------------------------------------
----------------------------------------------------------------------------------------------------*/
+------------------------------------------------------------------------------
+----------------------------------------------------------------------------*/
+
+//flag for saving data in FSConfig
+bool shouldSaveConfig = false;
 
 void setupFS() {
   if (SPIFFS.begin()) {
@@ -24,10 +43,11 @@ void setupFS() {
 }
 
 
-void saveConfigCallback () {
+void saveConfigCallback() {
   Serial.println("Should save config");
   shouldSaveConfig = true;
 }
+
 
 void saveConfig() {
   Serial.println("saving config");
@@ -78,7 +98,6 @@ void saveConfig() {
     digitalPins.set(tmpPinStr[x], getDigitalMode(x));
     Serial.println(x);
   }
-
 
   File configFile = SPIFFS.open("/config.json", "w");
   if (!configFile) {
@@ -132,8 +151,6 @@ void loadConfig() {
           strcpy(newSensor->type, json["sensors"][i]["type"]);
           newSensor->isUpdated = false;
           
-
-
           // load paths and set valueJson to null of that sensor type
           //should probably do this elsewhere to keep concerns seperate...
           if (strcmp(newSensor->type, "Local") == 0) {
@@ -222,12 +239,9 @@ void loadConfig() {
           setDigitalMode(keyValue.key, keyValue.value.as<uint8_t>());
         }
 
-
       } else {
         Serial.println("failed to load json config");
       }
     }
   }
 }
-
-

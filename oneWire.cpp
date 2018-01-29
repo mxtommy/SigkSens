@@ -17,6 +17,8 @@ extern "C" {
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
 
+bool sensorOneWirePresent = false;
+
 // some timers
 uint32_t oneWireReadDelay = 5000; //ms between reading
 uint32_t oneWireScanDelay = 30000; //ms between scan

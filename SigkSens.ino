@@ -1,16 +1,14 @@
-#include <FS.h> //this needs to be first, or it all crashes and burns...
-
 #include <ESP8266WiFi.h>          //ESP8266 Core WiFi Library (you most likely already have this in your sketch)
 #include <ESP8266mDNS.h>        // Include the mDNS library
 #include <ESP8266SSDP.h>
 
 #include <DNSServer.h>            //Local DNS Server used for redirecting all requests to the configuration portal
-#include <ESP8266WebServer.h>     //Local WebServer used to serve the configuration portal
 #include <WiFiManager.h>          //https://github.com/tzapu/WiFiManager WiFi Configuration Magic
 
 #include <ArduinoJson.h>     //https://github.com/bblanchon/ArduinoJson
 
 #include "config.h"
+#include "FSConfig.h"
 #include "i2c.h"
 #include "mpu.h"
 #include "sht30.h"
@@ -19,6 +17,8 @@
 #include "systemHz.h"
 #include "configReset.h"
 #include "webSocket.h"
+#include "signalK.h"
+#include "httpd.h"
 #include "sigksens.h"
 
 
@@ -28,17 +28,9 @@ Global Variables
 -----------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------*/
 
-ESP8266WebServer server(80);
-
 char myHostname[16];
 
 uint16_t mainLoopCount = 0; //some stuff needs to run constantly, others not. so run some stuff only every X loops.
-
-//flag for saving data in FSConfig
-bool shouldSaveConfig = false;
-
-// Sensors present
-bool sensorOneWirePresent = false;
 
 /*---------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------
@@ -150,7 +142,7 @@ void loop() {
       handleWebSocket();
       handleSignalK();
       handleDigitalIn();
-      server.handleClient(); //http client
+      httpServer.handleClient(); //http client
       
       handleConfigReset(); 
       mainLoopCount = 0;
