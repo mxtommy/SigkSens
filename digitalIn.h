@@ -3,6 +3,22 @@
 
 #include "config.h"
 
+#include "sigksens.h"
+
+class DigitalInSensorInfo : public SensorInfo {
+  public:
+    DigitalInSensorInfo(String addr);
+    DigitalInSensorInfo(
+        String addr, 
+        String path1, 
+        String path2);
+
+    void toJson(JsonObject &jsonSens);
+    void fromJson();
+
+    bool isSerializable();
+};
+
 void setupDigitalIn(bool &need_save);
 void handleDigitalIn();
 void initializeDigitalPin(uint8_t index, bool &need_save);

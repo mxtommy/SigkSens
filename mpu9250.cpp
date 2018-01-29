@@ -11,6 +11,60 @@ extern "C" {
 #include "quaternionFilters.h"
 #include "mpu9250.h"
 
+MPU9250SensorInfo::MPU9250SensorInfo(String addr) {
+  strcpy(address, addr.c_str());
+  signalKPath[0] = "";
+  signalKPath[1] = "";
+  signalKPath[2] = "";
+  signalKPath[3] = "";
+  attrName[0] = "tempK";
+  attrName[1] = "yaw";
+  attrName[2] = "pitch";
+  attrName[3] = "roll";
+  strcpy(type, "mpu925x");
+  valueJson[0] = "null";
+  valueJson[1] = "null";
+  valueJson[2] = "null";
+  valueJson[3] = "null";
+  isUpdated = false;
+}
+
+MPU9250SensorInfo::MPU9250SensorInfo(String addr, String path1, String path2, 
+                                     String path3, String path4) {
+  strcpy(address, addr.c_str());
+  signalKPath[0] = path1;
+  signalKPath[1] = path2;
+  signalKPath[2] = path3;
+  signalKPath[3] = path4;
+  attrName[0] = "tempK";
+  attrName[1] = "yaw";
+  attrName[2] = "pitch";
+  attrName[3] = "roll";
+  strcpy(type, "mpu925x");
+  valueJson[0] = "null";
+  valueJson[1] = "null";
+  valueJson[2] = "null";
+  valueJson[3] = "null";
+  isUpdated = false;
+}
+
+bool MPU9250SensorInfo::isSerializable() {
+  return true;
+}
+
+void MPU9250SensorInfo::toJson(JsonObject &jsonSens) {
+  jsonSens["address"] = address;
+  jsonSens["type"] = "mpu925x";
+  JsonArray& jsonPaths = jsonSens.createNestedArray("signalKPaths");
+  for (int x=0 ; x < MAX_SENSOR_ATTRIBUTES ; x++) {
+    if (strcmp(attrName[x].c_str(), "") == 0 ) {
+      break; //no more attributes
+    }
+    jsonPaths.add(signalKPath[x]);
+  }
+}
+
+
 // Based on https://raw.githubusercontent.com/kriswiner/MPU9250/master/MPU9250_MS5637_AHRS_t3.ino
 
 // See also MPU-9250 Register Map and Descriptions, Revision 4.0, RM-MPU-9250A-00, Rev. 1.4, 9/9/2013 for registers not listed in 

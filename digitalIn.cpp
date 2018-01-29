@@ -6,6 +6,51 @@ extern "C" {
 #include "sigksens.h"
 #include "digitalIn.h"
 
+DigitalInSensorInfo::DigitalInSensorInfo(String addr) {
+  strcpy(address, addr.c_str());
+  signalKPath[0] = "";
+  signalKPath[1] = "";
+  attrName[0] = "state";
+  attrName[1] = "freq";
+  strcpy(type, "digitalIn");
+  valueJson[0] = "null";
+  valueJson[1] = "null";
+  isUpdated = false;
+}
+
+DigitalInSensorInfo::DigitalInSensorInfo(String addr, 
+                                         String path1, 
+                                         String path2) {
+  strcpy(address, addr.c_str());
+  signalKPath[0] = path1;
+  signalKPath[1] = path2;
+  attrName[0] = "state";
+  attrName[1] = "freq";
+  strcpy(type, "digitalIn");
+  valueJson[0] = "null";
+  valueJson[1] = "null";
+  isUpdated = false;
+}
+
+bool DigitalInSensorInfo::isSerializable() {
+  return true;
+}
+
+void DigitalInSensorInfo::toJson(JsonObject &jsonSens) {
+  jsonSens["address"] = address;
+  jsonSens["type"] = "digitalIn";
+  JsonArray& jsonPaths = jsonSens.createNestedArray("signalKPaths");
+  for (int x=0 ; x < MAX_SENSOR_ATTRIBUTES ; x++) {
+    if (strcmp(attrName[x].c_str(), "") == 0 ) {
+      break; //no more attributes
+    }
+    jsonPaths.add(signalKPath[x]);
+  }
+}
+
+
+
+
 int     digitalPins[NUMBER_DIGITAL_INPUT] = DIGITAL_INPUT_PINS;
 char    digitalPinNames[NUMBER_DIGITAL_INPUT][10] = DIGITAL_INPUT_NAME;
 bool    digitalValueLast[NUMBER_DIGITAL_INPUT] = { false };
