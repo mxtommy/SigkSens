@@ -49,8 +49,6 @@ void DigitalInSensorInfo::toJson(JsonObject &jsonSens) {
 }
 
 
-
-
 int     digitalPins[NUMBER_DIGITAL_INPUT] = DIGITAL_INPUT_PINS;
 char    digitalPinNames[NUMBER_DIGITAL_INPUT][10] = DIGITAL_INPUT_NAME;
 bool    digitalValueLast[NUMBER_DIGITAL_INPUT] = { false };

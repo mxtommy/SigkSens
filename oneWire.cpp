@@ -19,7 +19,7 @@ OneWireSensorInfo::OneWireSensorInfo(String addr) {
   signalKPath[0] = "";
   attrName[0] = "tempK";
   strcpy(type, "oneWire");
-  valueJson[0] = "{ \"tempK\": null }";
+  valueJson[0] = "null";
   isUpdated = false;
 }
 
@@ -28,7 +28,7 @@ OneWireSensorInfo::OneWireSensorInfo(String addr, String path) {
   signalKPath[0] = path;
   attrName[0] = "tempK";
   strcpy(type, "oneWire");
-  valueJson[0] = "{ \"tempK\": null }";
+  valueJson[0] = "null";
   isUpdated = false;
 }
 

@@ -13,6 +13,7 @@ extern "C" {
 #include "mpu9250.h"
 #include "mpu.h"
 #include "digitalIn.h"
+#include "systemHz.h"
 #include "sigksens.h"
 
 /*----------------------------------------------------------------------------
@@ -157,21 +158,11 @@ void loadConfig() {
           // load paths and set valueJson to null of that sensor type
           //should probably do this elsewhere to keep concerns seperate...
           if (type == "Local") {
-            newSensor = new SensorInfo();
-            strcpy(newSensor->address, json["sensors"][i]["address"]);
-            strcpy(newSensor->type, type.c_str());
-            newSensor->isUpdated = false;
-
-            // systemHz
-            strcpy(tempStr, json["sensors"][i]["signalKPaths"][0]);
-            newSensor->attrName[0] = "systemHz";
-            newSensor->signalKPath[0] = tempStr;            
-            newSensor->valueJson[0] = "null";
-            strcpy(tempStr, json["sensors"][i]["signalKPaths"][1]);
-            newSensor->attrName[1] = "freeMem";
-            newSensor->signalKPath[1] = tempStr;            
-            newSensor->valueJson[1] = "null";
-          
+            newSensor = new SystemHzSensorInfo(
+              json["sensors"][i]["address"],
+              json["sensors"][i]["signalKPaths"][0],
+              json["sensors"][i]["signalKPaths"][1]
+            );
           } else if (type == "oneWire") {
             newSensor = new OneWireSensorInfo(
               json["sensors"][i]["address"],
