@@ -27,7 +27,7 @@ class SensorInfo {
     bool isUpdated;
 
     bool isSerializable();
-    void toJson(JsonObject&);
+    virtual void toJson(JsonObject&) = 0;
 };
 
 // memory to save sensor info

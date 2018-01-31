@@ -116,6 +116,7 @@ void saveConfig() {
 }
 
 void loadConfig() {
+  SensorInfo *newSensor;
   SensorInfo *tmpSensorInfo;
   uint8_t tempDeviceAddress[8];
   char tempStr[255];
@@ -149,11 +150,6 @@ void loadConfig() {
         // load known sensors
         for (uint8_t i=0; i < json["sensors"].size(); i++) {
           String type = json["sensors"][i]["type"];
-          SensorInfo *newSensor;
-          newSensor = new SensorInfo();
-          strcpy(newSensor->address, json["sensors"][i]["address"]);
-          strcpy(newSensor->type, type.c_str());
-          newSensor->isUpdated = false;
           
           // load paths and set valueJson to null of that sensor type
           //should probably do this elsewhere to keep concerns seperate...
