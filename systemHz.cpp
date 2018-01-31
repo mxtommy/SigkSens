@@ -79,16 +79,7 @@ void setupSystemHz(bool &need_save) {
   }    
   if (!known) {
     Serial.print("Setting up System info ");
-    SensorInfo *newSensor = new SensorInfo();
-    strcpy(newSensor->address, "Local");
-    strcpy(newSensor->type,"Local");
-    newSensor->attrName[0] = "Local";
-    newSensor->attrName[1] = "freeMem";
-    newSensor->signalKPath[0] = "";
-    newSensor->signalKPath[1] = "";
-    newSensor->valueJson[0] = "null";
-    newSensor->valueJson[1] = "null";
-    newSensor->isUpdated = false;
+    SensorInfo *newSensor = new SystemHzSensorInfo("local");
     sensorList.add(newSensor);
     need_save = true;
   }    

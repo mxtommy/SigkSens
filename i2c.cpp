@@ -6,6 +6,7 @@ extern "C" {
 
 #include "sigksens.h"
 #include "sht30.h"
+#include "mpu9250.h"
 #include "mpu.h"
 #include "i2c.h"
 
@@ -40,23 +41,14 @@ void scanI2C(bool &need_save) {
     bool known = false;
     for (int x=0;x<sensorList.size() ; x++) {
       tmpSensorInfo = sensorList.get(x);
-      if (strcmp(tmpSensorInfo->address, "45") == 0) {
+      if (strcmp(tmpSensorInfo->address, "0x45") == 0) {
         known = true;                
       }
     }
     if (!known) {
       Serial.print("New SHT Sensor found at: 0x45 ");
-      SensorInfo *newSensor = new SensorInfo();
-      strcpy(newSensor->address, "45");
-      strcpy(newSensor->type,"sht30");
-      newSensor->attrName[0] = "tempK";
-      newSensor->attrName[1] = "humidity";
-      newSensor->signalKPath[0] = "";
-      newSensor->signalKPath[1] = "";
-      newSensor->valueJson[0] = "null";
-      newSensor->valueJson[1] = "null";
-      newSensor->isUpdated = false;
-      sensorList.add(newSensor);         
+      SensorInfo *newSensor = new SHT30SensorInfo("0x45");
+      sensorList.add(newSensor);
       need_save = true;
     }    
   }
@@ -67,29 +59,14 @@ void scanI2C(bool &need_save) {
     bool known = false;
     for (int x=0;x<sensorList.size() ; x++) {
       tmpSensorInfo = sensorList.get(x);
-      if (strcmp(tmpSensorInfo->address, "68") == 0) {
+      if (strcmp(tmpSensorInfo->address, "0x68") == 0) {
         known = true;                
       }
     }    
     if (!known) {
       Serial.print("New MPU925X found at: 0x68 ");
-      SensorInfo *newSensor = new SensorInfo();
-      strcpy(newSensor->address, "68");
-      strcpy(newSensor->type,"mpu925x");
-      newSensor->attrName[0] = "tempK";
-      newSensor->attrName[1] = "yaw";
-      newSensor->attrName[2] = "pitch";
-      newSensor->attrName[3] = "roll";
-      newSensor->signalKPath[0] = "";
-      newSensor->signalKPath[1] = "";
-      newSensor->signalKPath[2] = "";
-      newSensor->signalKPath[3] = "";
-      newSensor->valueJson[0] = "null";
-      newSensor->valueJson[1] = "null";
-      newSensor->valueJson[2] = "null";
-      newSensor->valueJson[3] = "null";
-      newSensor->isUpdated = false;
-      sensorList.add(newSensor);         
+      SensorInfo *newSensor = new MPU9250SensorInfo("0x68");
+      sensorList.add(newSensor);
       need_save = true;
     }    
   }

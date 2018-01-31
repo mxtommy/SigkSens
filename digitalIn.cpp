@@ -94,7 +94,6 @@ void interruptUpdateDigitalIn(void *pArg) {
 
 
 void setupDigitalIn(bool &need_save) {
-
   for (int index=0;index<(sizeof(digitalPins)/sizeof(digitalPins[0])); index++) {
     initializeDigitalPin(index, need_save); 
   }
@@ -145,21 +144,14 @@ void initializeDigitalPin(uint8_t index, bool &need_save) {
         known = true;                
       }
     }
+  }   
 
-  }    
   if (!known) {
     Serial.print("Setting up Digital Input on pin: ");
     Serial.println(digitalPinNames[index]);
-    SensorInfo *newSensor = new SensorInfo();
-    strcpy(newSensor->address, digitalPinNames[index]);
-    strcpy(newSensor->type,"digitalIn");
-    newSensor->attrName[0] = "state";
-    newSensor->attrName[1] = "freq";
-    newSensor->signalKPath[0] = "";
-    newSensor->signalKPath[1] = "";
-    newSensor->valueJson[0] = "null";
-    newSensor->valueJson[1] = "null";
-    newSensor->isUpdated = false;
+    DigitalInSensorInfo *newSensor = new DigitalInSensorInfo(
+      digitalPinNames[index]
+    );
     sensorList.add(newSensor);         
     need_save = true;
   }      
@@ -168,11 +160,8 @@ void initializeDigitalPin(uint8_t index, bool &need_save) {
   if (digitalRead(digitalPins[index]) == LOW) {
     digitalValueLast[index] = true;
     digitalValue[index] = true;
-  }
-  
+  }  
 }
-
-
 
 
 void digitalCheckState(uint8_t index) {
@@ -194,8 +183,6 @@ void digitalCheckState(uint8_t index) {
 }
 
 
-
-
 void updateDigitalIn(uint8_t index) {
   SensorInfo *thisSensorInfo;
 
@@ -211,10 +198,8 @@ void updateDigitalIn(uint8_t index) {
         }
         thisSensorInfo->valueJson[1] = "null";
         thisSensorInfo->isUpdated = true;
-    }
-       
+    }    
   }
-
 }
 
 void setDigitalInUpdateDelay(uint32_t newDelay) {
@@ -225,6 +210,3 @@ void setDigitalInUpdateDelay(uint32_t newDelay) {
   updateDigitalInDelay = newDelay;
   os_timer_arm(&digitalInTimer, updateDigitalInDelay, true);
 }
-
-
-
