@@ -9,8 +9,9 @@ class OneWireSensorInfo : public SensorInfo {
     OneWireSensorInfo(String addr);
     OneWireSensorInfo(String addr, String path);
 
+    static OneWireSensorInfo *fromJson(JsonObject &jsonSens);
     void toJson(JsonObject &jsonSens);
-    void fromJson();
+    
 
     bool isSerializable();
 };

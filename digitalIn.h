@@ -13,8 +13,8 @@ class DigitalInSensorInfo : public SensorInfo {
         String path1, 
         String path2);
 
+    static DigitalInSensorInfo *fromJson(JsonObject &jsonSens);
     void toJson(JsonObject &jsonSens);
-    void fromJson();
 
     bool isSerializable();
 };

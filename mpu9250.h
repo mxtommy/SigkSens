@@ -15,8 +15,8 @@ class MPU9250SensorInfo : public SensorInfo {
         String path3, 
         String path4);
 
+    static MPU9250SensorInfo *fromJson(JsonObject &jsonSens);
     void toJson(JsonObject &jsonSens);
-    void fromJson();
 
     bool isSerializable();
 };

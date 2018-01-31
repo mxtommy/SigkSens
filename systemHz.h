@@ -13,8 +13,8 @@ class SystemHzSensorInfo : public SensorInfo {
         String path1, 
         String path2);
 
+    static SystemHzSensorInfo *fromJson(JsonObject &jsonSens);
     void toJson(JsonObject &jsonSens);
-    void fromJson();
 
     bool isSerializable();
 };

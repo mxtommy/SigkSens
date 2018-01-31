@@ -12,8 +12,8 @@ class SHT30SensorInfo : public SensorInfo {
     SHT30SensorInfo(String addr);
     SHT30SensorInfo(String addr, String path1, String path2);
 
+    static SHT30SensorInfo *fromJson(JsonObject &jsonSens);
     void toJson(JsonObject &jsonSens);
-    void fromJson();
 
     bool isSerializable();
 };

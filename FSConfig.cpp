@@ -154,37 +154,15 @@ void loadConfig() {
           // load paths and set valueJson to null of that sensor type
           //should probably do this elsewhere to keep concerns seperate...
           if (type == "Local") {
-            newSensor = new SystemHzSensorInfo(
-              json["sensors"][i]["address"],
-              json["sensors"][i]["signalKPaths"][0],
-              json["sensors"][i]["signalKPaths"][1]
-            );
+            newSensor = SystemHzSensorInfo::fromJson(json["sensors"][i]);
           } else if (type == "oneWire") {
-            newSensor = new OneWireSensorInfo(
-              json["sensors"][i]["address"],
-              json["sensors"][i]["signalKPaths"][0]);
-          }
-          else if (type == "sht30") {
-            newSensor = new SHT30SensorInfo(
-              json["sensors"][i]["address"],
-              json["sensors"][i]["signalKPaths"][0],
-              json["sensors"][i]["signalKPaths"][1]
-            );
-          }
-          else if (type == "mpu925x") {
-            newSensor = new MPU9250SensorInfo(
-              json["sensors"][i]["address"],
-              json["sensors"][i]["signalKPaths"][0],
-              json["sensors"][i]["signalKPaths"][1],
-              json["sensors"][i]["signalKPaths"][2],
-              json["sensors"][i]["signalKPaths"][3]
-            );
+            newSensor = OneWireSensorInfo::fromJson(json["sensors"][i]);
+          } else if (type == "sht30") {
+            newSensor = SHT30SensorInfo::fromJson(json["sensors"][i]);
+          } else if (type == "mpu925x") {
+            newSensor = MPU9250SensorInfo::fromJson(json["sensors"][i]);
           } else if (type == "digitalIn") {
-            newSensor = new DigitalInSensorInfo(
-              json["sensors"][i]["address"],
-              json["sensors"][i]["signalKPaths"][0],
-              json["sensors"][i]["signalKPaths"][1]
-            );
+            newSensor = DigitalInSensorInfo::fromJson(json["sensors"][i]);
           }
           
           sensorList.add(newSensor);

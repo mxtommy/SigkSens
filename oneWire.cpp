@@ -36,6 +36,13 @@ bool OneWireSensorInfo::isSerializable() {
   return true;
 }
 
+OneWireSensorInfo *OneWireSensorInfo::fromJson(JsonObject &jsonSens) {
+  return new OneWireSensorInfo(
+    jsonSens["address"],
+    jsonSens["signalKPaths"][0]
+  );
+}
+
 void OneWireSensorInfo::toJson(JsonObject &jsonSens) {
   jsonSens["address"] = address;
   jsonSens["type"] = "oneWire";

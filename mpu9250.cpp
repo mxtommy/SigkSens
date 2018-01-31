@@ -52,6 +52,16 @@ bool MPU9250SensorInfo::isSerializable() {
   return true;
 }
 
+MPU9250SensorInfo *MPU9250SensorInfo::fromJson(JsonObject &jsonSens) {
+  return new MPU9250SensorInfo(
+    jsonSens["address"],
+    jsonSens["signalKPaths"][0],
+    jsonSens["signalKPaths"][1],
+    jsonSens["signalKPaths"][2],
+    jsonSens["signalKPaths"][3]
+  );
+}
+
 void MPU9250SensorInfo::toJson(JsonObject &jsonSens) {
   jsonSens["address"] = address;
   jsonSens["type"] = "mpu925x";

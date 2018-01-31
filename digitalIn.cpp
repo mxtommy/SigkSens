@@ -36,6 +36,14 @@ bool DigitalInSensorInfo::isSerializable() {
   return true;
 }
 
+DigitalInSensorInfo *DigitalInSensorInfo::fromJson(JsonObject &jsonSens) {
+  return new DigitalInSensorInfo(
+    jsonSens["address"],
+    jsonSens["signalKPaths"][0],
+    jsonSens["signalKPaths"][1]
+  );
+}
+
 void DigitalInSensorInfo::toJson(JsonObject &jsonSens) {
   jsonSens["address"] = address;
   jsonSens["type"] = "digitalIn";

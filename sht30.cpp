@@ -36,6 +36,14 @@ bool SHT30SensorInfo::isSerializable() {
   return true;
 }
 
+SHT30SensorInfo *SHT30SensorInfo::fromJson(JsonObject &jsonSens) {
+  return new SHT30SensorInfo(
+    jsonSens["address"],
+    jsonSens["signalKPaths"][0],
+    jsonSens["signalKPaths"][1]
+  );
+}
+
 void SHT30SensorInfo::toJson(JsonObject &jsonSens) {
   jsonSens["address"] = address;
   jsonSens["type"] = "sht30";

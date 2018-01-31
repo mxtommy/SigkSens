@@ -36,6 +36,14 @@ bool SystemHzSensorInfo::isSerializable() {
   return true;
 }
 
+SystemHzSensorInfo *SystemHzSensorInfo::fromJson(JsonObject &jsonSens) {
+  return new SystemHzSensorInfo(
+    jsonSens["address"],
+    jsonSens["signalKPaths"][0],
+    jsonSens["signalKPaths"][1]
+  );
+}
+
 void SystemHzSensorInfo::toJson(JsonObject &jsonSens) {
   jsonSens["address"] = address;
   jsonSens["type"] = "Local";
