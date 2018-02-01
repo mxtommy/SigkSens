@@ -2,6 +2,7 @@
 
 LinkedList<SensorInfo*> sensorList = LinkedList<SensorInfo*>();
 
+fromJsonFunc fromJson[(int)SensorType::SensorType_MAX];
 /*---------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------
 Helper functions

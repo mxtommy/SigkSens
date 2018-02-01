@@ -12,7 +12,7 @@ DigitalInSensorInfo::DigitalInSensorInfo(String addr) {
   signalKPath[1] = "";
   attrName[0] = "state";
   attrName[1] = "freq";
-  strcpy(type, "digitalIn");
+  type = SensorType::digitalIn;
   valueJson[0] = "null";
   valueJson[1] = "null";
   isUpdated = false;
@@ -26,7 +26,7 @@ DigitalInSensorInfo::DigitalInSensorInfo(String addr,
   signalKPath[1] = path2;
   attrName[0] = "state";
   attrName[1] = "freq";
-  strcpy(type, "digitalIn");
+  type = SensorType::digitalIn;
   valueJson[0] = "null";
   valueJson[1] = "null";
   isUpdated = false;
@@ -46,7 +46,7 @@ DigitalInSensorInfo *DigitalInSensorInfo::fromJson(JsonObject &jsonSens) {
 
 void DigitalInSensorInfo::toJson(JsonObject &jsonSens) {
   jsonSens["address"] = address;
-  jsonSens["type"] = "digitalIn";
+  jsonSens["type"] = (int)SensorType::digitalIn;
   JsonArray& jsonPaths = jsonSens.createNestedArray("signalKPaths");
   for (int x=0 ; x < MAX_SENSOR_ATTRIBUTES ; x++) {
     if (strcmp(attrName[x].c_str(), "") == 0 ) {
@@ -147,7 +147,7 @@ void initializeDigitalPin(uint8_t index, bool &need_save) {
   bool known = false;
   for (int x=0;x<sensorList.size() ; x++) {
     tmpSensorInfo = sensorList.get(x);
-    if (strcmp(tmpSensorInfo->type, "digitalIn") == 0) {
+    if (tmpSensorInfo->type==SensorType::digitalIn) {
       if (strcmp(tmpSensorInfo->address, digitalPinNames[index]) == 0) {
         known = true;                
       }
@@ -198,7 +198,7 @@ void updateDigitalIn(uint8_t index) {
   for (uint8_t i=0; i < sensorList.size(); i++) {
     thisSensorInfo = sensorList.get(i);
     
-    if ((strcmp(thisSensorInfo->type, "digitalIn") == 0) && (strcmp(thisSensorInfo->address, digitalPinNames[index]) == 0) ) {
+    if ((thisSensorInfo->type==SensorType::digitalIn) && (strcmp(thisSensorInfo->address, digitalPinNames[index]) == 0) ) {
         if (digitalValue[index]) {
           thisSensorInfo->valueJson[0] = "true";
         } else {

@@ -183,8 +183,8 @@ void htmlGetSensorInfo() {
   for (uint8_t i=0; i < sensorList.size(); i++) {
     tmpSensorInfo = sensorList.get(i);
     JsonObject& tmpSens = sensorArr.createNestedObject();
-    tmpSens.set<String>("address", tmpSensorInfo->address);
-    tmpSens.set<String>("type", tmpSensorInfo->type);
+    tmpSens.set("address", tmpSensorInfo->address);
+    tmpSens.set("type", (int)tmpSensorInfo->type);
 
     JsonArray& jsonAttr = tmpSens.createNestedArray("attr");
     for (int x=0;x<MAX_SENSOR_ATTRIBUTES; x++) {
@@ -192,8 +192,8 @@ void htmlGetSensorInfo() {
         break; // no more attrs
       }
       JsonObject& tmpAttr = jsonAttr.createNestedObject();
-      tmpAttr.set<String>("attrName", tmpSensorInfo->attrName[x]);
-      tmpAttr.set<String>("signalKPath", tmpSensorInfo->signalKPath[x] );
+      tmpAttr.set("attrName", tmpSensorInfo->attrName[x]);
+      tmpAttr.set("signalKPath", tmpSensorInfo->signalKPath[x] );
       tmpAttr["value"] = RawJson(tmpSensorInfo->valueJson[x].c_str());
     }
   }

@@ -18,7 +18,7 @@ OneWireSensorInfo::OneWireSensorInfo(String addr) {
   strcpy(address, addr.c_str());
   signalKPath[0] = "";
   attrName[0] = "tempK";
-  strcpy(type, "oneWire");
+  type = SensorType::oneWire;
   valueJson[0] = "null";
   isUpdated = false;
 }
@@ -27,7 +27,7 @@ OneWireSensorInfo::OneWireSensorInfo(String addr, String path) {
   strcpy(address, addr.c_str());
   signalKPath[0] = path;
   attrName[0] = "tempK";
-  strcpy(type, "oneWire");
+  type = SensorType::oneWire;
   valueJson[0] = "null";
   isUpdated = false;
 }
@@ -37,6 +37,7 @@ bool OneWireSensorInfo::isSerializable() {
 }
 
 OneWireSensorInfo *OneWireSensorInfo::fromJson(JsonObject &jsonSens) {
+  Serial.println("OneWireSensorInfo::fromJson");
   return new OneWireSensorInfo(
     jsonSens["address"],
     jsonSens["signalKPaths"][0]
@@ -45,7 +46,7 @@ OneWireSensorInfo *OneWireSensorInfo::fromJson(JsonObject &jsonSens) {
 
 void OneWireSensorInfo::toJson(JsonObject &jsonSens) {
   jsonSens["address"] = address;
-  jsonSens["type"] = "oneWire";
+  jsonSens["type"] = (int)SensorType::oneWire;
   JsonArray& jsonPaths = jsonSens.createNestedArray("signalKPaths");
   for (int x=0 ; x < MAX_SENSOR_ATTRIBUTES ; x++) {
     if (strcmp(attrName[x].c_str(), "") == 0 ) {
@@ -195,7 +196,7 @@ void read1WSensors() {
 
   for (uint8_t i=0; i < sensorList.size(); i++) {
     thisSensorInfo = sensorList.get(i);
-    if (strcmp(thisSensorInfo->type, "oneWire") == 0) {
+    if (thisSensorInfo->type==SensorType::oneWire) {
       parseBytes(thisSensorInfo->address, ':', address,  8, 16); // convert string address to uint_8 array
     
       tempC = sensors.getTempC(address);

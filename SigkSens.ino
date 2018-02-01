@@ -7,10 +7,13 @@
 
 #include <ArduinoJson.h>     //https://github.com/bblanchon/ArduinoJson
 
+#include <string>
+
 #include "config.h"
 #include "FSConfig.h"
 #include "i2c.h"
 #include "mpu.h"
+#include "mpu9250.h"
 #include "sht30.h"
 #include "oneWire.h"
 #include "digitalIn.h"
@@ -37,6 +40,23 @@ uint16_t mainLoopCount = 0; //some stuff needs to run constantly, others not. so
 General Setup
 -----------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------*/
+
+void setupFromJson() {
+  fromJson[(int)SensorType::local] =
+    (fromJsonFunc)&(SystemHzSensorInfo::fromJson);
+
+  fromJson[(int)SensorType::digitalIn] =
+    (fromJsonFunc)&(DigitalInSensorInfo::fromJson);
+
+  fromJson[(int)SensorType::oneWire] =
+    (fromJsonFunc)&(OneWireSensorInfo::fromJson);
+
+  fromJson[(int)SensorType::sht30] =
+    (fromJsonFunc)&(SHT30SensorInfo::fromJson);
+
+  fromJson[(int)SensorType::mpu925x] =
+    (fromJsonFunc)&(MPU9250SensorInfo::fromJson);
+}
 
 
 void setupWifi() {
@@ -90,6 +110,8 @@ void setup() {
   // put your setup code here, to run once:
   Serial.begin(115200);
   pinMode(RESET_CONFIG_PIN, INPUT_PULLUP);
+
+  setupFromJson();
 
   setupFS();
 

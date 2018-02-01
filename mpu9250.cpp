@@ -21,7 +21,7 @@ MPU9250SensorInfo::MPU9250SensorInfo(String addr) {
   attrName[1] = "yaw";
   attrName[2] = "pitch";
   attrName[3] = "roll";
-  strcpy(type, "mpu925x");
+  type = SensorType::mpu925x;
   valueJson[0] = "null";
   valueJson[1] = "null";
   valueJson[2] = "null";
@@ -40,7 +40,7 @@ MPU9250SensorInfo::MPU9250SensorInfo(String addr, String path1, String path2,
   attrName[1] = "yaw";
   attrName[2] = "pitch";
   attrName[3] = "roll";
-  strcpy(type, "mpu925x");
+  type = SensorType::mpu925x;
   valueJson[0] = "null";
   valueJson[1] = "null";
   valueJson[2] = "null";
@@ -64,7 +64,7 @@ MPU9250SensorInfo *MPU9250SensorInfo::fromJson(JsonObject &jsonSens) {
 
 void MPU9250SensorInfo::toJson(JsonObject &jsonSens) {
   jsonSens["address"] = address;
-  jsonSens["type"] = "mpu925x";
+  jsonSens["type"] = (int)SensorType::mpu925x;
   JsonArray& jsonPaths = jsonSens.createNestedArray("signalKPaths");
   for (int x=0 ; x < MAX_SENSOR_ATTRIBUTES ; x++) {
     if (strcmp(attrName[x].c_str(), "") == 0 ) {
@@ -508,7 +508,7 @@ void updateMPUSensorInfo() {
 
   for (uint8_t i=0; i < sensorList.size(); i++) {
     thisSensorInfo = sensorList.get(i);
-    if (strcmp(thisSensorInfo->type, "mpu925x") == 0) {
+    if (thisSensorInfo->type==SensorType::mpu925x) {
       //we're just going to assume there's only one for now...
     
       thisSensorInfo->valueJson[0] = temperature + 273.15;

@@ -52,7 +52,7 @@ void sendDelta() {
 
       JsonObject& source = thisUpdate.createNestedObject("source");
       source["label"] = myHostname;
-      source["src"] = thisSensorInfo->type;
+      source["src"] = (int)thisSensorInfo->type;
       // values array
      
       JsonArray& values = thisUpdate.createNestedArray("values");
