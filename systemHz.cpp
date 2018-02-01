@@ -6,6 +6,49 @@ extern "C" {
 #include "sigksens.h"
 #include "systemHz.h"
 
+SystemHzSensorInfo::SystemHzSensorInfo(String addr) {
+  strcpy(address, addr.c_str());
+  signalKPath[0] = "";
+  signalKPath[1] = "";
+  attrName[0] = "systemHz";
+  attrName[1] = "freeMem";
+  strcpy(type, "Local");
+  valueJson[0] = "null";
+  valueJson[1] = "null";
+  isUpdated = false;
+}
+
+SystemHzSensorInfo::SystemHzSensorInfo(String addr, 
+                                         String path1, 
+                                         String path2) {
+  strcpy(address, addr.c_str());
+  signalKPath[0] = path1;
+  signalKPath[1] = path2;
+  attrName[0] = "systemHz";
+  attrName[1] = "freeMem";
+  strcpy(type, "Local");
+  valueJson[0] = "null";
+  valueJson[1] = "null";
+  isUpdated = false;
+}
+
+bool SystemHzSensorInfo::isSerializable() {
+  return true;
+}
+
+void SystemHzSensorInfo::toJson(JsonObject &jsonSens) {
+  jsonSens["address"] = address;
+  jsonSens["type"] = "Local";
+  JsonArray& jsonPaths = jsonSens.createNestedArray("signalKPaths");
+  for (int x=0 ; x < MAX_SENSOR_ATTRIBUTES ; x++) {
+    if (strcmp(attrName[x].c_str(), "") == 0 ) {
+      break; //no more attributes
+    }
+    jsonPaths.add(signalKPath[x]);
+  }
+}
+
+
 os_timer_t  updateHz; // once request cycle starts, this timer set so we can send when ready
 bool readyToUpdateHz = false;
 
@@ -36,16 +79,7 @@ void setupSystemHz(bool &need_save) {
   }    
   if (!known) {
     Serial.print("Setting up System info ");
-    SensorInfo *newSensor = new SensorInfo();
-    strcpy(newSensor->address, "Local");
-    strcpy(newSensor->type,"Local");
-    newSensor->attrName[0] = "systemHz";
-    newSensor->attrName[1] = "freeMem";
-    newSensor->signalKPath[0] = "";
-    newSensor->signalKPath[1] = "";
-    newSensor->valueJson[0] = "null";
-    newSensor->valueJson[1] = "null";
-    newSensor->isUpdated = false;
+    SensorInfo *newSensor = new SystemHzSensorInfo("local");
     sensorList.add(newSensor);
     need_save = true;
   }    

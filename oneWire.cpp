@@ -14,6 +14,40 @@ extern "C" {
 #include "sigksens.h"
 #include "oneWire.h"
 
+OneWireSensorInfo::OneWireSensorInfo(String addr) {
+  strcpy(address, addr.c_str());
+  signalKPath[0] = "";
+  attrName[0] = "tempK";
+  strcpy(type, "oneWire");
+  valueJson[0] = "null";
+  isUpdated = false;
+}
+
+OneWireSensorInfo::OneWireSensorInfo(String addr, String path) {
+  strcpy(address, addr.c_str());
+  signalKPath[0] = path;
+  attrName[0] = "tempK";
+  strcpy(type, "oneWire");
+  valueJson[0] = "null";
+  isUpdated = false;
+}
+
+bool OneWireSensorInfo::isSerializable() {
+  return true;
+}
+
+void OneWireSensorInfo::toJson(JsonObject &jsonSens) {
+  jsonSens["address"] = address;
+  jsonSens["type"] = "oneWire";
+  JsonArray& jsonPaths = jsonSens.createNestedArray("signalKPaths");
+  for (int x=0 ; x < MAX_SENSOR_ATTRIBUTES ; x++) {
+    if (strcmp(attrName[x].c_str(), "") == 0 ) {
+      break; //no more attributes
+    }
+    jsonPaths.add(signalKPath[x]);
+  }
+}
+
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
 
@@ -32,9 +66,9 @@ bool readyToScan1Wire = false;
 
 // forward declarations
 bool oneWireScanBus(bool&);
-void interuptRequest1WSensors(void *pArg);
-void interuptReady1WSensors(void *pArg);
-void interuptScan1WSensors(void *pArg);
+void interruptRequest1WSensors(void *pArg);
+void interruptReady1WSensors(void *pArg);
+void interruptScan1WSensors(void *pArg);
 void request1WSensors(bool);
 void read1WSensors();
 
@@ -70,9 +104,9 @@ bool setup1Wire(bool &need_save) {
 
   present = oneWireScanBus(need_save);
 
-  os_timer_setfn(&oneWireRequestTimer, interuptRequest1WSensors, NULL);
-  os_timer_setfn(&oneWireReadyTimer, interuptReady1WSensors, NULL);
-  os_timer_setfn(&oneWireScanTimer, interuptScan1WSensors, NULL);
+  os_timer_setfn(&oneWireRequestTimer, interruptRequest1WSensors, NULL);
+  os_timer_setfn(&oneWireReadyTimer, interruptReady1WSensors, NULL);
+  os_timer_setfn(&oneWireScanTimer, interruptScan1WSensors, NULL);
 
   os_timer_arm(&oneWireRequestTimer, oneWireReadDelay, true);
   os_timer_arm(&oneWireScanTimer, oneWireScanDelay, true);
@@ -121,15 +155,15 @@ void printAddress(DeviceAddress deviceAddress) {
   }
 }
 
-void interuptRequest1WSensors(void *pArg) {
+void interruptRequest1WSensors(void *pArg) {
   readyToRequest1Wire = true;
 }
 
-void interuptReady1WSensors(void *pArg) {
+void interruptReady1WSensors(void *pArg) {
   readyToRead1Wire = true;
 } 
 
-void interuptScan1WSensors(void *pArg) {
+void interruptScan1WSensors(void *pArg) {
   readyToScan1Wire = true;
 } 
 
@@ -171,6 +205,20 @@ void read1WSensors() {
 }
 
 
+void addrToString(char *strAddress, uint8_t *deviceAddress) {
+  // convert to string
+  sprintf(strAddress, "%02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X",
+    deviceAddress[0],
+    deviceAddress[1],
+    deviceAddress[2],
+    deviceAddress[3],
+    deviceAddress[4],
+    deviceAddress[5],
+    deviceAddress[6],
+    deviceAddress[7] );  
+}
+
+
 bool oneWireScanBus(bool &need_save) {
   bool present = false;
 
@@ -193,17 +241,8 @@ bool oneWireScanBus(bool &need_save) {
   for(int i=0;i<numberOfDevices; i++) {
     if(sensors.getAddress(tempDeviceAddress, i))
     {
-      // convert to string
-        sprintf(strAddress, "%02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X", 
-        tempDeviceAddress[0], 
-        tempDeviceAddress[1], 
-        tempDeviceAddress[2],
-        tempDeviceAddress[3], 
-        tempDeviceAddress[4], 
-        tempDeviceAddress[5], 
-        tempDeviceAddress[6], 
-        tempDeviceAddress[7]  );      
-      
+      addrToString(strAddress, tempDeviceAddress);
+
       //see if it's in sensorInfo
       bool known = false;
       for (int x=0;x<sensorList.size() ; x++) {
@@ -217,12 +256,7 @@ bool oneWireScanBus(bool &need_save) {
         Serial.print("New Sensor found: ");
         Serial.print(strAddress);
         Serial.println("");
-        SensorInfo *newSensor = new SensorInfo();
-        strcpy(newSensor->address, strAddress);
-        newSensor->signalKPath[0] = "";
-        newSensor->attrName[0] = "tempK";
-        strcpy(newSensor->type,"oneWire");
-        newSensor->valueJson[0] = "{ \"tempK\": null }";
+        OneWireSensorInfo *newSensor = new OneWireSensorInfo(strAddress);
         sensorList.add(newSensor);
         need_save = true;
       }

@@ -10,8 +10,10 @@ extern "C" {
 #include "webSocket.h"
 #include "oneWire.h"
 #include "sht30.h"
+#include "mpu9250.h"
 #include "mpu.h"
 #include "digitalIn.h"
+#include "systemHz.h"
 #include "sigksens.h"
 
 /*----------------------------------------------------------------------------
@@ -68,15 +70,19 @@ void saveConfig() {
   for (uint8_t i=0; i < sensorList.size(); i++) {
     tmpSensorInfo = sensorList.get(i);
     JsonObject& tmpSens = jsonSensors.createNestedObject();
-    tmpSens["address"] = tmpSensorInfo->address;
-    tmpSens["type"] = tmpSensorInfo->type;
+    if (tmpSensorInfo->isSerializable()) {
+      tmpSensorInfo->toJson(tmpSens);
+    } else {
+      tmpSens["address"] = tmpSensorInfo->address;
+      tmpSens["type"] = tmpSensorInfo->type;
 
-    JsonArray& jsonPaths = tmpSens.createNestedArray("signalKPaths");
-    for (int x=0;x<MAX_SENSOR_ATTRIBUTES; x++) {
-      if (strcmp(tmpSensorInfo->attrName[x].c_str(), "") == 0 ) {
-        break; //no more attributes
+      JsonArray& jsonPaths = tmpSens.createNestedArray("signalKPaths");
+      for (int x=0;x<MAX_SENSOR_ATTRIBUTES; x++) {
+        if (strcmp(tmpSensorInfo->attrName[x].c_str(), "") == 0 ) {
+          break; //no more attributes
+        }
+        jsonPaths.add(tmpSensorInfo->signalKPath[x]);
       }
-      jsonPaths.add(tmpSensorInfo->signalKPath[x]);
     }
   }
 
@@ -140,85 +146,49 @@ void loadConfig() {
         strcpy(tempStr, json["signalKPath"]); signalKClientInfo.path = tempStr;
         signalKClientInfo.port = json["signalKPort"];
 
-
         // load known sensors
         for (uint8_t i=0; i < json["sensors"].size(); i++) {
-
-          SensorInfo *newSensor = new SensorInfo();
-          //extract address array
-
+          String type = json["sensors"][i]["type"];
+          SensorInfo *newSensor;
+          newSensor = new SensorInfo();
           strcpy(newSensor->address, json["sensors"][i]["address"]);
-          strcpy(newSensor->type, json["sensors"][i]["type"]);
+          strcpy(newSensor->type, type.c_str());
           newSensor->isUpdated = false;
           
           // load paths and set valueJson to null of that sensor type
           //should probably do this elsewhere to keep concerns seperate...
-          if (strcmp(newSensor->type, "Local") == 0) {
-            // systemHz
-            strcpy(tempStr, json["sensors"][i]["signalKPaths"][0]);
-            newSensor->attrName[0] = "systemHz";
-            newSensor->signalKPath[0] = tempStr;            
-            newSensor->valueJson[0] = "null";
-            strcpy(tempStr, json["sensors"][i]["signalKPaths"][1]);
-            newSensor->attrName[1] = "freeMem";
-            newSensor->signalKPath[1] = tempStr;            
-            newSensor->valueJson[1] = "null";
-          
-          } else if (strcmp(newSensor->type, "oneWire") == 0) {
-            // tempK
-            strcpy(tempStr, json["sensors"][i]["signalKPaths"][0]);
-            newSensor->attrName[0] = "tempK";
-            newSensor->signalKPath[0] = tempStr;            
-            newSensor->valueJson[0] = "null";
+          if (type == "Local") {
+            newSensor = new SystemHzSensorInfo(
+              json["sensors"][i]["address"],
+              json["sensors"][i]["signalKPaths"][0],
+              json["sensors"][i]["signalKPaths"][1]
+            );
+          } else if (type == "oneWire") {
+            newSensor = new OneWireSensorInfo(
+              json["sensors"][i]["address"],
+              json["sensors"][i]["signalKPaths"][0]);
           }
-          else if (strcmp(newSensor->type, "sht30") == 0) {
-            //tempK            
-            strcpy(tempStr, json["sensors"][i]["signalKPaths"][0]);
-            newSensor->attrName[0] = "tempK";
-            newSensor->signalKPath[0] = tempStr;                
-            newSensor->valueJson[0] = "null";
-
-            //humidity
-            strcpy(tempStr, json["sensors"][i]["signalKPaths"][1]);
-            newSensor->attrName[1] = "humidity";
-            newSensor->signalKPath[1] = tempStr;              
-            newSensor->valueJson[1] = "null";
+          else if (type == "sht30") {
+            newSensor = new SHT30SensorInfo(
+              json["sensors"][i]["address"],
+              json["sensors"][i]["signalKPaths"][0],
+              json["sensors"][i]["signalKPaths"][1]
+            );
           }
-          else if (strcmp(newSensor->type, "mpu925x") == 0) {
-            //tempK (of gyro sensor)           
-            strcpy(tempStr, json["sensors"][i]["signalKPaths"][0]);
-            newSensor->attrName[0] = "tempK";
-            newSensor->signalKPath[0] = tempStr;                
-            newSensor->valueJson[0] = "null";
-                        
-            //yaw            
-            strcpy(tempStr, json["sensors"][i]["signalKPaths"][1]);
-            newSensor->attrName[1] = "yaw";
-            newSensor->signalKPath[1] = tempStr;                
-            newSensor->valueJson[1] = "null";
-
-            //pitch
-            strcpy(tempStr, json["sensors"][i]["signalKPaths"][2]);
-            newSensor->attrName[2] = "pitch";
-            newSensor->signalKPath[2] = tempStr;              
-            newSensor->valueJson[2] = "null";
-
-            //roll
-            strcpy(tempStr, json["sensors"][i]["signalKPaths"][3]);
-            newSensor->attrName[3] = "roll";
-            newSensor->signalKPath[3] = tempStr;              
-            newSensor->valueJson[3] = "null";            
-          } else if (strcmp(newSensor->type, "digitalIn") == 0) {
-            // state
-            strcpy(tempStr, json["sensors"][i]["signalKPaths"][0]);
-            newSensor->attrName[0] = "state";
-            newSensor->signalKPath[0] = tempStr;            
-            newSensor->valueJson[0] = "null";
-            // freq
-            strcpy(tempStr, json["sensors"][i]["signalKPaths"][1]);
-            newSensor->attrName[1] = "freq";
-            newSensor->signalKPath[1] = tempStr;            
-            newSensor->valueJson[1] = "null";
+          else if (type == "mpu925x") {
+            newSensor = new MPU9250SensorInfo(
+              json["sensors"][i]["address"],
+              json["sensors"][i]["signalKPaths"][0],
+              json["sensors"][i]["signalKPaths"][1],
+              json["sensors"][i]["signalKPaths"][2],
+              json["sensors"][i]["signalKPaths"][3]
+            );
+          } else if (type == "digitalIn") {
+            newSensor = new DigitalInSensorInfo(
+              json["sensors"][i]["address"],
+              json["sensors"][i]["signalKPaths"][0],
+              json["sensors"][i]["signalKPaths"][1]
+            );
           }
           
           sensorList.add(newSensor);
