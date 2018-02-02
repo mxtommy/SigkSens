@@ -16,11 +16,10 @@ class OneWireSensorInfo : public SensorInfo {
     bool isSerializable();
 };
 
-extern bool sensorOneWirePresent;
-
-bool setup1Wire(bool&);
-void handle1Wire(bool&, bool&);
+void setup1Wire(bool&);
+void handle1Wire(bool&);
 void setOneWireReadDelay(uint32_t);
 uint32_t getOneWireReadDelay();
+bool getSensorOneWirePresent();
 
 #endif

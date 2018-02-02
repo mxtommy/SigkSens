@@ -123,7 +123,7 @@ void setup() {
   setupSignalK();
 
   setupConfigReset();
-  sensorOneWirePresent = setup1Wire(need_save);
+  setup1Wire(need_save);
   setupI2C(need_save);
   setupDigitalIn(need_save);
   setupSystemHz(need_save);
@@ -156,7 +156,7 @@ void loop() {
   //Stuff that runs  once every 1000 loops. (still many many times/sec)
   if (mainLoopCount > 1000) {
       handleI2C_slow();
-      handle1Wire(sensorOneWirePresent, need_save);
+      handle1Wire(need_save);
       if (need_save) {
         saveConfig();
       }

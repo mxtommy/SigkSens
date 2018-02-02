@@ -86,7 +86,7 @@ void setupSystemHz(bool &need_save) {
   }    
   if (!known) {
     Serial.print("Setting up System info ");
-    SensorInfo *newSensor = new SystemHzSensorInfo("local");
+    SensorInfo *newSensor = new SystemHzSensorInfo("Local");
     sensorList.add(newSensor);
     need_save = true;
   }    

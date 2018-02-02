@@ -157,7 +157,7 @@ void htmlGetSensorInfo() {
   json["signalKPath"] = signalKClientInfo.path;
 
   //Sensor types present
-  json["sensorOneWire"] = sensorOneWirePresent;
+  json["sensorOneWire"] = getSensorOneWirePresent();
   json["sensorSHT30"] = getSensorSHT30Present();
   json["sensorMPU925X"] = getSensorMPU925XPresent();
 
