@@ -12,7 +12,7 @@ SystemHzSensorInfo::SystemHzSensorInfo(String addr) {
   signalKPath[1] = "";
   attrName[0] = "systemHz";
   attrName[1] = "freeMem";
-  strcpy(type, "Local");
+  type = SensorType::local;
   valueJson[0] = "null";
   valueJson[1] = "null";
   isUpdated = false;
@@ -26,7 +26,7 @@ SystemHzSensorInfo::SystemHzSensorInfo(String addr,
   signalKPath[1] = path2;
   attrName[0] = "systemHz";
   attrName[1] = "freeMem";
-  strcpy(type, "Local");
+  type = SensorType::local;
   valueJson[0] = "null";
   valueJson[1] = "null";
   isUpdated = false;
@@ -36,9 +36,17 @@ bool SystemHzSensorInfo::isSerializable() {
   return true;
 }
 
+SystemHzSensorInfo *SystemHzSensorInfo::fromJson(JsonObject &jsonSens) {
+  return new SystemHzSensorInfo(
+    jsonSens["address"],
+    jsonSens["signalKPaths"][0],
+    jsonSens["signalKPaths"][1]
+  );
+}
+
 void SystemHzSensorInfo::toJson(JsonObject &jsonSens) {
   jsonSens["address"] = address;
-  jsonSens["type"] = "Local";
+  jsonSens["type"] = (int)SensorType::local;
   JsonArray& jsonPaths = jsonSens.createNestedArray("signalKPaths");
   for (int x=0 ; x < MAX_SENSOR_ATTRIBUTES ; x++) {
     if (strcmp(attrName[x].c_str(), "") == 0 ) {
@@ -68,7 +76,6 @@ void setupSystemHz(bool &need_save) {
   systemHzMs = millis();
   SensorInfo *tmpSensorInfo;
 
-
   // Setup "sensor" if not already existing
   bool known = false;
   for (int x=0;x<sensorList.size() ; x++) {
@@ -79,7 +86,7 @@ void setupSystemHz(bool &need_save) {
   }    
   if (!known) {
     Serial.print("Setting up System info ");
-    SensorInfo *newSensor = new SystemHzSensorInfo("local");
+    SensorInfo *newSensor = new SystemHzSensorInfo("Local");
     sensorList.add(newSensor);
     need_save = true;
   }    
@@ -95,7 +102,7 @@ void updateSystemHz() {
 
   for (uint8_t i=0; i < sensorList.size(); i++) {
     thisSensorInfo = sensorList.get(i);
-    if (strcmp(thisSensorInfo->type, "Local") == 0) {
+    if (thisSensorInfo->type==SensorType::local) {
         
       thisSensorInfo->valueJson[0] = systemHz;
       thisSensorInfo->valueJson[1] = ESP.getFreeHeap();

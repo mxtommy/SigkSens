@@ -6,6 +6,8 @@ extern "C" {
 
 #include <ArduinoJson.h>     //https://github.com/bblanchon/ArduinoJson
 
+#include <string>
+
 #include "FSConfig.h"
 #include "webSocket.h"
 #include "oneWire.h"
@@ -74,7 +76,7 @@ void saveConfig() {
       tmpSensorInfo->toJson(tmpSens);
     } else {
       tmpSens["address"] = tmpSensorInfo->address;
-      tmpSens["type"] = tmpSensorInfo->type;
+      tmpSens["type"] = (int)tmpSensorInfo->type;
 
       JsonArray& jsonPaths = tmpSens.createNestedArray("signalKPaths");
       for (int x=0;x<MAX_SENSOR_ATTRIBUTES; x++) {
@@ -116,6 +118,7 @@ void saveConfig() {
 }
 
 void loadConfig() {
+  SensorInfo *newSensor;
   SensorInfo *tmpSensorInfo;
   uint8_t tempDeviceAddress[8];
   char tempStr[255];
@@ -136,8 +139,7 @@ void loadConfig() {
       Serial.println("Current Configuration:");
       json.prettyPrintTo(Serial);
       if (json.success()) {
-        Serial.println("\nparsed json");
-        
+        Serial.println("");
         // load hostname
         strcpy(myHostname, json["hostname"]);
 
@@ -148,48 +150,8 @@ void loadConfig() {
 
         // load known sensors
         for (uint8_t i=0; i < json["sensors"].size(); i++) {
-          String type = json["sensors"][i]["type"];
-          SensorInfo *newSensor;
-          newSensor = new SensorInfo();
-          strcpy(newSensor->address, json["sensors"][i]["address"]);
-          strcpy(newSensor->type, type.c_str());
-          newSensor->isUpdated = false;
-          
-          // load paths and set valueJson to null of that sensor type
-          //should probably do this elsewhere to keep concerns seperate...
-          if (type == "Local") {
-            newSensor = new SystemHzSensorInfo(
-              json["sensors"][i]["address"],
-              json["sensors"][i]["signalKPaths"][0],
-              json["sensors"][i]["signalKPaths"][1]
-            );
-          } else if (type == "oneWire") {
-            newSensor = new OneWireSensorInfo(
-              json["sensors"][i]["address"],
-              json["sensors"][i]["signalKPaths"][0]);
-          }
-          else if (type == "sht30") {
-            newSensor = new SHT30SensorInfo(
-              json["sensors"][i]["address"],
-              json["sensors"][i]["signalKPaths"][0],
-              json["sensors"][i]["signalKPaths"][1]
-            );
-          }
-          else if (type == "mpu925x") {
-            newSensor = new MPU9250SensorInfo(
-              json["sensors"][i]["address"],
-              json["sensors"][i]["signalKPaths"][0],
-              json["sensors"][i]["signalKPaths"][1],
-              json["sensors"][i]["signalKPaths"][2],
-              json["sensors"][i]["signalKPaths"][3]
-            );
-          } else if (type == "digitalIn") {
-            newSensor = new DigitalInSensorInfo(
-              json["sensors"][i]["address"],
-              json["sensors"][i]["signalKPaths"][0],
-              json["sensors"][i]["signalKPaths"][1]
-            );
-          }
+          int type = json["sensors"][i]["type"];
+          newSensor = fromJson[type](json["sensors"][i]);
           
           sensorList.add(newSensor);
         }

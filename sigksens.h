@@ -6,7 +6,6 @@
 #include <LinkedList.h>
 #include <ArduinoJson.h>
 
-
 #define MAX_SENSOR_ATTRIBUTES 10
 
 //Digital Input
@@ -16,6 +15,15 @@
 
 extern char myHostname[16];
 
+enum class SensorType {
+  local,
+  digitalIn,
+  oneWire,
+  sht30,
+  mpu925x,
+  SensorType_MAX = mpu925x  // update this if you add items!
+};
+
 // memory to save sensor info
 class SensorInfo {
   public:
@@ -23,15 +31,19 @@ class SensorInfo {
     String attrName[MAX_SENSOR_ATTRIBUTES];
     String signalKPath[MAX_SENSOR_ATTRIBUTES];
     String valueJson[MAX_SENSOR_ATTRIBUTES];
-    char type[10];
+    SensorType type;
     bool isUpdated;
 
     bool isSerializable();
-    void toJson(JsonObject&);
+    static SensorInfo *fromJson(JsonObject&);
+    virtual void toJson(JsonObject&) = 0;
 };
 
 // memory to save sensor info
 extern LinkedList<SensorInfo*> sensorList;
+
+typedef SensorInfo *(*fromJsonFunc)(JsonObject &);
+extern fromJsonFunc fromJson[(int)SensorType::SensorType_MAX];
 
 void parseBytes(const char* str, char sep, byte* bytes, int maxBytes, int base);
 

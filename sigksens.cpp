@@ -2,6 +2,7 @@
 
 LinkedList<SensorInfo*> sensorList = LinkedList<SensorInfo*>();
 
+fromJsonFunc fromJson[(int)SensorType::SensorType_MAX];
 /*---------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------
 Helper functions
@@ -26,6 +27,3 @@ bool SensorInfo::isSerializable() {
     // default SensorInfo object can't serialize itself
     return false;
 }
-
-// should return an error
-void SensorInfo::toJson(JsonObject &jsonSens) { }

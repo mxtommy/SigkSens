@@ -18,7 +18,7 @@ OneWireSensorInfo::OneWireSensorInfo(String addr) {
   strcpy(address, addr.c_str());
   signalKPath[0] = "";
   attrName[0] = "tempK";
-  strcpy(type, "oneWire");
+  type = SensorType::oneWire;
   valueJson[0] = "null";
   isUpdated = false;
 }
@@ -27,7 +27,7 @@ OneWireSensorInfo::OneWireSensorInfo(String addr, String path) {
   strcpy(address, addr.c_str());
   signalKPath[0] = path;
   attrName[0] = "tempK";
-  strcpy(type, "oneWire");
+  type = SensorType::oneWire;
   valueJson[0] = "null";
   isUpdated = false;
 }
@@ -36,9 +36,17 @@ bool OneWireSensorInfo::isSerializable() {
   return true;
 }
 
+OneWireSensorInfo *OneWireSensorInfo::fromJson(JsonObject &jsonSens) {
+  Serial.println("OneWireSensorInfo::fromJson");
+  return new OneWireSensorInfo(
+    jsonSens["address"],
+    jsonSens["signalKPaths"][0]
+  );
+}
+
 void OneWireSensorInfo::toJson(JsonObject &jsonSens) {
   jsonSens["address"] = address;
-  jsonSens["type"] = "oneWire";
+  jsonSens["type"] = (int)SensorType::oneWire;
   JsonArray& jsonPaths = jsonSens.createNestedArray("signalKPaths");
   for (int x=0 ; x < MAX_SENSOR_ATTRIBUTES ; x++) {
     if (strcmp(attrName[x].c_str(), "") == 0 ) {
@@ -53,6 +61,8 @@ DallasTemperature sensors(&oneWire);
 
 bool sensorOneWirePresent = false;
 
+bool getSensorOneWirePresent() { return sensorOneWirePresent; }
+
 // some timers
 uint32_t oneWireReadDelay = 5000; //ms between reading
 uint32_t oneWireScanDelay = 30000; //ms between scan
@@ -65,18 +75,16 @@ bool readyToRead1Wire = false;
 bool readyToScan1Wire = false;
 
 // forward declarations
-bool oneWireScanBus(bool&);
+void oneWireScanBus(bool&);
 void interruptRequest1WSensors(void *pArg);
 void interruptReady1WSensors(void *pArg);
 void interruptScan1WSensors(void *pArg);
-void request1WSensors(bool);
+void request1WSensors();
 void read1WSensors();
 
 uint32_t getOneWireReadDelay() { return oneWireReadDelay; }
 
-bool setup1Wire(bool &need_save) {
-  bool present = false;
-
+void setup1Wire(bool &need_save) {
   sensors.begin();
   
   sensors.setWaitForConversion(false);
@@ -102,7 +110,7 @@ bool setup1Wire(bool &need_save) {
 
   Serial.println("Scanning OneWire Bus");
 
-  present = oneWireScanBus(need_save);
+  oneWireScanBus(need_save);
 
   os_timer_setfn(&oneWireRequestTimer, interruptRequest1WSensors, NULL);
   os_timer_setfn(&oneWireReadyTimer, interruptReady1WSensors, NULL);
@@ -110,16 +118,14 @@ bool setup1Wire(bool &need_save) {
 
   os_timer_arm(&oneWireRequestTimer, oneWireReadDelay, true);
   os_timer_arm(&oneWireScanTimer, oneWireScanDelay, true);
-
-  return present;
 }
 
 //called once every loop()
-void handle1Wire(bool &present, bool &need_save) {
+void handle1Wire(bool &need_save) {
 
   // If it's time to request temps, well request it...
   if (readyToRequest1Wire) {
-    request1WSensors(present);
+    request1WSensors();
   }
 
   //ready to send temps! 
@@ -128,7 +134,7 @@ void handle1Wire(bool &present, bool &need_save) {
   }
 
   if (readyToScan1Wire) {
-    present = oneWireScanBus(need_save);
+    oneWireScanBus(need_save);
   }
 
 }
@@ -167,10 +173,10 @@ void interruptScan1WSensors(void *pArg) {
   readyToScan1Wire = true;
 } 
 
-void request1WSensors(bool present) {
+void request1WSensors() {
   readyToRequest1Wire = false; // reset interupt
 
-  if (present) {
+  if (sensorOneWirePresent) {
       sensors.requestTemperatures();
 
     // start ready timer
@@ -188,7 +194,7 @@ void read1WSensors() {
 
   for (uint8_t i=0; i < sensorList.size(); i++) {
     thisSensorInfo = sensorList.get(i);
-    if (strcmp(thisSensorInfo->type, "oneWire") == 0) {
+    if (thisSensorInfo->type==SensorType::oneWire) {
       parseBytes(thisSensorInfo->address, ':', address,  8, 16); // convert string address to uint_8 array
     
       tempC = sensors.getTempC(address);
@@ -219,9 +225,7 @@ void addrToString(char *strAddress, uint8_t *deviceAddress) {
 }
 
 
-bool oneWireScanBus(bool &need_save) {
-  bool present = false;
-
+void oneWireScanBus(bool &need_save) {
   readyToScan1Wire = false; // reset Interrupt
 
   uint8_t tempDeviceAddress[8];
@@ -233,7 +237,7 @@ bool oneWireScanBus(bool &need_save) {
 
   numberOfDevices = sensors.getDeviceCount();
   if (numberOfDevices > 0) {
-    present = true;
+    sensorOneWirePresent = true;
   }
 
   SensorInfo *tmpSensorInfo;
@@ -262,8 +266,6 @@ bool oneWireScanBus(bool &need_save) {
       }
     }
   }
-
-  return present;
 }
 
 

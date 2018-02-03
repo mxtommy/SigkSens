@@ -7,10 +7,13 @@
 
 #include <ArduinoJson.h>     //https://github.com/bblanchon/ArduinoJson
 
+#include <string>
+
 #include "config.h"
 #include "FSConfig.h"
 #include "i2c.h"
 #include "mpu.h"
+#include "mpu9250.h"
 #include "sht30.h"
 #include "oneWire.h"
 #include "digitalIn.h"
@@ -37,6 +40,23 @@ uint16_t mainLoopCount = 0; //some stuff needs to run constantly, others not. so
 General Setup
 -----------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------*/
+
+void setupFromJson() {
+  fromJson[(int)SensorType::local] =
+    (fromJsonFunc)&(SystemHzSensorInfo::fromJson);
+
+  fromJson[(int)SensorType::digitalIn] =
+    (fromJsonFunc)&(DigitalInSensorInfo::fromJson);
+
+  fromJson[(int)SensorType::oneWire] =
+    (fromJsonFunc)&(OneWireSensorInfo::fromJson);
+
+  fromJson[(int)SensorType::sht30] =
+    (fromJsonFunc)&(SHT30SensorInfo::fromJson);
+
+  fromJson[(int)SensorType::mpu925x] =
+    (fromJsonFunc)&(MPU9250SensorInfo::fromJson);
+}
 
 
 void setupWifi() {
@@ -91,6 +111,8 @@ void setup() {
   Serial.begin(115200);
   pinMode(RESET_CONFIG_PIN, INPUT_PULLUP);
 
+  setupFromJson();
+
   setupFS();
 
   setupWifi();
@@ -101,7 +123,7 @@ void setup() {
   setupSignalK();
 
   setupConfigReset();
-  sensorOneWirePresent = setup1Wire(need_save);
+  setup1Wire(need_save);
   setupI2C(need_save);
   setupDigitalIn(need_save);
   setupSystemHz(need_save);
@@ -134,7 +156,7 @@ void loop() {
   //Stuff that runs  once every 1000 loops. (still many many times/sec)
   if (mainLoopCount > 1000) {
       handleI2C_slow();
-      handle1Wire(sensorOneWirePresent, need_save);
+      handle1Wire(need_save);
       if (need_save) {
         saveConfig();
       }

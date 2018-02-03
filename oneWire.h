@@ -9,17 +9,17 @@ class OneWireSensorInfo : public SensorInfo {
     OneWireSensorInfo(String addr);
     OneWireSensorInfo(String addr, String path);
 
+    static OneWireSensorInfo *fromJson(JsonObject &jsonSens);
     void toJson(JsonObject &jsonSens);
-    void fromJson();
+    
 
     bool isSerializable();
 };
 
-extern bool sensorOneWirePresent;
-
-bool setup1Wire(bool&);
-void handle1Wire(bool&, bool&);
+void setup1Wire(bool&);
+void handle1Wire(bool&);
 void setOneWireReadDelay(uint32_t);
 uint32_t getOneWireReadDelay();
+bool getSensorOneWirePresent();
 
 #endif

@@ -14,7 +14,7 @@ SHT30SensorInfo::SHT30SensorInfo(String addr) {
   signalKPath[1] = "";
   attrName[0] = "tempK";
   attrName[1] = "humidity";
-  strcpy(type, "sht30");
+  type = SensorType::sht30;
   valueJson[0] = "null";
   valueJson[1] = "null";
   isUpdated = false;
@@ -26,7 +26,7 @@ SHT30SensorInfo::SHT30SensorInfo(String addr, String path1, String path2) {
   signalKPath[1] = path2;
   attrName[0] = "tempK";
   attrName[1] = "humidity";
-  strcpy(type, "sht30");
+  type = SensorType::sht30;
   valueJson[0] = "null";
   valueJson[1] = "null";
   isUpdated = false;
@@ -36,9 +36,17 @@ bool SHT30SensorInfo::isSerializable() {
   return true;
 }
 
+SHT30SensorInfo *SHT30SensorInfo::fromJson(JsonObject &jsonSens) {
+  return new SHT30SensorInfo(
+    jsonSens["address"],
+    jsonSens["signalKPaths"][0],
+    jsonSens["signalKPaths"][1]
+  );
+}
+
 void SHT30SensorInfo::toJson(JsonObject &jsonSens) {
   jsonSens["address"] = address;
-  jsonSens["type"] = "sht30";
+  jsonSens["type"] = (int)SensorType::sht30;
   JsonArray& jsonPaths = jsonSens.createNestedArray("signalKPaths");
   for (int x=0 ; x < MAX_SENSOR_ATTRIBUTES ; x++) {
     if (strcmp(attrName[x].c_str(), "") == 0 ) {
@@ -79,7 +87,6 @@ void interruptSHTRead(void *pArg) {
 
 
 void setupSHT30() {
-
   // prepare SHT Timers 
   os_timer_setfn(&sensorSHTPollTimer, interruptSHTPoll, NULL);
   os_timer_setfn(&sensorSHTReadTimer, interruptSHTRead, NULL);
@@ -101,7 +108,7 @@ void pollSHT() {
 
   for (int x=0;x<sensorList.size() ; x++) {
     thisSensorInfo = sensorList.get(x);
-    if (strcmp(thisSensorInfo->type, "sht30") == 0) {
+    if (thisSensorInfo->type==SensorType::sht30) {
       //convert address string to int
       parseBytes(thisSensorInfo->address,':',&address,1,16);
       Wire.beginTransmission(address);
@@ -133,7 +140,7 @@ void readSHT() {
 
   for (int x=0;x<sensorList.size() ; x++) {
     thisSensorInfo = sensorList.get(x);
-    if (strcmp(thisSensorInfo->type, "sht30") == 0) {
+    if (thisSensorInfo->type==SensorType::sht30) {
       //convert address string to int
       parseBytes(thisSensorInfo->address,':',&address,1,16);
 
