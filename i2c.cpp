@@ -8,14 +8,16 @@ extern "C" {
 #include "sht30.h"
 #include "mpu9250.h"
 #include "mpu.h"
+#include "ads1115.h"
 #include "i2c.h"
 
 bool sensorSHT30Present = false;
 bool sensorMPU925XPresent = false;
-
+bool sensorADS1115Present = false;
 
 bool getSensorSHT30Present() { return sensorSHT30Present; }
 bool getSensorMPU925XPresent() { return sensorMPU925XPresent; }
+bool getSensorADS1115Present() { return sensorADS1115Present; }
 
 
 bool scanI2CAddress(uint8_t address) {
@@ -70,6 +72,12 @@ void scanI2C(bool &need_save) {
       need_save = true;
     }    
   }
+
+  //ADS1115
+  if (scanI2CAddress(0x48)) {
+    sensorADS1115Present = true;
+    Serial.println("Found ADS1115 chip at 0x48");
+  }
 }
 
 
@@ -88,6 +96,10 @@ void setupI2C(bool &need_save) {
   if (sensorMPU925XPresent) {
     setupMPU9250();
   } 
+
+  if (sensorADS1115Present) {
+    setupADS1115();
+  }
 }
 
 
@@ -101,5 +113,8 @@ void handleI2C() {
 void handleI2C_slow() {
   if (sensorSHT30Present) {
     handleSHT30();  
+  }
+  if (sensorADS1115Present) {
+    handleADS1115();
   }
 }
