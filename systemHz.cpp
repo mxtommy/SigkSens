@@ -96,6 +96,9 @@ void setupSystemHz(bool &need_save) {
 void updateSystemHz() {
   SensorInfo *thisSensorInfo;
   uint32_t elapsed = millis() - systemHzMs;
+  
+  if (elapsed == 0) { return; } // getting sporadic devide by 0 exceptions, no harm in skipping a loop.
+  
   systemHz = (systemHzCount*1000) / elapsed;
  // Serial.print ("System Hz :");
  // Serial.println (systemHz);
