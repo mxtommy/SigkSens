@@ -9,7 +9,9 @@ extern "C" {
 #include <ESP8266SSDP.h>
 
 #include "i2c.h"
+#ifdef ENABLE_MPU
 #include "mpu.h"
+#endif
 #ifdef ENABLE_SHT30
   #include "sht30.h"
 #endif
@@ -120,7 +122,9 @@ void htmlGetSensorInfo() {
   #ifdef ENABLE_SHT30
   json["sensorSHT30"] = getSensorSHT30Present();
   #endif
+  #ifdef ENABLE_MPU
   json["sensorMPU925X"] = getSensorMPU925XPresent();
+  #endif
 
   #ifdef ENABLE_DIGITALIN
   //Digital
@@ -138,7 +142,9 @@ void htmlGetSensorInfo() {
   #ifdef ENABLE_SHT30
   timers["sht30"] = getSensorSHTReadDelay();
   #endif
+  #ifdef ENABLE_MPU
   timers["mpu925x"] = getUpdateMPUDelay();
+  #endif
   #ifdef ENABLE_DIGITALIN
   timers["digitalIn"] = getUpdateDigitalInDelay();
   #endif
@@ -240,10 +246,12 @@ void htmlSetTimerDelay() {
       setSHTReadDelay(newDelay);
     }
     #endif
+    #ifdef ENABLE_MPU
     else if (strcmp(timer, "mpu925x") == 0) {
       ok = true;
       setMPUUpdateDelay(newDelay);
-    } 
+    }
+    #endif
     #ifdef ENABLE_DIGITALIN
     else if (strcmp(timer, "digitalIn") == 0) {
       ok = true;

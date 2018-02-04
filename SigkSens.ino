@@ -12,8 +12,10 @@
 #include "config.h"
 #include "FSConfig.h"
 #include "i2c.h"
-#include "mpu.h"
-#include "mpu9250.h"
+#ifdef ENABLE_MPU
+  #include "mpu.h"
+  #include "mpu9250.h"
+#endif
 #ifdef ENABLE_SHT30
   #include "sht30.h"
 #endif
@@ -62,8 +64,10 @@ void setupFromJson() {
     (fromJsonFunc)&(SHT30SensorInfo::fromJson);
   #endif
 
+  #ifdef ENABLE_MPU
   fromJson[(int)SensorType::mpu925x] =
     (fromJsonFunc)&(MPU9250SensorInfo::fromJson);
+  #endif
 }
 
 

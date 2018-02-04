@@ -10,20 +10,23 @@ extern "C" {
 #ifdef ENABLE_SHT30
   #include "sht30.h"
 #endif
-#include "mpu9250.h"
-#include "mpu.h"
+#ifdef ENABLE_MPU
+  #include "mpu9250.h"
+  #include "mpu.h"
+#endif
 #include "i2c.h"
+
+
 
 #ifdef ENABLE_SHT30
 bool sensorSHT30Present = false;
-#endif
-bool sensorMPU925XPresent = false;
-
-
-#ifdef ENABLE_SHT30
 bool getSensorSHT30Present() { return sensorSHT30Present; }
 #endif
+
+#ifdef ENABLE_MPU
+bool sensorMPU925XPresent = false;
 bool getSensorMPU925XPresent() { return sensorMPU925XPresent; }
+#endif
 
 
 bool scanI2CAddress(uint8_t address) {
@@ -63,6 +66,7 @@ void scanI2C(bool &need_save) {
   }
   #endif
 
+  #ifdef ENABLE_MPU
   //MPU925X
   if (scanI2CAddress(0x68)) {
     sensorMPU925XPresent = true;
@@ -80,6 +84,7 @@ void scanI2C(bool &need_save) {
       need_save = true;
     }    
   }
+  #endif
 }
 
 
@@ -97,16 +102,20 @@ void setupI2C(bool &need_save) {
   }
   #endif
 
+  #ifdef ENABLE_MPU
   if (sensorMPU925XPresent) {
     setupMPU9250();
   } 
+  #endif
 }
 
 
 void handleI2C() {
+  #ifdef ENABLE_MPU
   if (sensorMPU925XPresent) {
     handleMPU9250();
   }
+  #endif
 }
 
 

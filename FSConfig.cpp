@@ -14,10 +14,12 @@ extern "C" {
 #include "webSocket.h"
 #include "oneWire.h"
 #ifdef ENABLE_SHT30
-#include "sht30.h"
+  #include "sht30.h"
 #endif
-#include "mpu9250.h"
-#include "mpu.h"
+#ifdef ENABLE_MPU
+  #include "mpu9250.h"
+  #include "mpu.h"
+#endif
 #ifdef ENABLE_DIGITALIN
   #include "digitalIn.h"
 #endif
@@ -88,7 +90,9 @@ void saveConfig() {
   #ifdef ENABLE_SHT30
   json["sensorSHTReadDelay"] = getSensorSHTReadDelay();
   #endif
+  #ifdef ENABLE_MPU
   json["updateMPUDelay"] = getUpdateMPUDelay();
+  #endif
   #ifdef ENABLE_DIGITALIN
   json["updateDigitalInDelay"] = getUpdateDigitalInDelay();
   
@@ -163,7 +167,9 @@ void loadConfig() {
         #ifdef ENABLE_SHT30
         setSHTReadDelay(json["sensorSHTReadDelay"]);
         #endif
+        #ifdef ENABLE_MPU
         setMPUUpdateDelay(json["updateMPUDelay"]);
+        #endif
         #ifdef ENABLE_DIGITALIN
         setDigitalInUpdateDelay(json["updateDigitalInDelay"]);
 
