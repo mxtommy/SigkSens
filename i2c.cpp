@@ -4,17 +4,25 @@ extern "C" {
 
 #include <Wire.h>
 
+#include "config.h"
+
 #include "sigksens.h"
-#include "sht30.h"
+#ifdef ENABLE_SHT30
+  #include "sht30.h"
+#endif
 #include "mpu9250.h"
 #include "mpu.h"
 #include "i2c.h"
 
+#ifdef ENABLE_SHT30
 bool sensorSHT30Present = false;
+#endif
 bool sensorMPU925XPresent = false;
 
 
+#ifdef ENABLE_SHT30
 bool getSensorSHT30Present() { return sensorSHT30Present; }
+#endif
 bool getSensorMPU925XPresent() { return sensorMPU925XPresent; }
 
 
@@ -35,6 +43,7 @@ void scanI2C(bool &need_save) {
 
   Serial.println("Scanning for i2c Sensors...");
 
+  #ifdef ENABLE_SHT30
   //SHT30
   if (scanI2CAddress(0x45)) { //Sht on D1 sheild
     sensorSHT30Present = true;
@@ -52,6 +61,7 @@ void scanI2C(bool &need_save) {
       need_save = true;
     }    
   }
+  #endif
 
   //MPU925X
   if (scanI2CAddress(0x68)) {
@@ -81,9 +91,11 @@ void setupI2C(bool &need_save) {
   
   scanI2C(need_save);
 
+  #ifdef ENABLE_SHT30
   if (sensorSHT30Present) {
     setupSHT30();
   }
+  #endif
 
   if (sensorMPU925XPresent) {
     setupMPU9250();
@@ -99,7 +111,9 @@ void handleI2C() {
 
 
 void handleI2C_slow() {
+#ifdef ENABLE_SHT30
   if (sensorSHT30Present) {
     handleSHT30();  
   }
+#endif
 }

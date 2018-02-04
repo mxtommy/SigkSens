@@ -10,7 +10,9 @@ extern "C" {
 
 #include "i2c.h"
 #include "mpu.h"
-#include "sht30.h"
+#ifdef ENABLE_SHT30
+  #include "sht30.h"
+#endif
 #include "oneWire.h"
 #ifdef ENABLE_DIGITALIN
   #include "digitalIn.h"
@@ -115,7 +117,9 @@ void htmlGetSensorInfo() {
 
   //Sensor types present
   json["sensorOneWire"] = getSensorOneWirePresent();
+  #ifdef ENABLE_SHT30
   json["sensorSHT30"] = getSensorSHT30Present();
+  #endif
   json["sensorMPU925X"] = getSensorMPU925XPresent();
 
   #ifdef ENABLE_DIGITALIN
@@ -131,7 +135,9 @@ void htmlGetSensorInfo() {
   JsonObject& timers = json.createNestedObject("timers");
 
   timers["oneWire"] = getOneWireReadDelay();
+  #ifdef ENABLE_SHT30
   timers["sht30"] = getSensorSHTReadDelay();
+  #endif
   timers["mpu925x"] = getUpdateMPUDelay();
   #ifdef ENABLE_DIGITALIN
   timers["digitalIn"] = getUpdateDigitalInDelay();
@@ -227,10 +233,14 @@ void htmlSetTimerDelay() {
     if (strcmp(timer, "oneWire") == 0) {
       ok = true;
       setOneWireReadDelay(newDelay);
-    } else if (strcmp(timer, "sht30") == 0) {
+    }
+    #ifdef ENABLE_SHT30
+    else if (strcmp(timer, "sht30") == 0) {
       ok = true;
       setSHTReadDelay(newDelay);
-    } else if (strcmp(timer, "mpu925x") == 0) {
+    }
+    #endif
+    else if (strcmp(timer, "mpu925x") == 0) {
       ok = true;
       setMPUUpdateDelay(newDelay);
     } 

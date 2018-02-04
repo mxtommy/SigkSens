@@ -14,7 +14,9 @@
 #include "i2c.h"
 #include "mpu.h"
 #include "mpu9250.h"
-#include "sht30.h"
+#ifdef ENABLE_SHT30
+  #include "sht30.h"
+#endif
 #include "oneWire.h"
 #ifdef ENABLE_DIGITALIN
   #include "digitalIn.h"
@@ -55,8 +57,10 @@ void setupFromJson() {
   fromJson[(int)SensorType::oneWire] =
     (fromJsonFunc)&(OneWireSensorInfo::fromJson);
 
+  #ifdef ENABLE_SHT30
   fromJson[(int)SensorType::sht30] =
     (fromJsonFunc)&(SHT30SensorInfo::fromJson);
+  #endif
 
   fromJson[(int)SensorType::mpu925x] =
     (fromJsonFunc)&(MPU9250SensorInfo::fromJson);
@@ -129,7 +133,9 @@ void setup() {
   setupConfigReset();
   setup1Wire(need_save);
   setupI2C(need_save);
-  SETUP_DIGITALIN;
+  #ifdef ENABLE_DIGITALIN
+  setupDigitalIn(need_save);
+  #endif
   setupSystemHz(need_save);
   
   if (need_save) {
@@ -167,7 +173,9 @@ void loop() {
   
       handleWebSocket();
       handleSignalK();
-      HANDLE_DIGITALIN;
+      #ifdef ENABLE_DIGITALIN
+      handleDigitalIn();
+      #endif
       httpServer.handleClient(); //http client
       
       handleConfigReset(); 
