@@ -48,10 +48,6 @@ MPU9250SensorInfo::MPU9250SensorInfo(String addr, String path1, String path2,
   isUpdated = false;
 }
 
-bool MPU9250SensorInfo::isSerializable() {
-  return true;
-}
-
 MPU9250SensorInfo *MPU9250SensorInfo::fromJson(JsonObject &jsonSens) {
   return new MPU9250SensorInfo(
     jsonSens["address"],

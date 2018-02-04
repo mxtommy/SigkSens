@@ -32,10 +32,6 @@ SHT30SensorInfo::SHT30SensorInfo(String addr, String path1, String path2) {
   isUpdated = false;
 }
 
-bool SHT30SensorInfo::isSerializable() {
-  return true;
-}
-
 SHT30SensorInfo *SHT30SensorInfo::fromJson(JsonObject &jsonSens) {
   return new SHT30SensorInfo(
     jsonSens["address"],

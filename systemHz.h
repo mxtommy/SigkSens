@@ -15,8 +15,6 @@ class SystemHzSensorInfo : public SensorInfo {
 
     static SystemHzSensorInfo *fromJson(JsonObject &jsonSens);
     void toJson(JsonObject &jsonSens);
-
-    bool isSerializable();
 };
 
 

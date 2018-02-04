@@ -72,20 +72,7 @@ void saveConfig() {
   for (uint8_t i=0; i < sensorList.size(); i++) {
     tmpSensorInfo = sensorList.get(i);
     JsonObject& tmpSens = jsonSensors.createNestedObject();
-    if (tmpSensorInfo->isSerializable()) {
-      tmpSensorInfo->toJson(tmpSens);
-    } else {
-      tmpSens["address"] = tmpSensorInfo->address;
-      tmpSens["type"] = (int)tmpSensorInfo->type;
-
-      JsonArray& jsonPaths = tmpSens.createNestedArray("signalKPaths");
-      for (int x=0;x<MAX_SENSOR_ATTRIBUTES; x++) {
-        if (strcmp(tmpSensorInfo->attrName[x].c_str(), "") == 0 ) {
-          break; //no more attributes
-        }
-        jsonPaths.add(tmpSensorInfo->signalKPath[x]);
-      }
-    }
+    tmpSensorInfo->toJson(tmpSens);
   }
 
   uint32_t oneWireReadDelay = getOneWireReadDelay();
