@@ -14,6 +14,7 @@
 #include "i2c.h"
 #include "mpu.h"
 #include "mpu9250.h"
+#include "ads1115.h"
 #include "sht30.h"
 #include "oneWire.h"
 #ifdef ENABLE_DIGITALIN
@@ -60,6 +61,9 @@ void setupFromJson() {
 
   fromJson[(int)SensorType::mpu925x] =
     (fromJsonFunc)&(MPU9250SensorInfo::fromJson);
+
+  fromJson[(int)SensorType::ads1115] =
+    (fromJsonFunc)&(ADSSensorInfo::fromJson);    
 }
 
 
@@ -121,7 +125,7 @@ void setup() {
 
 
   setupWifi();
-  //loadConfig();
+  loadConfig();
   setupDiscovery();
   setupHTTP();
   setupWebSocket();

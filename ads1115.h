@@ -14,16 +14,20 @@ class ADSSensorInfo : public SensorInfo {
     static ADSSensorInfo *fromJson(JsonObject &jsonSens);
     void toJson(JsonObject &jsonSens);
 
-    bool isSerializable();
 };
 
 void setupADS1115();
 void handleADS1115();
 
 uint32_t getUpdateADSDelay();
+uint32_t getReadADSDelay();
 void setADSUpdateDelay(uint32_t newDelay);
+void setADSReadDelay(uint32_t newDelay);
 
-void interruptADSSensorInfo(void *pArg);
+void interruptUpdateADSSensorInfo(void *pArg);
+void interruptReadADSS(void *pArg);
+
 void updateADS1115();
+void readADS1115();
 
 #endif
