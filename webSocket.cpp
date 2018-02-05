@@ -4,12 +4,18 @@ extern "C" {
 
 #include <ESP8266mDNS.h>        // Include the mDNS library
 
-#include <WebSocketsServer.h>
+#include "config.h"
+
+#ifdef ENABLE_WEBSOCKET_SERVER
+  #include <WebSocketsServer.h>
+#endif
 #include <WebSocketsClient.h>
 
 #include "webSocket.h"
 
+#ifdef ENABLE_WEBSOCKET_SERVER
 WebSocketsServer webSocketServer = WebSocketsServer(81);
+#endif
 
 SignalKClientInfo signalKClientInfo = { 
   .host = "", 
@@ -31,8 +37,10 @@ void webSocketClientEvent(WStype_t type, uint8_t * payload, size_t length);
 void setupWebSocket() {
   os_timer_setfn(&wsClientReconnectTimer, interruptWsReconnect, NULL);
 
+  #ifdef ENABLE_WEBSOCKET_SERVER
   webSocketServer.begin();
   webSocketServer.onEvent(webSocketServerEvent);
+  #endif
   signalKClientInfo.client.onEvent(webSocketClientEvent);
 
   connectWebSocketClient();
@@ -40,7 +48,9 @@ void setupWebSocket() {
 
 
 void handleWebSocket() {
+  #ifdef ENABLE_WEBSOCKET_SERVER
   webSocketServer.loop();
+  #endif
   if (readyToReconnectWs) {
     readyToReconnectWs = false;
     connectWebSocketClient();
@@ -133,7 +143,7 @@ void webSocketClientEvent(WStype_t type, uint8_t * payload, size_t length) {
 
 }
 
-
+#ifdef ENABLE_WEBSOCKET_SERVER
 void webSocketServerEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length) {
     switch(type) {
         case WStype_DISCONNECTED:
@@ -167,4 +177,4 @@ void webSocketServerEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t 
     }
 
 }
-
+#endif
