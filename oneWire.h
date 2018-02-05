@@ -11,9 +11,6 @@ class OneWireSensorInfo : public SensorInfo {
 
     static OneWireSensorInfo *fromJson(JsonObject &jsonSens);
     void toJson(JsonObject &jsonSens);
-    
-
-    bool isSerializable();
 };
 
 void setup1Wire(bool&);

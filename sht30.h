@@ -14,8 +14,6 @@ class SHT30SensorInfo : public SensorInfo {
 
     static SHT30SensorInfo *fromJson(JsonObject &jsonSens);
     void toJson(JsonObject &jsonSens);
-
-    bool isSerializable();
 };
 
 

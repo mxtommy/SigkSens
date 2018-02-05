@@ -34,7 +34,6 @@ class SensorInfo {
     SensorType type;
     bool isUpdated;
 
-    bool isSerializable();
     static SensorInfo *fromJson(JsonObject&);
     virtual void toJson(JsonObject&) = 0;
 };
