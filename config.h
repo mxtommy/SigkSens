@@ -14,6 +14,7 @@ Feature selection
 #define ENABLE_DIGITALIN
 #define ENABLE_SHT30
 #define ENABLE_MPU
+#define ENABLE_ONEWIRE
 
 /*----------------------------------------------------------------------------
 ------------------------------------------------------------------------------

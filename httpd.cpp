@@ -15,7 +15,9 @@ extern "C" {
 #ifdef ENABLE_SHT30
   #include "sht30.h"
 #endif
-#include "oneWire.h"
+#ifdef ENABLE_ONEWIRE
+  #include "oneWire.h"
+#endif
 #ifdef ENABLE_DIGITALIN
   #include "digitalIn.h"
 #endif
@@ -118,7 +120,9 @@ void htmlGetSensorInfo() {
   json["signalKPath"] = signalKClientInfo.path;
 
   //Sensor types present
-  json["sensorOneWire"] = getSensorOneWirePresent();
+  #ifdef ENABLE_ONEWIRE
+    json["sensorOneWire"] = getSensorOneWirePresent();
+  #endif
   #ifdef ENABLE_SHT30
   json["sensorSHT30"] = getSensorSHT30Present();
   #endif
@@ -138,7 +142,9 @@ void htmlGetSensorInfo() {
   //Timers
   JsonObject& timers = json.createNestedObject("timers");
 
+  #ifdef ENABLE_ONEWIRE
   timers["oneWire"] = getOneWireReadDelay();
+  #endif
   #ifdef ENABLE_SHT30
   timers["sht30"] = getSensorSHTReadDelay();
   #endif
@@ -237,8 +243,10 @@ void htmlSetTimerDelay() {
 
   if (newDelay > 5) { //ostimer min delay is 5ms
     if (strcmp(timer, "oneWire") == 0) {
+    #ifdef ENABLE_ONEWIRE
       ok = true;
       setOneWireReadDelay(newDelay);
+    #endif
     }
     #ifdef ENABLE_SHT30
     else if (strcmp(timer, "sht30") == 0) {

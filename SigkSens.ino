@@ -19,7 +19,9 @@
 #ifdef ENABLE_SHT30
   #include "sht30.h"
 #endif
-#include "oneWire.h"
+#ifdef ENABLE_ONEWIRE
+  #include "oneWire.h"
+#endif
 #ifdef ENABLE_DIGITALIN
   #include "digitalIn.h"
 #endif
@@ -56,8 +58,10 @@ void setupFromJson() {
     (fromJsonFunc)&(DigitalInSensorInfo::fromJson);
   #endif
 
+  #ifdef ENABLE_ONEWIRE
   fromJson[(int)SensorType::oneWire] =
     (fromJsonFunc)&(OneWireSensorInfo::fromJson);
+  #endif
 
   #ifdef ENABLE_SHT30
   fromJson[(int)SensorType::sht30] =
@@ -135,7 +139,9 @@ void setup() {
   setupSignalK();
 
   setupConfigReset();
-  setup1Wire(need_save);
+  #ifdef ENABLE_ONEWIRE
+    setup1Wire(need_save);
+  #endif
   setupI2C(need_save);
   #ifdef ENABLE_DIGITALIN
   setupDigitalIn(need_save);
@@ -170,7 +176,9 @@ void loop() {
   //Stuff that runs  once every 1000 loops. (still many many times/sec)
   if (mainLoopCount > 1000) {
       handleI2C_slow();
-      handle1Wire(need_save);
+      #ifdef ENABLE_ONEWIRE
+        handle1Wire(need_save);
+      #endif
       if (need_save) {
         saveConfig();
       }
