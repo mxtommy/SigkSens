@@ -32,10 +32,6 @@ SystemHzSensorInfo::SystemHzSensorInfo(String addr,
   isUpdated = false;
 }
 
-bool SystemHzSensorInfo::isSerializable() {
-  return true;
-}
-
 SystemHzSensorInfo *SystemHzSensorInfo::fromJson(JsonObject &jsonSens) {
   return new SystemHzSensorInfo(
     jsonSens["address"],

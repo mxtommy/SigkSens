@@ -20,6 +20,7 @@ void parseBytes(const char* str, char sep, byte* bytes, int maxBytes, int base) 
       str++;                                // Point to next character after separator
   }
 }
+<<<<<<< HEAD
 
 // SensorInfo
 
@@ -28,3 +29,5 @@ bool SensorInfo::isSerializable() {
     Serial.println("Default false");
     return false;
 }
+=======
+>>>>>>> master

@@ -32,12 +32,7 @@ OneWireSensorInfo::OneWireSensorInfo(String addr, String path) {
   isUpdated = false;
 }
 
-bool OneWireSensorInfo::isSerializable() {
-  return true;
-}
-
 OneWireSensorInfo *OneWireSensorInfo::fromJson(JsonObject &jsonSens) {
-  Serial.println("OneWireSensorInfo::fromJson");
   return new OneWireSensorInfo(
     jsonSens["address"],
     jsonSens["signalKPaths"][0]

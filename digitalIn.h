@@ -15,8 +15,6 @@ class DigitalInSensorInfo : public SensorInfo {
 
     static DigitalInSensorInfo *fromJson(JsonObject &jsonSens);
     void toJson(JsonObject &jsonSens);
-
-    bool isSerializable();
 };
 
 void setupDigitalIn(bool &need_save);

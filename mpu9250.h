@@ -17,8 +17,6 @@ class MPU9250SensorInfo : public SensorInfo {
 
     static MPU9250SensorInfo *fromJson(JsonObject &jsonSens);
     void toJson(JsonObject &jsonSens);
-
-    bool isSerializable();
 };
 
 bool configureMPU9250();

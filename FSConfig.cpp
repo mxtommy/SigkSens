@@ -14,7 +14,9 @@ extern "C" {
 #include "sht30.h"
 #include "mpu9250.h"
 #include "mpu.h"
-#include "digitalIn.h"
+#ifdef ENABLE_DIGITALIN
+  #include "digitalIn.h"
+#endif
 #include "systemHz.h"
 #include "sigksens.h"
 
@@ -72,22 +74,7 @@ void saveConfig() {
   for (uint8_t i=0; i < sensorList.size(); i++) {
     tmpSensorInfo = sensorList.get(i);
     JsonObject& tmpSens = jsonSensors.createNestedObject();
-    if (tmpSensorInfo->isSerializable()) {
-      Serial.println("Serializable");
-      tmpSensorInfo->toJson(tmpSens);
-    } else {
-      Serial.println("Not Serializable");
-      tmpSens["address"] = tmpSensorInfo->address;
-      tmpSens["type"] = (int)tmpSensorInfo->type;
-
-      JsonArray& jsonPaths = tmpSens.createNestedArray("signalKPaths");
-      for (int x=0;x<MAX_SENSOR_ATTRIBUTES; x++) {
-        if (strcmp(tmpSensorInfo->attrName[x].c_str(), "") == 0 ) {
-          break; //no more attributes
-        }
-        jsonPaths.add(tmpSensorInfo->signalKPath[x]);
-      }
-    }
+    tmpSensorInfo->toJson(tmpSens);
   }
 
   uint32_t oneWireReadDelay = getOneWireReadDelay();
@@ -96,9 +83,9 @@ void saveConfig() {
   json["oneWireReadDelay"] = oneWireReadDelay;
   json["sensorSHTReadDelay"] = getSensorSHTReadDelay();
   json["updateMPUDelay"] = getUpdateMPUDelay();
+  #ifdef ENABLE_DIGITALIN
   json["updateDigitalInDelay"] = getUpdateDigitalInDelay();
-
-
+  
   //Digital Pins
   JsonObject& digitalPins = json.createNestedObject("digitalPinModes");
   for (uint8_t x=0; x < NUMBER_DIGITAL_INPUT; x++) {
@@ -108,6 +95,8 @@ void saveConfig() {
     digitalPins.set(tmpPinStr[x], getDigitalMode(x));
     Serial.println(x);
   }
+  #endif
+
 
   File configFile = SPIFFS.open("/config.json", "w");
   if (!configFile) {
@@ -153,9 +142,11 @@ void loadConfig() {
         // load known sensors
         for (uint8_t i=0; i < json["sensors"].size(); i++) {
           int type = json["sensors"][i]["type"];
-          newSensor = fromJson[type](json["sensors"][i]);
-          
-          sensorList.add(newSensor);
+          fromJsonFunc func = fromJson[type];
+          if ((int)func != 0) {
+            newSensor = fromJson[type](json["sensors"][i]);
+            sensorList.add(newSensor);
+          }
         }
 
         //Timers
@@ -165,6 +156,7 @@ void loadConfig() {
 
         setSHTReadDelay(json["sensorSHTReadDelay"]);
         setMPUUpdateDelay(json["updateMPUDelay"]);
+        #ifdef ENABLE_DIGITALIN
         setDigitalInUpdateDelay(json["updateDigitalInDelay"]);
 
         //Digital
@@ -172,7 +164,7 @@ void loadConfig() {
         for (auto keyValue : digitalPins) {
           setDigitalMode(keyValue.key, keyValue.value.as<uint8_t>());
         }
-
+        #endif
       } else {
         Serial.println("failed to load json config");
       }

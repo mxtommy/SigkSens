@@ -2,6 +2,8 @@ extern "C" {
 #include "user_interface.h"
 }
 
+#include <ESP8266mDNS.h>        // Include the mDNS library
+
 #include <WebSocketsServer.h>
 #include <WebSocketsClient.h>
 
@@ -56,19 +58,41 @@ void restartWebSocketClient() {
   }
 }
 
+bool getMDNSService(String &host, uint16_t &port) {
+  // get IP address using an mDNS query
+  int n = MDNS.queryService("signalk-ws", "tcp");
+  if (n==0) {
+    // no service found
+    return false;
+  } else {
+    host = MDNS.IP(0).toString();
+    port = MDNS.port(0);
+    return true;
+  }
+}
 
 void connectWebSocketClient() {
   SignalKClientInfo *skci = &signalKClientInfo;  // save some typing
-  if ( (skci->host.length() > 0) && 
-       (skci->port > 0) && (skci->port < 65535) && 
-       (skci->path.length() > 0)) {
+  String host = "";
+  uint16_t port = 80;
+
+  if (skci->host.length() == 0) {
+    getMDNSService(host, port);
+  } else {
+    host = skci->host;
+    port = skci->port;
+  }
+
+  if ( (host.length() > 0) && 
+       (port > 0) && 
+       (skci->path.length() > 0) ) {
     Serial.println("Websocket client starting!");
   } else {
       os_timer_arm(&wsClientReconnectTimer, 10000, false);
       return;
   }
 
-  skci->client.begin(skci->host, skci->port, skci->path + "?subscribe=none");
+  skci->client.begin(host, port, skci->path + "?subscribe=none");
   skci->connected = true;
 }
 

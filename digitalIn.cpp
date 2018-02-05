@@ -32,10 +32,6 @@ DigitalInSensorInfo::DigitalInSensorInfo(String addr,
   isUpdated = false;
 }
 
-bool DigitalInSensorInfo::isSerializable() {
-  return true;
-}
-
 DigitalInSensorInfo *DigitalInSensorInfo::fromJson(JsonObject &jsonSens) {
   return new DigitalInSensorInfo(
     jsonSens["address"],
