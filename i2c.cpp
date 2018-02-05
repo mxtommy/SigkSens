@@ -77,6 +77,18 @@ void scanI2C(bool &need_save) {
   if (scanI2CAddress(0x48)) {
     sensorADS1115Present = true;
     Serial.println("Found ADS1115 chip at 0x48");
+    bool known = false;
+    for (int x=0;x<sensorList.size() ; x++) {
+      tmpSensorInfo = sensorList.get(x);
+      if (strcmp(tmpSensorInfo->address, "0x48") == 0) {
+        known = true;                
+      }
+    }    
+    if (!known) {
+      SensorInfo *newSensor = new ADSSensorInfo("0x48");
+      sensorList.add(newSensor);
+      need_save = true;
+    }    
   }
 }
 

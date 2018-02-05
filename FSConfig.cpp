@@ -73,8 +73,10 @@ void saveConfig() {
     tmpSensorInfo = sensorList.get(i);
     JsonObject& tmpSens = jsonSensors.createNestedObject();
     if (tmpSensorInfo->isSerializable()) {
+      Serial.println("Serializable");
       tmpSensorInfo->toJson(tmpSens);
     } else {
+      Serial.println("Not Serializable");
       tmpSens["address"] = tmpSensorInfo->address;
       tmpSens["type"] = (int)tmpSensorInfo->type;
 

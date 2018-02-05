@@ -115,8 +115,9 @@ void setup() {
 
   setupFS();
 
+
   setupWifi();
-  loadConfig();
+  //loadConfig();
   setupDiscovery();
   setupHTTP();
   setupWebSocket();

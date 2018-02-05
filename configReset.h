@@ -7,5 +7,6 @@ extern "C" {
 
 void setupConfigReset();
 void handleConfigReset();
+void resetConfig();
 
 #endif

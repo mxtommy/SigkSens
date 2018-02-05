@@ -21,7 +21,8 @@ enum class SensorType {
   oneWire,
   sht30,
   mpu925x,
-  SensorType_MAX = mpu925x  // update this if you add items!
+  ads1115,
+  SensorType_MAX = ads1115  // update this if you add items!
 };
 
 // memory to save sensor info
@@ -31,6 +32,8 @@ class SensorInfo {
     String attrName[MAX_SENSOR_ATTRIBUTES];
     String signalKPath[MAX_SENSOR_ATTRIBUTES];
     String valueJson[MAX_SENSOR_ATTRIBUTES];
+    uint32_t scale[MAX_SENSOR_ATTRIBUTES];
+    uint32_t offset[MAX_SENSOR_ATTRIBUTES];
     SensorType type;
     bool isUpdated;
 
