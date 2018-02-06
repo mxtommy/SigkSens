@@ -91,9 +91,7 @@ void saveConfig() {
   for (uint8_t x=0; x < NUMBER_DIGITAL_INPUT; x++) {
     ;
     getDigitalPinName(x, tmpPinStr[x]); // sets tmpPinStr to the name of pin (array of char)
-    Serial.print(tmpPinStr[x]);
     digitalPins.set(tmpPinStr[x], getDigitalMode(x));
-    Serial.println(x);
   }
   #endif
 

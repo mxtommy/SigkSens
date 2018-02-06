@@ -168,22 +168,19 @@ void htmlGetSensorInfo() {
 }
 
 
-void htmlSetSensorPath() {
+void htmlSetSensorAttr() {
   
   SensorInfo *tmpSensorInfo;
   char pathStr[MAX_SIGNALK_PATH_LEN];
   char address[32];
   char attrName[32];
-  int attrIndex;
   bool found = false;
 
-  Serial.print("Setting path for Sensor");
+  Serial.print("Setting attributes for Sensor");
   if(!httpServer.hasArg("address")) {httpServer.send(500, "text/plain", "missing arg 'address'"); return;}
   if(!httpServer.hasArg("attrName")) {httpServer.send(500, "text/plain", "missing arg 'attrName'"); return;}
-  if(!httpServer.hasArg("path")) {httpServer.send(500, "text/plain", "missing arg 'path'"); return;}
   
   httpServer.arg("address").toCharArray(address, 32);
-  httpServer.arg("path").toCharArray(pathStr, MAX_SIGNALK_PATH_LEN);
   httpServer.arg("attrName").toCharArray(attrName, 32);
 
 
@@ -194,7 +191,19 @@ void htmlSetSensorPath() {
       for (int y=0; y<MAX_SENSOR_ATTRIBUTES; y++) {
         if (strcmp(tmpSensorInfo->attrName[y].c_str(), attrName) == 0) {
           //  found index!
-          tmpSensorInfo->signalKPath[y] = pathStr;
+          if(httpServer.hasArg("path")) {
+            httpServer.arg("path").toCharArray(pathStr, MAX_SIGNALK_PATH_LEN);
+            tmpSensorInfo->signalKPath[y] = pathStr;
+          }
+          
+          if(httpServer.hasArg("offset")) {
+            tmpSensorInfo->offset[y] = httpServer.arg("offset").toFloat();
+          }
+          if(httpServer.hasArg("scale")) {
+            tmpSensorInfo->scale[y] = httpServer.arg("scale").toFloat();
+          }          
+          
+          
           found = true;          
           break; //no need to check others if we found it
         }
@@ -302,7 +311,9 @@ void setupHTTP() {
   httpServer.on("/getSensorInfo", HTTP_GET, htmlGetSensorInfo);
 
   //httpServer.on("/getMPUCalibration", HTTP_GET, htmlGetMPUCalibration);
-  httpServer.on("/setSensorPath", HTTP_GET, htmlSetSensorPath);
+  httpServer.on("/setSensorPath", HTTP_GET, htmlSetSensorAttr); //path for legacy
+  httpServer.on("/setSensorAttr", HTTP_GET, htmlSetSensorAttr);
+
   httpServer.on("/setTimerDelay", HTTP_GET, htmlSetTimerDelay);
   httpServer.on("/setNewHostname", HTTP_GET, htmlNewHostname);
 
