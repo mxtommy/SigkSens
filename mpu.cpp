@@ -2,8 +2,9 @@ extern "C" {
 #include "user_interface.h"
 }
 
+#include "config.h"
+
 #include "sigksens.h"
-#include "oneWire.h"
 #include "mpu9250.h"
 #include "mpu.h"
 
@@ -27,7 +28,7 @@ void htmlGetCalibration() {
 void setMPUUpdateDelay(uint32_t newDelay) {
   os_timer_disarm(&mpuUpdateSensorInfo);
   Serial.print("Restarting MPU polling timer at: ");
-  Serial.print(getOneWireReadDelay());  
+  Serial.print(newDelay);  
   Serial.println("ms");
   updateMPUDelay = newDelay;
   os_timer_arm(&mpuUpdateSensorInfo, updateMPUDelay, true);

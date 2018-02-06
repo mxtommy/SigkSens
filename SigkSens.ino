@@ -11,11 +11,19 @@
 
 #include "config.h"
 #include "FSConfig.h"
+#ifdef ENABLE_I2C
 #include "i2c.h"
-#include "mpu.h"
-#include "mpu9250.h"
-#include "sht30.h"
-#include "oneWire.h"
+#endif
+#ifdef ENABLE_MPU
+  #include "mpu.h"
+  #include "mpu9250.h"
+#endif
+#ifdef ENABLE_SHT30
+  #include "sht30.h"
+#endif
+#ifdef ENABLE_ONEWIRE
+  #include "oneWire.h"
+#endif
 #ifdef ENABLE_DIGITALIN
   #include "digitalIn.h"
 #endif
@@ -52,14 +60,20 @@ void setupFromJson() {
     (fromJsonFunc)&(DigitalInSensorInfo::fromJson);
   #endif
 
+  #ifdef ENABLE_ONEWIRE
   fromJson[(int)SensorType::oneWire] =
     (fromJsonFunc)&(OneWireSensorInfo::fromJson);
+  #endif
 
+  #ifdef ENABLE_SHT30
   fromJson[(int)SensorType::sht30] =
     (fromJsonFunc)&(SHT30SensorInfo::fromJson);
+  #endif
 
+  #ifdef ENABLE_MPU
   fromJson[(int)SensorType::mpu925x] =
     (fromJsonFunc)&(MPU9250SensorInfo::fromJson);
+  #endif
 }
 
 
@@ -127,9 +141,15 @@ void setup() {
   setupSignalK();
 
   setupConfigReset();
+  #ifdef ENABLE_ONEWIRE
   setup1Wire(need_save);
+  #endif
+  #ifdef ENABLE_I2C
   setupI2C(need_save);
-  SETUP_DIGITALIN;
+  #endif
+  #ifdef ENABLE_DIGITALIN
+  setupDigitalIn(need_save);
+  #endif
   setupSystemHz(need_save);
   
   if (need_save) {
@@ -153,21 +173,29 @@ void loop() {
   
   //Stuff here run's all the time
   handleSystemHz();
+  #ifdef ENABLE_I2C
   handleI2C();
+  #endif
 
   mainLoopCount++;
   
   //Stuff that runs  once every 1000 loops. (still many many times/sec)
   if (mainLoopCount > 1000) {
+      #ifdef ENABLE_I2C
       handleI2C_slow();
-      handle1Wire(need_save);
+      #endif
+      #ifdef ENABLE_ONEWIRE
+        handle1Wire(need_save);
+      #endif
       if (need_save) {
         saveConfig();
       }
   
       handleWebSocket();
       handleSignalK();
-      HANDLE_DIGITALIN;
+      #ifdef ENABLE_DIGITALIN
+      handleDigitalIn();
+      #endif
       httpServer.handleClient(); //http client
       
       handleConfigReset(); 
