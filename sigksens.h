@@ -40,8 +40,8 @@ class SensorInfo {
     String attrName[MAX_SENSOR_ATTRIBUTES];
     String signalKPath[MAX_SENSOR_ATTRIBUTES];
     String valueJson[MAX_SENSOR_ATTRIBUTES];
-    uint32_t scale[MAX_SENSOR_ATTRIBUTES];
-    uint32_t offset[MAX_SENSOR_ATTRIBUTES];
+    float scale[MAX_SENSOR_ATTRIBUTES];
+    float offset[MAX_SENSOR_ATTRIBUTES];
     SensorType type;
     bool isUpdated;
 

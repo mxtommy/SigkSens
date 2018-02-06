@@ -144,6 +144,7 @@ void htmlGetSensorInfo() {
   for (uint8_t i=0; i < sensorList.size(); i++) {
     tmpSensorInfo = sensorList.get(i);
     JsonObject& tmpSens = sensorArr.createNestedObject();
+    
     tmpSens.set("address", tmpSensorInfo->address);
     tmpSens.set("type", (int)tmpSensorInfo->type);
 
@@ -155,8 +156,11 @@ void htmlGetSensorInfo() {
       JsonObject& tmpAttr = jsonAttr.createNestedObject();
       tmpAttr.set("attrName", tmpSensorInfo->attrName[x]);
       tmpAttr.set("signalKPath", tmpSensorInfo->signalKPath[x] );
+      tmpAttr.set("scale", tmpSensorInfo->scale[x] );
+      tmpAttr.set("offset", tmpSensorInfo->offset[x] );
       tmpAttr["value"] = RawJson(tmpSensorInfo->valueJson[x].c_str());
     }
+    //tmpSensorInfo->toJson(tmpSens);
   }
 
   json.prettyPrintTo(response);
