@@ -11,7 +11,9 @@
 
 #include "config.h"
 #include "FSConfig.h"
+#ifdef ENABLE_I2C
 #include "i2c.h"
+#endif
 #ifdef ENABLE_MPU
   #include "mpu.h"
   #include "mpu9250.h"
@@ -140,9 +142,11 @@ void setup() {
 
   setupConfigReset();
   #ifdef ENABLE_ONEWIRE
-    setup1Wire(need_save);
+  setup1Wire(need_save);
   #endif
+  #ifdef ENABLE_I2C
   setupI2C(need_save);
+  #endif
   #ifdef ENABLE_DIGITALIN
   setupDigitalIn(need_save);
   #endif
@@ -169,13 +173,17 @@ void loop() {
   
   //Stuff here run's all the time
   handleSystemHz();
+  #ifdef ENABLE_I2C
   handleI2C();
+  #endif
 
   mainLoopCount++;
   
   //Stuff that runs  once every 1000 loops. (still many many times/sec)
   if (mainLoopCount > 1000) {
+      #ifdef ENABLE_I2C
       handleI2C_slow();
+      #endif
       #ifdef ENABLE_ONEWIRE
         handle1Wire(need_save);
       #endif

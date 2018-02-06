@@ -14,9 +14,12 @@ Feature selection
 // Sensors
 
 #define ENABLE_DIGITALIN
+#define ENABLE_ONEWIRE
+
+#define ENABLE_I2C
+// if either of these are enabled, make sure I2C above is as well.
 #define ENABLE_SHT30
 #define ENABLE_MPU
-#define ENABLE_ONEWIRE
 
 // Services
 

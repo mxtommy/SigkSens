@@ -8,9 +8,13 @@ extern "C" {
 #include <ESP8266WebServer.h>     //Local WebServer used to serve the configuration portal
 #include <ESP8266SSDP.h>
 
-#include "i2c.h"
+#include "config.h"
+
+#ifdef ENABLE_I2C
+  #include "i2c.h"
+#endif
 #ifdef ENABLE_MPU
-#include "mpu.h"
+  #include "mpu.h"
 #endif
 #ifdef ENABLE_SHT30
   #include "sht30.h"
@@ -25,7 +29,6 @@ extern "C" {
 #include "FSConfig.h"
 #include "webSocket.h"
 #include "sigksens.h"
-#include "config.h"
 
 
 /*----------------------------------------------------------------------------
