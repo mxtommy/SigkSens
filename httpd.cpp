@@ -19,6 +19,9 @@ extern "C" {
 #ifdef ENABLE_SHT30
   #include "sht30.h"
 #endif
+#ifdef ENABLE_ADS1115
+  #include "ads1115.h"
+#endif
 #ifdef ENABLE_ONEWIRE
   #include "oneWire.h"
 #endif
@@ -154,6 +157,10 @@ void htmlGetSensorInfo() {
   #ifdef ENABLE_MPU
   timers["mpu925x"] = getUpdateMPUDelay();
   #endif
+  #ifdef ENABLE_ADS1115
+  timers["ads1115Read"] = getReadADSDelay();
+  timers["ads1115Update"] = getUpdateADSDelay();
+  #endif
   #ifdef ENABLE_DIGITALIN
   timers["digitalIn"] = getUpdateDigitalInDelay();
   #endif
@@ -275,6 +282,16 @@ void htmlSetTimerDelay() {
       ok = true;
       setMPUUpdateDelay(newDelay);
     }
+    #endif
+    #ifdef ENABLE_ADS1115
+    else if (strcmp(timer, "ads1115Read") == 0) {
+      ok = true;
+      setADSReadDelay(newDelay);
+    }
+    else if (strcmp(timer, "ads1115Update") == 0) {
+      ok = true;
+      setADSUpdateDelay(newDelay);
+    }        
     #endif
     #ifdef ENABLE_DIGITALIN
     else if (strcmp(timer, "digitalIn") == 0) {
