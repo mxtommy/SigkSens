@@ -19,9 +19,10 @@ extern "C" {
   #include "mpu.h"
 #endif
 
-#include "ads1115.h"
-bool sensorADS1115Present = false;
-bool getSensorADS1115Present() { return sensorADS1115Present; }
+#ifdef ENABLE_ADS1115
+  #include "ads1115.h"
+#endif
+
 
 #include "i2c.h"
 
@@ -35,6 +36,11 @@ bool getSensorSHT30Present() { return sensorSHT30Present; }
 #ifdef ENABLE_MPU
 bool sensorMPU925XPresent = false;
 bool getSensorMPU925XPresent() { return sensorMPU925XPresent; }
+#endif
+
+#ifdef ENABLE_ADS1115
+bool sensorADS1115Present = false;
+bool getSensorADS1115Present() { return sensorADS1115Present; }
 #endif
 
 
@@ -97,6 +103,7 @@ void scanI2C(bool &need_save) {
 
 
   //ADS1115
+  #ifdef ENABLE_ADS1115
   if (scanI2CAddress(0x48)) {
     sensorADS1115Present = true;
     Serial.println("Found ADS1115 chip at 0x48");
@@ -113,6 +120,8 @@ void scanI2C(bool &need_save) {
       need_save = true;
     }    
   }
+  #endif
+ 
 }
 
 
@@ -136,10 +145,12 @@ void setupI2C(bool &need_save) {
   } 
   #endif
 
-
+  #ifdef ENABLE_ADS1115
   if (sensorADS1115Present) {
     setupADS1115();
   }
+  #endif
+  
 }
 
 
@@ -159,7 +170,10 @@ void handleI2C_slow() {
   }
 #endif
 
+  #ifdef ENABLE_ADS1115
   if (sensorADS1115Present) {
     handleADS1115();
   }
+  #endif
+  
 }
