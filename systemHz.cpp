@@ -102,10 +102,15 @@ void updateSystemHz() {
   for (uint8_t i=0; i < sensorList.size(); i++) {
     thisSensorInfo = sensorList.get(i);
     if (thisSensorInfo->type==SensorType::local) {
-        
-      thisSensorInfo->valueJson[0] = systemHz;
-      thisSensorInfo->valueJson[1] = ESP.getFreeHeap();
-      thisSensorInfo->isUpdated = true;
+      if (strcmp(thisSensorInfo->signalKPath[0].c_str(),  "") != 0) {
+        thisSensorInfo->valueJson[0] = systemHz;
+        thisSensorInfo->isUpdated = true;
+      }
+      if (strcmp(thisSensorInfo->signalKPath[1].c_str(),  "") != 0) {
+        thisSensorInfo->valueJson[1] = ESP.getFreeHeap();
+        thisSensorInfo->isUpdated = true;
+      }        
+      
     }
   }
 

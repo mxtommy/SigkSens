@@ -121,7 +121,9 @@ void handleDigitalIn() {
   if (periodicUpdateReady) {
     periodicUpdateReady = false;
     for (int index=0;index<(sizeof(digitalPins)/sizeof(digitalPins[0])); index++) {
-      digitalUpdateReady[index] = true; //set them all to true
+      if (digitalMode[index] != DIGITAL_MODE_OFF) {
+        digitalUpdateReady[index] = true; //set them all to true  
+      }
     }
   }
 
