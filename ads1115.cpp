@@ -229,22 +229,21 @@ uint32_t getReadADSDelay() {
 }
 
 void setADSUpdateDelay(uint32_t newDelay) {
- /* os_timer_disarm(&adsUpdateSensorInfoTimer);
+  os_timer_disarm(&adsUpdateSensorInfoTimer);
   Serial.print("Restarting ADS Update timer at: ");
-  Serial.print(getUpdateADSDelay());  
+  Serial.print(newDelay);  
   Serial.println("ms");
   updateADSDelay = newDelay;
-  os_timer_arm(&adsUpdateSensorInfoTimer, updateADSDelay, true); */
+  os_timer_arm(&adsUpdateSensorInfoTimer, updateADSDelay, true); 
 }
 
 void setADSReadDelay(uint32_t newDelay) {
-/*  os_timer_disarm(&adsReadTimer);
+  os_timer_disarm(&adsReadTimer);
   Serial.print("Restarting ADS Read timer at: ");
-  Serial.print(getReadADSDelay());  
+  Serial.print(newDelay);  
   Serial.println("ms");
   updateReadADSDelay = newDelay;
   os_timer_arm(&adsReadTimer, updateReadADSDelay, true);
-*/
 }
 
 

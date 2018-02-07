@@ -254,14 +254,14 @@ void htmlSetSensorAttr() {
 
 void htmlSetTimerDelay() {
   uint32_t newDelay = 0;
-  char timer[10];
+  char timer[15];
   bool ok = false;
 
   Serial.print("Setting Timer delay");
   if(!httpServer.hasArg("timer")) {httpServer.send(500, "text/plain", "missing arg 'timer'"); return;}
   if(!httpServer.hasArg("delay")) {httpServer.send(500, "text/plain", "missing arg 'delay'"); return;}
 
-  httpServer.arg("timer").toCharArray(timer, 10);
+  httpServer.arg("timer").toCharArray(timer, 15);
   newDelay = httpServer.arg("delay").toInt();
 
   if (newDelay > 5) { //ostimer min delay is 5ms
