@@ -4,20 +4,38 @@ extern "C" {
 
 #include <Wire.h>
 
+#include "config.h"
+
 #include "sigksens.h"
-#include "sht30.h"
-#include "mpu9250.h"
-#include "mpu.h"
-#include "ads1115.h"
+
 #include "i2c.h"
 
-bool sensorSHT30Present = false;
-bool sensorMPU925XPresent = false;
-bool sensorADS1115Present = false;
 
-bool getSensorSHT30Present() { return sensorSHT30Present; }
-bool getSensorMPU925XPresent() { return sensorMPU925XPresent; }
+#ifdef ENABLE_SHT30
+  #include "sht30.h"
+#endif
+#ifdef ENABLE_MPU
+  #include "mpu9250.h"
+  #include "mpu.h"
+#endif
+
+#include "ads1115.h"
+bool sensorADS1115Present = false;
 bool getSensorADS1115Present() { return sensorADS1115Present; }
+
+#include "i2c.h"
+
+
+
+#ifdef ENABLE_SHT30
+bool sensorSHT30Present = false;
+bool getSensorSHT30Present() { return sensorSHT30Present; }
+#endif
+
+#ifdef ENABLE_MPU
+bool sensorMPU925XPresent = false;
+bool getSensorMPU925XPresent() { return sensorMPU925XPresent; }
+#endif
 
 
 bool scanI2CAddress(uint8_t address) {
@@ -37,6 +55,7 @@ void scanI2C(bool &need_save) {
 
   Serial.println("Scanning for i2c Sensors...");
 
+  #ifdef ENABLE_SHT30
   //SHT30
   if (scanI2CAddress(0x45)) { //Sht on D1 sheild
     sensorSHT30Present = true;
@@ -54,7 +73,9 @@ void scanI2C(bool &need_save) {
       need_save = true;
     }    
   }
+  #endif
 
+  #ifdef ENABLE_MPU
   //MPU925X
   if (scanI2CAddress(0x68)) {
     sensorMPU925XPresent = true;
@@ -72,6 +93,8 @@ void scanI2C(bool &need_save) {
       need_save = true;
     }    
   }
+  #endif
+
 
   //ADS1115
   if (scanI2CAddress(0x48)) {
@@ -101,13 +124,18 @@ void setupI2C(bool &need_save) {
   
   scanI2C(need_save);
 
+  #ifdef ENABLE_SHT30
   if (sensorSHT30Present) {
     setupSHT30();
   }
+  #endif
 
+  #ifdef ENABLE_MPU
   if (sensorMPU925XPresent) {
     setupMPU9250();
   } 
+  #endif
+
 
   if (sensorADS1115Present) {
     setupADS1115();
@@ -116,16 +144,21 @@ void setupI2C(bool &need_save) {
 
 
 void handleI2C() {
+  #ifdef ENABLE_MPU
   if (sensorMPU925XPresent) {
     handleMPU9250();
   }
+  #endif
 }
 
 
 void handleI2C_slow() {
+#ifdef ENABLE_SHT30
   if (sensorSHT30Present) {
     handleSHT30();  
   }
+#endif
+
   if (sensorADS1115Present) {
     handleADS1115();
   }

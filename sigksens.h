@@ -13,14 +13,6 @@
 #define DIGITAL_MODE_IN_STATE 1
 #define DIGITAL_MODE_IN_FREQ 2
 
-#ifdef ENABLE_DIGITALIN
-  #define SETUP_DIGITALIN setupDigitalIn(need_save)
-  #define HANDLE_DIGITALIN handleDigitalIn()
-#else
-  #define SETUP_DIGITALIN 0
-  #define HANDLE_DIGITALIN 0
-#endif
-
 extern char myHostname[16];
 
 enum class SensorType {

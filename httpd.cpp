@@ -8,10 +8,20 @@ extern "C" {
 #include <ESP8266WebServer.h>     //Local WebServer used to serve the configuration portal
 #include <ESP8266SSDP.h>
 
-#include "i2c.h"
-#include "mpu.h"
-#include "sht30.h"
-#include "oneWire.h"
+#include "config.h"
+
+#ifdef ENABLE_I2C
+  #include "i2c.h"
+#endif
+#ifdef ENABLE_MPU
+  #include "mpu.h"
+#endif
+#ifdef ENABLE_SHT30
+  #include "sht30.h"
+#endif
+#ifdef ENABLE_ONEWIRE
+  #include "oneWire.h"
+#endif
 #ifdef ENABLE_DIGITALIN
   #include "digitalIn.h"
 #endif
@@ -19,7 +29,6 @@ extern "C" {
 #include "FSConfig.h"
 #include "webSocket.h"
 #include "sigksens.h"
-#include "config.h"
 
 
 /*----------------------------------------------------------------------------
@@ -114,9 +123,15 @@ void htmlGetSensorInfo() {
   json["signalKPath"] = signalKClientInfo.path;
 
   //Sensor types present
-  json["sensorOneWire"] = getSensorOneWirePresent();
+  #ifdef ENABLE_ONEWIRE
+    json["sensorOneWire"] = getSensorOneWirePresent();
+  #endif
+  #ifdef ENABLE_SHT30
   json["sensorSHT30"] = getSensorSHT30Present();
+  #endif
+  #ifdef ENABLE_MPU
   json["sensorMPU925X"] = getSensorMPU925XPresent();
+  #endif
 
   #ifdef ENABLE_DIGITALIN
   //Digital
@@ -130,9 +145,15 @@ void htmlGetSensorInfo() {
   //Timers
   JsonObject& timers = json.createNestedObject("timers");
 
+  #ifdef ENABLE_ONEWIRE
   timers["oneWire"] = getOneWireReadDelay();
+  #endif
+  #ifdef ENABLE_SHT30
   timers["sht30"] = getSensorSHTReadDelay();
+  #endif
+  #ifdef ENABLE_MPU
   timers["mpu925x"] = getUpdateMPUDelay();
+  #endif
   #ifdef ENABLE_DIGITALIN
   timers["digitalIn"] = getUpdateDigitalInDelay();
   #endif
@@ -238,15 +259,23 @@ void htmlSetTimerDelay() {
 
   if (newDelay > 5) { //ostimer min delay is 5ms
     if (strcmp(timer, "oneWire") == 0) {
+    #ifdef ENABLE_ONEWIRE
       ok = true;
       setOneWireReadDelay(newDelay);
-    } else if (strcmp(timer, "sht30") == 0) {
+    #endif
+    }
+    #ifdef ENABLE_SHT30
+    else if (strcmp(timer, "sht30") == 0) {
       ok = true;
       setSHTReadDelay(newDelay);
-    } else if (strcmp(timer, "mpu925x") == 0) {
+    }
+    #endif
+    #ifdef ENABLE_MPU
+    else if (strcmp(timer, "mpu925x") == 0) {
       ok = true;
       setMPUUpdateDelay(newDelay);
-    } 
+    }
+    #endif
     #ifdef ENABLE_DIGITALIN
     else if (strcmp(timer, "digitalIn") == 0) {
       ok = true;

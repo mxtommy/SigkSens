@@ -8,12 +8,20 @@ extern "C" {
 
 #include <string>
 
+#include "config.h"
+
 #include "FSConfig.h"
 #include "webSocket.h"
-#include "oneWire.h"
-#include "sht30.h"
-#include "mpu9250.h"
-#include "mpu.h"
+#ifdef ENABLE_ONEWIRE
+  #include "oneWire.h"
+#endif
+#ifdef ENABLE_SHT30
+  #include "sht30.h"
+#endif
+#ifdef ENABLE_MPU
+  #include "mpu9250.h"
+  #include "mpu.h"
+#endif
 #ifdef ENABLE_DIGITALIN
   #include "digitalIn.h"
 #endif
@@ -77,12 +85,18 @@ void saveConfig() {
     tmpSensorInfo->toJson(tmpSens);
   }
 
+  #ifdef ENABLE_ONEWIRE
   uint32_t oneWireReadDelay = getOneWireReadDelay();
   
   //Timers
   json["oneWireReadDelay"] = oneWireReadDelay;
+  #endif
+  #ifdef ENABLE_SHT30
   json["sensorSHTReadDelay"] = getSensorSHTReadDelay();
+  #endif
+  #ifdef ENABLE_MPU
   json["updateMPUDelay"] = getUpdateMPUDelay();
+  #endif
   #ifdef ENABLE_DIGITALIN
   json["updateDigitalInDelay"] = getUpdateDigitalInDelay();
   
@@ -149,11 +163,16 @@ void loadConfig() {
 
         //Timers
 
+        #ifdef ENABLE_ONEWIRE
         uint32_t oneWireReadDelay = json["oneWireReadDelay"];
         setOneWireReadDelay(oneWireReadDelay);
-
+        #endif
+        #ifdef ENABLE_SHT30
         setSHTReadDelay(json["sensorSHTReadDelay"]);
+        #endif
+        #ifdef ENABLE_MPU
         setMPUUpdateDelay(json["updateMPUDelay"]);
+        #endif
         #ifdef ENABLE_DIGITALIN
         setDigitalInUpdateDelay(json["updateDigitalInDelay"]);
 

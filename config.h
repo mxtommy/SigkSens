@@ -7,11 +7,23 @@ Feature selection
 ------------------------------------------------------------------------------
 ----------------------------------------------------------------------------*/
 
-// To disable any of the services below, either comment out the row
+// To disable any of the features below, either comment out the row
 // or add #undef <feat> to my_config.h and enable my_config.h at the
 // end of this file.
 
+// Sensors
+
 #define ENABLE_DIGITALIN
+#define ENABLE_ONEWIRE
+
+#define ENABLE_I2C
+// if either of these are enabled, make sure I2C above is as well.
+#define ENABLE_SHT30
+#define ENABLE_MPU
+
+// Services
+
+#define ENABLE_WEBSOCKET_SERVER
 
 /*----------------------------------------------------------------------------
 ------------------------------------------------------------------------------
