@@ -21,12 +21,18 @@
 #ifdef ENABLE_SHT30
   #include "sht30.h"
 #endif
+#ifdef ENABLE_ADS1115
+  #include "ads1115.h"
+#endif
 #ifdef ENABLE_ONEWIRE
   #include "oneWire.h"
 #endif
 #ifdef ENABLE_DIGITALIN
   #include "digitalIn.h"
 #endif
+
+
+
 #include "systemHz.h"
 #include "configReset.h"
 #include "webSocket.h"
@@ -73,6 +79,11 @@ void setupFromJson() {
   #ifdef ENABLE_MPU
   fromJson[(int)SensorType::mpu925x] =
     (fromJsonFunc)&(MPU9250SensorInfo::fromJson);
+  #endif    
+
+  #ifdef ENABLE_ADS1115
+  fromJson[(int)SensorType::ads1115] =
+    (fromJsonFunc)&(ADSSensorInfo::fromJson);    
   #endif
 }
 
@@ -132,6 +143,7 @@ void setup() {
   setupFromJson();
 
   setupFS();
+
 
   setupWifi();
   loadConfig();

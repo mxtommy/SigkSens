@@ -19,6 +19,9 @@ extern "C" {
 #ifdef ENABLE_SHT30
   #include "sht30.h"
 #endif
+#ifdef ENABLE_ADS1115
+  #include "ads1115.h"
+#endif
 #ifdef ENABLE_ONEWIRE
   #include "oneWire.h"
 #endif
@@ -154,6 +157,10 @@ void htmlGetSensorInfo() {
   #ifdef ENABLE_MPU
   timers["mpu925x"] = getUpdateMPUDelay();
   #endif
+  #ifdef ENABLE_ADS1115
+  timers["ads1115Read"] = getReadADSDelay();
+  timers["ads1115Update"] = getUpdateADSDelay();
+  #endif
   #ifdef ENABLE_DIGITALIN
   timers["digitalIn"] = getUpdateDigitalInDelay();
   #endif
@@ -165,6 +172,7 @@ void htmlGetSensorInfo() {
   for (uint8_t i=0; i < sensorList.size(); i++) {
     tmpSensorInfo = sensorList.get(i);
     JsonObject& tmpSens = sensorArr.createNestedObject();
+    
     tmpSens.set("address", tmpSensorInfo->address);
     tmpSens.set("type", (int)tmpSensorInfo->type);
 
@@ -176,8 +184,11 @@ void htmlGetSensorInfo() {
       JsonObject& tmpAttr = jsonAttr.createNestedObject();
       tmpAttr.set("attrName", tmpSensorInfo->attrName[x]);
       tmpAttr.set("signalKPath", tmpSensorInfo->signalKPath[x] );
+      tmpAttr.set("scale", tmpSensorInfo->scale[x] );
+      tmpAttr.set("offset", tmpSensorInfo->offset[x] );
       tmpAttr["value"] = RawJson(tmpSensorInfo->valueJson[x].c_str());
     }
+    //tmpSensorInfo->toJson(tmpSens);
   }
 
   json.prettyPrintTo(response);
@@ -185,22 +196,19 @@ void htmlGetSensorInfo() {
 }
 
 
-void htmlSetSensorPath() {
+void htmlSetSensorAttr() {
   
   SensorInfo *tmpSensorInfo;
   char pathStr[MAX_SIGNALK_PATH_LEN];
   char address[32];
   char attrName[32];
-  int attrIndex;
   bool found = false;
 
-  Serial.print("Setting path for Sensor");
+  Serial.print("Setting attributes for Sensor");
   if(!httpServer.hasArg("address")) {httpServer.send(500, "text/plain", "missing arg 'address'"); return;}
   if(!httpServer.hasArg("attrName")) {httpServer.send(500, "text/plain", "missing arg 'attrName'"); return;}
-  if(!httpServer.hasArg("path")) {httpServer.send(500, "text/plain", "missing arg 'path'"); return;}
   
   httpServer.arg("address").toCharArray(address, 32);
-  httpServer.arg("path").toCharArray(pathStr, MAX_SIGNALK_PATH_LEN);
   httpServer.arg("attrName").toCharArray(attrName, 32);
 
 
@@ -211,7 +219,19 @@ void htmlSetSensorPath() {
       for (int y=0; y<MAX_SENSOR_ATTRIBUTES; y++) {
         if (strcmp(tmpSensorInfo->attrName[y].c_str(), attrName) == 0) {
           //  found index!
-          tmpSensorInfo->signalKPath[y] = pathStr;
+          if(httpServer.hasArg("path")) {
+            httpServer.arg("path").toCharArray(pathStr, MAX_SIGNALK_PATH_LEN);
+            tmpSensorInfo->signalKPath[y] = pathStr;
+          }
+          
+          if(httpServer.hasArg("offset")) {
+            tmpSensorInfo->offset[y] = httpServer.arg("offset").toFloat();
+          }
+          if(httpServer.hasArg("scale")) {
+            tmpSensorInfo->scale[y] = httpServer.arg("scale").toFloat();
+          }          
+          
+          
           found = true;          
           break; //no need to check others if we found it
         }
@@ -234,14 +254,14 @@ void htmlSetSensorPath() {
 
 void htmlSetTimerDelay() {
   uint32_t newDelay = 0;
-  char timer[10];
+  char timer[15];
   bool ok = false;
 
   Serial.print("Setting Timer delay");
   if(!httpServer.hasArg("timer")) {httpServer.send(500, "text/plain", "missing arg 'timer'"); return;}
   if(!httpServer.hasArg("delay")) {httpServer.send(500, "text/plain", "missing arg 'delay'"); return;}
 
-  httpServer.arg("timer").toCharArray(timer, 10);
+  httpServer.arg("timer").toCharArray(timer, 15);
   newDelay = httpServer.arg("delay").toInt();
 
   if (newDelay > 5) { //ostimer min delay is 5ms
@@ -262,6 +282,16 @@ void htmlSetTimerDelay() {
       ok = true;
       setMPUUpdateDelay(newDelay);
     }
+    #endif
+    #ifdef ENABLE_ADS1115
+    else if (strcmp(timer, "ads1115Read") == 0) {
+      ok = true;
+      setADSReadDelay(newDelay);
+    }
+    else if (strcmp(timer, "ads1115Update") == 0) {
+      ok = true;
+      setADSUpdateDelay(newDelay);
+    }        
     #endif
     #ifdef ENABLE_DIGITALIN
     else if (strcmp(timer, "digitalIn") == 0) {
@@ -327,7 +357,9 @@ void setupHTTP() {
   httpServer.on("/getSensorInfo", HTTP_GET, htmlGetSensorInfo);
 
   //httpServer.on("/getMPUCalibration", HTTP_GET, htmlGetMPUCalibration);
-  httpServer.on("/setSensorPath", HTTP_GET, htmlSetSensorPath);
+  httpServer.on("/setSensorPath", HTTP_GET, htmlSetSensorAttr); //path for legacy
+  httpServer.on("/setSensorAttr", HTTP_GET, htmlSetSensorAttr);
+
   httpServer.on("/setTimerDelay", HTTP_GET, htmlSetTimerDelay);
   httpServer.on("/setNewHostname", HTTP_GET, htmlNewHostname);
 

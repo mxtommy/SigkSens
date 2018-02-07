@@ -7,6 +7,10 @@ extern "C" {
 #include "config.h"
 
 #include "sigksens.h"
+
+#include "i2c.h"
+
+
 #ifdef ENABLE_SHT30
   #include "sht30.h"
 #endif
@@ -14,6 +18,12 @@ extern "C" {
   #include "mpu9250.h"
   #include "mpu.h"
 #endif
+
+#ifdef ENABLE_ADS1115
+  #include "ads1115.h"
+#endif
+
+
 #include "i2c.h"
 
 
@@ -26,6 +36,11 @@ bool getSensorSHT30Present() { return sensorSHT30Present; }
 #ifdef ENABLE_MPU
 bool sensorMPU925XPresent = false;
 bool getSensorMPU925XPresent() { return sensorMPU925XPresent; }
+#endif
+
+#ifdef ENABLE_ADS1115
+bool sensorADS1115Present = false;
+bool getSensorADS1115Present() { return sensorADS1115Present; }
 #endif
 
 
@@ -85,6 +100,28 @@ void scanI2C(bool &need_save) {
     }    
   }
   #endif
+
+
+  //ADS1115
+  #ifdef ENABLE_ADS1115
+  if (scanI2CAddress(0x48)) {
+    sensorADS1115Present = true;
+    Serial.println("Found ADS1115 chip at 0x48");
+    bool known = false;
+    for (int x=0;x<sensorList.size() ; x++) {
+      tmpSensorInfo = sensorList.get(x);
+      if (strcmp(tmpSensorInfo->address, "0x48") == 0) {
+        known = true;                
+      }
+    }    
+    if (!known) {
+      SensorInfo *newSensor = new ADSSensorInfo("0x48");
+      sensorList.add(newSensor);
+      need_save = true;
+    }    
+  }
+  #endif
+ 
 }
 
 
@@ -107,6 +144,13 @@ void setupI2C(bool &need_save) {
     setupMPU9250();
   } 
   #endif
+
+  #ifdef ENABLE_ADS1115
+  if (sensorADS1115Present) {
+    setupADS1115();
+  }
+  #endif
+  
 }
 
 
@@ -125,4 +169,11 @@ void handleI2C_slow() {
     handleSHT30();  
   }
 #endif
+
+  #ifdef ENABLE_ADS1115
+  if (sensorADS1115Present) {
+    handleADS1115();
+  }
+  #endif
+  
 }

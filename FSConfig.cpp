@@ -22,6 +22,9 @@ extern "C" {
   #include "mpu9250.h"
   #include "mpu.h"
 #endif
+#ifdef ENABLE_ADS1115
+  #include "ads1115.h"
+#endif
 #ifdef ENABLE_DIGITALIN
   #include "digitalIn.h"
 #endif
@@ -97,6 +100,10 @@ void saveConfig() {
   #ifdef ENABLE_MPU
   json["updateMPUDelay"] = getUpdateMPUDelay();
   #endif
+  #ifdef ENABLE_ADS1115
+  json["readADSDelay"] = getReadADSDelay();
+  json["updateADSDelay"] = getUpdateADSDelay();
+  #endif
   #ifdef ENABLE_DIGITALIN
   json["updateDigitalInDelay"] = getUpdateDigitalInDelay();
   
@@ -105,9 +112,7 @@ void saveConfig() {
   for (uint8_t x=0; x < NUMBER_DIGITAL_INPUT; x++) {
     ;
     getDigitalPinName(x, tmpPinStr[x]); // sets tmpPinStr to the name of pin (array of char)
-    Serial.print(tmpPinStr[x]);
     digitalPins.set(tmpPinStr[x], getDigitalMode(x));
-    Serial.println(x);
   }
   #endif
 
@@ -174,6 +179,10 @@ void loadConfig() {
         #endif
         #ifdef ENABLE_MPU
         setMPUUpdateDelay(json["updateMPUDelay"]);
+        #endif
+        #ifdef ENABLE_ADS1115
+        setADSReadDelay(json["readADSDelay"]);
+        setADSUpdateDelay(json["updateADSDelay"]);
         #endif
         #ifdef ENABLE_DIGITALIN
         setDigitalInUpdateDelay(json["updateDigitalInDelay"]);
