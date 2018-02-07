@@ -18,14 +18,13 @@ extern "C" {
   #include "mpu9250.h"
   #include "mpu.h"
 #endif
+#ifdef ENABLE_BMP280
+  #include "bmp280.h"
+#endif
 
 #ifdef ENABLE_ADS1115
   #include "ads1115.h"
 #endif
-
-
-#include "i2c.h"
-
 
 
 #ifdef ENABLE_SHT30
@@ -36,6 +35,11 @@ bool getSensorSHT30Present() { return sensorSHT30Present; }
 #ifdef ENABLE_MPU
 bool sensorMPU925XPresent = false;
 bool getSensorMPU925XPresent() { return sensorMPU925XPresent; }
+#endif
+
+#ifdef ENABLE_BMP280
+bool sensorBMP280Present = false;
+bool getSensorBMP280Present() { return sensorBMP280Present; }
 #endif
 
 #ifdef ENABLE_ADS1115
@@ -100,7 +104,26 @@ void scanI2C(bool &need_save) {
     }    
   }
   #endif
-
+  
+  #ifdef ENABLE_BMP280
+  //BMP280
+  if (scanI2CAddress(0x77)) {
+    sensorBMP280Present = true;
+    bool known = false;
+    for (int x = 0; x < sensorList.size(); x++) {
+      tmpSensorInfo = sensorList.get(x);
+      if (strcmp(tmpSensorInfo->address, "0x77") == 0) {
+        known = true;
+      }
+    }
+    if (!known) {
+      Serial.print("New BMP280 found at: 0x77 ");
+      SensorInfo *newSensor = new BMP280SensorInfo("0x77");
+      sensorList.add(newSensor);
+      need_save = true;
+    }
+  }
+  #endif
 
   //ADS1115
   #ifdef ENABLE_ADS1115
@@ -125,6 +148,7 @@ void scanI2C(bool &need_save) {
 }
 
 
+
 void setupI2C(bool &need_save) {
   //Wire.setClock(0000L);
 
@@ -143,6 +167,12 @@ void setupI2C(bool &need_save) {
   if (sensorMPU925XPresent) {
     setupMPU9250();
   } 
+  #endif
+    
+  #ifdef ENABLE_BMP280
+  if (sensorBMP280Present) {
+      setupBMP280();
+  }
   #endif
 
   #ifdef ENABLE_ADS1115
@@ -169,11 +199,9 @@ void handleI2C_slow() {
     handleSHT30();  
   }
 #endif
-
-  #ifdef ENABLE_ADS1115
-  if (sensorADS1115Present) {
-    handleADS1115();
+#ifdef ENABLE_BMP280
+  if (sensorBMP280Present) {
+    handleBMP280();  
   }
-  #endif
-  
+#endif
 }

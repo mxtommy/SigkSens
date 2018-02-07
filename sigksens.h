@@ -21,6 +21,7 @@ enum class SensorType {
   oneWire,
   sht30,
   mpu925x,
+  bmp280,
   ads1115,
   SensorType_MAX = ads1115  // update this if you add items!
 };

@@ -20,6 +20,7 @@ Feature selection
 // if either of these are enabled, make sure I2C above is as well.
 #define ENABLE_SHT30
 #define ENABLE_MPU
+#define ENABLE_BMP280
 #define ENABLE_ADS1115
 
 // Services
