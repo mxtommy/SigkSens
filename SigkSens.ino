@@ -21,8 +21,11 @@
 #ifdef ENABLE_SHT30
   #include "sht30.h"
 #endif
+#ifdef ENABLE_BMP280
+  #include "bmp280.h"
+#endif
 #ifdef ENABLE_ADS1115
-  #include "ads1115.h"
+#include "ads1115.h"
 #endif
 #ifdef ENABLE_ONEWIRE
   #include "oneWire.h"
@@ -84,6 +87,11 @@ void setupFromJson() {
   #ifdef ENABLE_ADS1115
   fromJson[(int)SensorType::ads1115] =
     (fromJsonFunc)&(ADSSensorInfo::fromJson);    
+  #endif
+
+  #ifdef ENABLE_BMP280
+  fromJson[(int)SensorType::bmp280] =
+    (fromJsonFunc)&(BMP280SensorInfo::fromJson);
   #endif
 }
 
