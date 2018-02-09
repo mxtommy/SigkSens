@@ -82,8 +82,8 @@ void saveConfig() {
 
   //sensors
   JsonArray& jsonSensors = json.createNestedArray("sensors");
-  for (uint8_t i=0; i < sensorList.size(); i++) {
-    tmpSensorInfo = sensorList.get(i);
+  for (uint8_t i=0; i < sensorStorage.size(); i++) {
+    tmpSensorInfo = sensorStorage.get(i);
     JsonObject& tmpSens = jsonSensors.createNestedObject();
     tmpSensorInfo->toJson(tmpSens);
   }
@@ -164,7 +164,7 @@ void loadConfig() {
           fromJsonFunc func = fromJson[type];
           if ((int)func != 0) {
             newSensor = fromJson[type](json["sensors"][i]);
-            sensorList.add(newSensor);
+            sensorStorage.add(newSensor);
           }
         }
 

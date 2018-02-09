@@ -17,9 +17,9 @@ void handleSignalK() {
   SensorInfo *thisSensorInfo;
   bool needToSend = false;
   
-  for (uint8_t i=0; i < sensorList.size(); i++) {
+  for (uint8_t i=0; i < sensorStorage.size(); i++) {
 
-    thisSensorInfo = sensorList.get(i);
+    thisSensorInfo = sensorStorage.get(i);
     if (thisSensorInfo->isUpdated) {
       needToSend = true;
     }
@@ -44,9 +44,9 @@ void sendDelta() {
   //updated array
   JsonArray& updatesArr = delta.createNestedArray("updates");
   
-  for (uint8_t i=0; i < sensorList.size(); i++) {
+  for (uint8_t i=0; i < sensorStorage.size(); i++) {
 
-    thisSensorInfo = sensorList.get(i);
+    thisSensorInfo = sensorStorage.get(i);
     if (thisSensorInfo->isUpdated) {
       JsonObject& thisUpdate = updatesArr.createNestedObject();
 

@@ -169,8 +169,8 @@ void htmlGetSensorInfo() {
   JsonArray& sensorArr = json.createNestedArray("sensors");
   
   
-  for (uint8_t i=0; i < sensorList.size(); i++) {
-    tmpSensorInfo = sensorList.get(i);
+  for (uint8_t i=0; i < sensorStorage.size(); i++) {
+    tmpSensorInfo = sensorStorage.get(i);
     JsonObject& tmpSens = sensorArr.createNestedObject();
     
     tmpSens.set("address", tmpSensorInfo->address);
@@ -212,8 +212,8 @@ void htmlSetSensorAttr() {
   httpServer.arg("attrName").toCharArray(attrName, 32);
 
 
-  for (int x=0;x<sensorList.size() ; x++) {
-    tmpSensorInfo = sensorList.get(x);
+  for (int x=0;x<sensorStorage.size() ; x++) {
+    tmpSensorInfo = sensorStorage.get(x);
     if (strcmp(tmpSensorInfo->address, address) == 0) {
       // found our sensor, now find index
       for (int y=0; y<MAX_SENSOR_ATTRIBUTES; y++) {

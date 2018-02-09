@@ -53,11 +53,11 @@ class SensorStorage {
     SensorInfo* find(String key);
     int size();
   private: 
-    LinkedList<SensorInfo*> sensorList;
+    LinkedList<SensorInfo*> sensorStorage;
 };
 
 // memory to save sensor info
-extern SensorStorage sensorList;
+extern SensorStorage sensorStorage;
 
 typedef SensorInfo *(*fromJsonFunc)(JsonObject &);
 extern fromJsonFunc fromJson[(int)SensorType::SensorType_MAX];

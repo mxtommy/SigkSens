@@ -102,8 +102,8 @@ void pollBMP280() {
 
   readytoPollBMP280 = false; //reset interupt
 
-  for (int x=0;x<sensorList.size() ; x++) {
-    thisSensorInfo = sensorList.get(x);
+  for (int x=0;x<sensorStorage.size() ; x++) {
+    thisSensorInfo = sensorStorage.get(x);
     if (thisSensorInfo->type==SensorType::bmp280) {
       //convert address string to int
       parseBytes(thisSensorInfo->address,':',&address,1,16);
@@ -137,8 +137,8 @@ void readBMP280() {
   Pa = bmp.readPressure();
   tempK = bmp.readTemperature() + 273.15;
 
-  for (int x=0;x<sensorList.size() ; x++) {
-    thisSensorInfo = sensorList.get(x);
+  for (int x=0;x<sensorStorage.size() ; x++) {
+    thisSensorInfo = sensorStorage.get(x);
     if (thisSensorInfo->type==SensorType::bmp280) {
       thisSensorInfo->valueJson[0] = tempK;
       thisSensorInfo->valueJson[1] = Pa;

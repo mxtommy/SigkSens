@@ -143,8 +143,8 @@ void initializeDigitalPin(uint8_t index, bool &need_save) {
 
   // Setup "sensors" if not already existing
   bool known = false;
-  for (int x=0;x<sensorList.size() ; x++) {
-    tmpSensorInfo = sensorList.get(x);
+  for (int x=0;x<sensorStorage.size() ; x++) {
+    tmpSensorInfo = sensorStorage.get(x);
     if (tmpSensorInfo->type==SensorType::digitalIn) {
       if (strcmp(tmpSensorInfo->address, digitalPinNames[index]) == 0) {
         known = true;                
@@ -158,7 +158,7 @@ void initializeDigitalPin(uint8_t index, bool &need_save) {
     DigitalInSensorInfo *newSensor = new DigitalInSensorInfo(
       digitalPinNames[index]
     );
-    sensorList.add(newSensor);         
+    sensorStorage.add(newSensor);         
     need_save = true;
   }      
 
@@ -193,8 +193,8 @@ void updateDigitalIn(uint8_t index) {
   SensorInfo *thisSensorInfo;
 
   digitalUpdateReady[index] = false; // reset update ready
-  for (uint8_t i=0; i < sensorList.size(); i++) {
-    thisSensorInfo = sensorList.get(i);
+  for (uint8_t i=0; i < sensorStorage.size(); i++) {
+    thisSensorInfo = sensorStorage.get(i);
     
     if ((thisSensorInfo->type==SensorType::digitalIn) && (strcmp(thisSensorInfo->address, digitalPinNames[index]) == 0) ) {
         if (digitalValue[index]) {

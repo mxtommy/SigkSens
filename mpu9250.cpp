@@ -502,8 +502,8 @@ void updateMPUSensorInfo() {
   lin_ay = ay + a32;
   lin_az = az - a33;
 
-  for (uint8_t i=0; i < sensorList.size(); i++) {
-    thisSensorInfo = sensorList.get(i);
+  for (uint8_t i=0; i < sensorStorage.size(); i++) {
+    thisSensorInfo = sensorStorage.get(i);
     if (thisSensorInfo->type==SensorType::mpu925x) {
       //we're just going to assume there's only one for now...
     
