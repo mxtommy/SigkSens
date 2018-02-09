@@ -29,6 +29,7 @@ enum class SensorType {
 // memory to save sensor info
 class SensorInfo {
   public:
+    String key;  // hashing key
     char address[32];
     String attrName[MAX_SENSOR_ATTRIBUTES];
     String signalKPath[MAX_SENSOR_ATTRIBUTES];
@@ -40,10 +41,23 @@ class SensorInfo {
 
     static SensorInfo *fromJson(JsonObject&);
     virtual void toJson(JsonObject&) = 0;
+  private:
+    String createKey(int type, String address);
+};
+
+
+class SensorStorage {
+  public:
+    void add(SensorInfo* sens);
+    SensorInfo* get(const int i);
+    SensorInfo* find(String key);
+    int size();
+  private: 
+    LinkedList<SensorInfo*> sensorList;
 };
 
 // memory to save sensor info
-extern LinkedList<SensorInfo*> sensorList;
+extern SensorStorage sensorList;
 
 typedef SensorInfo *(*fromJsonFunc)(JsonObject &);
 extern fromJsonFunc fromJson[(int)SensorType::SensorType_MAX];

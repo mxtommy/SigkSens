@@ -1,7 +1,5 @@
 #include "sigksens.h"
 
-LinkedList<SensorInfo*> sensorList = LinkedList<SensorInfo*>();
-
 fromJsonFunc fromJson[(int)SensorType::SensorType_MAX];
 /*---------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------
@@ -21,3 +19,27 @@ void parseBytes(const char* str, char sep, byte* bytes, int maxBytes, int base) 
   }
 }
 
+
+void SensorStorage::add(SensorInfo* sens) {
+  sensorList.add(sens);
+}
+
+SensorInfo* SensorStorage::get(const int i) {
+  return sensorList.get(i);
+}
+
+SensorInfo* SensorStorage::find(String key) {
+  SensorInfo* current;
+  for (int i=0 ; i < sensorList.size() ; i++) {
+    current = sensorList.get(i);
+    if (current->key == key) {
+      return current;
+    }
+  }
+}
+
+int SensorStorage::size() {
+  return sensorList.size();
+}
+
+SensorStorage sensorList = SensorStorage();
