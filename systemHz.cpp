@@ -15,6 +15,9 @@ SystemHzSensorInfo::SystemHzSensorInfo(String addr) {
   type = SensorType::local;
   valueJson[0] = "null";
   valueJson[1] = "null";
+
+  key = (int)SensorType::local + addr;
+
   isUpdated = false;
 }
 
@@ -29,6 +32,9 @@ SystemHzSensorInfo::SystemHzSensorInfo(String addr,
   type = SensorType::local;
   valueJson[0] = "null";
   valueJson[1] = "null";
+
+  key = (int)SensorType::local + addr;
+
   isUpdated = false;
 }
 

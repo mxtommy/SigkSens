@@ -20,6 +20,9 @@ OneWireSensorInfo::OneWireSensorInfo(String addr) {
   attrName[0] = "tempK";
   type = SensorType::oneWire;
   valueJson[0] = "null";
+
+  key = (int)SensorType::oneWire + addr;
+
   isUpdated = false;
 }
 
@@ -29,6 +32,9 @@ OneWireSensorInfo::OneWireSensorInfo(String addr, String path) {
   attrName[0] = "tempK";
   type = SensorType::oneWire;
   valueJson[0] = "null";
+
+  key = (int)SensorType::oneWire + addr;
+
   isUpdated = false;
 }
 

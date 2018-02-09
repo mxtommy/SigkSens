@@ -44,6 +44,7 @@ ADSSensorInfo::ADSSensorInfo(String addr) {
   scale[4] = 1;
   scale[5] = 1;
 
+  key = (int)SensorType::ads1115 + addr;
   
   isUpdated = false;
 }
@@ -83,7 +84,10 @@ ADSSensorInfo::ADSSensorInfo( String addr,
   scale[2] = scale2;
   scale[3] = scale3;
   scale[4] = scale4;
-  scale[5] = scale5;    
+  scale[5] = scale5;
+  
+  key = (int)SensorType::ads1115 + addr;
+  
   isUpdated = false;
 }
 

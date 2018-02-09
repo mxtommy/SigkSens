@@ -19,6 +19,9 @@ BMP280SensorInfo::BMP280SensorInfo(String addr) {
   type = SensorType::bmp280;
   valueJson[0] = "null";
   valueJson[1] = "null";
+
+  key = (int)SensorType::bmp280 + addr;
+
   isUpdated = false;
 }
 
@@ -32,6 +35,9 @@ BMP280SensorInfo::BMP280SensorInfo(
   type = SensorType::bmp280;
   valueJson[0] = "null";
   valueJson[1] = "null";
+
+  key = (int)SensorType::bmp280 + addr;
+
   isUpdated = false;
 }
 

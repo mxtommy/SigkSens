@@ -15,6 +15,9 @@ DigitalInSensorInfo::DigitalInSensorInfo(String addr) {
   type = SensorType::digitalIn;
   valueJson[0] = "null";
   valueJson[1] = "null";
+
+  key = (int)SensorType::digitalIn + addr;
+
   isUpdated = false;
 }
 
@@ -29,6 +32,9 @@ DigitalInSensorInfo::DigitalInSensorInfo(String addr,
   type = SensorType::digitalIn;
   valueJson[0] = "null";
   valueJson[1] = "null";
+
+  key = (int)SensorType::digitalIn + addr;
+
   isUpdated = false;
 }
 
