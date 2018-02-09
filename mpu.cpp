@@ -10,20 +10,8 @@ extern "C" {
 
 // timer delay
 uint32_t updateMPUDelay = 1000;
-
-uint32_t getUpdateMPUDelay() { return updateMPUDelay; }
-
-bool MPUisValid = false;
 os_timer_t  mpuUpdateSensorInfo; // repeating timer that fires ever X/time to start temp request cycle
-bool mpuUpdateReady = false;
-
-volatile bool newData = false;
-
-
-void htmlGetCalibration() {
-  Serial.println("Aaa");
-}
-
+uint32_t getUpdateMPUDelay() { return updateMPUDelay; }
 
 void setMPUUpdateDelay(uint32_t newDelay) {
   os_timer_disarm(&mpuUpdateSensorInfo);
@@ -35,10 +23,19 @@ void setMPUUpdateDelay(uint32_t newDelay) {
 }
 
 
+bool MPUisValid = false;
+bool mpuUpdateReady = false;
+volatile bool newData = false;
+
+
+
+void htmlGetCalibration() {
+  Serial.println("Aaa");
+}
+
 void ICACHE_RAM_ATTR interruptMPUNewData() {
   newData = true;
 }
-
 
 void interruptMPUSensorInfo(void *pArg) {
   mpuUpdateReady = true;
