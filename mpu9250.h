@@ -19,16 +19,28 @@ class MPU9250SensorInfo : public SensorInfo {
 
     static MPU9250SensorInfo *fromJson(JsonObject &jsonSens);
     void toJson(JsonObject &jsonSens);
-    float sensorMagBias[3], sensorMagScale[3];
-    int32_t sensorGyroBias[3], sensorAccelBias[3];
+
 
 };
+
+uint32_t getUpdateMPUDelay();
+void setMPUUpdateDelay(uint32_t newDelay);
+
+void setupMPU9250();
+void handleMPU9250();
 
 bool configureMPU9250();
 void processMPU9250();
 void updateQuaternion();
 void updateMPUSensorInfo();
 
+
+
+// Based on https://raw.githubusercontent.com/kriswiner/MPU9250/master/MPU9250_MS5637_AHRS_t3.ino
+
+// See also MPU-9250 Register Map and Descriptions, Revision 4.0, RM-MPU-9250A-00, Rev. 1.4, 9/9/2013 for registers not listed in 
+// above document; the MPU9250 and MPU9150 are virtually identical but the latter has a different register map
+//
 
 //DEFINES for MPU9250 registers
 

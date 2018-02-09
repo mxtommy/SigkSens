@@ -14,7 +14,7 @@ extern "C" {
   #include "i2c.h"
 #endif
 #ifdef ENABLE_MPU
-  #include "mpu.h"
+  #include "mpu9250.h"
 #endif
 #ifdef ENABLE_SHT30
   #include "sht30.h"
