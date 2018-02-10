@@ -20,7 +20,6 @@ extern "C" {
 #endif
 #ifdef ENABLE_MPU
   #include "mpu9250.h"
-  #include "mpu.h"
 #endif
 #ifdef ENABLE_ADS1115
   #include "ads1115.h"
@@ -82,11 +81,10 @@ void saveConfig() {
 
   //sensors
   JsonArray& jsonSensors = json.createNestedArray("sensors");
-  for (uint8_t i=0; i < sensorList.size(); i++) {
-    tmpSensorInfo = sensorList.get(i);
-    JsonObject& tmpSens = jsonSensors.createNestedObject();
-    tmpSensorInfo->toJson(tmpSens);
-  }
+  //for (uint8_t i=0; i < sensorStorage.size(); i++) 
+  sensorStorageForEach([&](SensorInfo* si){
+    si->toJson(jsonSensors.createNestedObject());
+  });
 
   #ifdef ENABLE_ONEWIRE
   uint32_t oneWireReadDelay = getOneWireReadDelay();
@@ -144,7 +142,7 @@ void loadConfig() {
       std::unique_ptr<char[]> buf(new char[size]);
 
       configFile.readBytes(buf.get(), size);
-      
+      DynamicJsonBuffer jsonBuffer;
       JsonObject& json = jsonBuffer.parseObject(buf.get());
       Serial.println("Current Configuration:");
       json.prettyPrintTo(Serial);
@@ -164,7 +162,7 @@ void loadConfig() {
           fromJsonFunc func = fromJson[type];
           if ((int)func != 0) {
             newSensor = fromJson[type](json["sensors"][i]);
-            sensorList.add(newSensor);
+            sensorStorage[(int)newSensor->type].add(newSensor);
           }
         }
 

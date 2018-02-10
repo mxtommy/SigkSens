@@ -20,57 +20,67 @@ MPU9250SensorInfo::MPU9250SensorInfo(String addr) {
   signalKPath[1] = "";
   signalKPath[2] = "";
   signalKPath[3] = "";
+  signalKPath[4] = "";
   attrName[0] = "tempK";
   attrName[1] = "yaw";
   attrName[2] = "pitch";
   attrName[3] = "roll";
+  attrName[4] = "filterRate";
   type = SensorType::mpu925x;
   valueJson[0] = "null";
   valueJson[1] = "null";
   valueJson[2] = "null";
   valueJson[3] = "null";
+  valueJson[4] = "null";
 
   offset[0] = 0;
   offset[1] = 0;
   offset[2] = 0;
   offset[3] = 0;
+  offset[4] = 0;
 
   scale[0] = 1;
   scale[1] = 1;
   scale[2] = 1;
   scale[3] = 1;
+  scale[4] = 1;
 
   isUpdated = false;
 }
 
 MPU9250SensorInfo::MPU9250SensorInfo(String addr, 
-                                      String path1, String path2, String path3, String path4,
-                                      float offset0, float offset1, float offset2, float offset3,
-                                      float scale0, float scale1, float scale2, float scale3) {
+                                      String path1, String path2, String path3, String path4, String path5,
+                                      float offset0, float offset1, float offset2, float offset3, float offset4,
+                                      float scale0, float scale1, float scale2, float scale3, float scale4) {
   strcpy(address, addr.c_str());
   signalKPath[0] = path1;
   signalKPath[1] = path2;
   signalKPath[2] = path3;
   signalKPath[3] = path4;
+  signalKPath[4] = path5;
   attrName[0] = "tempK";
   attrName[1] = "yaw";
   attrName[2] = "pitch";
   attrName[3] = "roll";
+  attrName[3] = "filterRate";
   type = SensorType::mpu925x;
   valueJson[0] = "null";
   valueJson[1] = "null";
   valueJson[2] = "null";
   valueJson[3] = "null";
+  valueJson[4] = "null";
 
   offset[0] = offset0;
   offset[1] = offset1;
   offset[2] = offset2;
   offset[3] = offset3;
+  offset[4] = offset4;
 
   scale[0] = scale0;
   scale[1] = scale1;
   scale[2] = scale2;
   scale[3] = scale3;
+  scale[4] = scale4;
 
   isUpdated = false;
 }
@@ -83,16 +93,19 @@ MPU9250SensorInfo *MPU9250SensorInfo::fromJson(JsonObject &jsonSens) {
     jsonSens["signalKPaths"][1],
     jsonSens["signalKPaths"][2],
     jsonSens["signalKPaths"][3],
+    jsonSens["signalKPaths"][4],
 
     jsonSens["offsets"][0],
     jsonSens["offsets"][1],
     jsonSens["offsets"][2],
     jsonSens["offsets"][3],
+    jsonSens["offsets"][4],
 
     jsonSens["scales"][0],
     jsonSens["scales"][1],
     jsonSens["scales"][2],
-    jsonSens["scales"][3]);
+    jsonSens["scales"][3],
+    jsonSens["scales"][4]);
 
 }
 
@@ -531,12 +544,12 @@ void updateMPUSensorInfo() {
   lin_az = az - a33;
 
   sensorStorage[(int)SensorType::mpu925x].forEach([&](SensorInfo* si) {
-    //we're just going to assume there's only one for now...
   
     si->valueJson[0] = temperature + 273.15;
     si->valueJson[1] = String(yaw * (myPI/180.0f),4);
     si->valueJson[2] = String(pitch * (myPI/180.0f),4);
     si->valueJson[3] = String(roll * (myPI/180.0f),4);
+    si->valueJson[4] = String((float)filterIntegrationCount/filterIntegrationInterval);
     si->isUpdated = true;    
   });
 

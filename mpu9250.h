@@ -9,9 +9,9 @@ class MPU9250SensorInfo : public SensorInfo {
   public:
     MPU9250SensorInfo(String addr);
     MPU9250SensorInfo(String addr, 
-                        String path1, String path2, String path3, String path4,
-                        float offset0, float offset1, float offset2, float offset3,
-                        float scale0, float scale1, float scale2, float scale3);
+                      String path1, String path2, String path3, String path4, String path5,
+                      float offset0, float offset1, float offset2, float offset3, float offset4,
+                      float scale0, float scale1, float scale2, float scale3, float scale4);
 
     static MPU9250SensorInfo *fromJson(JsonObject &jsonSens);
     void toJson(JsonObject &jsonSens);
