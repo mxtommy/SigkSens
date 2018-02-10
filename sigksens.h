@@ -51,10 +51,21 @@ class SensorStorage {
     void add(SensorInfo* sens);
     SensorInfo* get(const int i);
     SensorInfo* find(String key);
+    template<typename F>
+    void forEach(F&& lambda);
     int size();
   private: 
     LinkedList<SensorInfo*> sensorStorage;
 };
+
+template<typename F>
+void SensorStorage::forEach(F&& lambda) {
+  SensorInfo* current;
+  for (int i=0 ; i < sensorStorage.size() ; ++i) {
+    current = sensorStorage.get(i);
+    lambda(current);
+  }
+}
 
 // memory to save sensor info
 extern SensorStorage sensorStorage;

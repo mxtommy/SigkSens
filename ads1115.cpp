@@ -112,7 +112,6 @@ ADSSensorInfo *ADSSensorInfo::fromJson(JsonObject &jsonSens) {
     jsonSens["scales"][3],
     jsonSens["scales"][4],
     jsonSens["scales"][5]
-
   );
 }
 
@@ -293,54 +292,47 @@ void updateADS1115() {
 }
 
 void readADS1115() {
-  SensorInfo *thisSensorInfo;
-  int16_t rawResult;
+  sensorStorage.forEach([&](SensorInfo* si){
+    int16_t rawResult;
   
-  for (uint8_t i=0; i < sensorStorage.size(); i++) {
-    thisSensorInfo = sensorStorage.get(i);
-    
-    if (thisSensorInfo->type==SensorType::ads1115) {
+    if (si->type != SensorType::ads1115) return;
       
-      //0 = diff0_1
-      if (strcmp(thisSensorInfo->signalKPath[0].c_str(),  "") != 0) {
-        rawResult = ads.readADC_Differential_0_1(); 
-        valueDiff_0_1 = (SMOOTHING_GAIN*rawResult) + ((1-SMOOTHING_GAIN)*valueDiff_0_1);
-      }
-
-      //1 = diff2_3
-      if (strcmp(thisSensorInfo->signalKPath[1].c_str(),  "") != 0) {
-        rawResult = ads.readADC_Differential_2_3(); 
-        valueDiff_2_3 = (SMOOTHING_GAIN*rawResult) + ((1-SMOOTHING_GAIN)*valueDiff_2_3);
-      }      
-
-      //2 = chan0
-      if (strcmp(thisSensorInfo->signalKPath[2].c_str(),  "") != 0) {
-        rawResult = ads.readADC_SingleEnded(0); 
-        valueChan0 = (SMOOTHING_GAIN*rawResult) + ((1-SMOOTHING_GAIN)*valueChan0);
-      } 
-
-      //3 = chan1
-      if (strcmp(thisSensorInfo->signalKPath[3].c_str(),  "") != 0) {
-        rawResult = ads.readADC_SingleEnded(1); 
-        valueChan1 = (SMOOTHING_GAIN*rawResult) + ((1-SMOOTHING_GAIN)*valueChan1);
-      } 
-
-      //4 = chan2
-      if (strcmp(thisSensorInfo->signalKPath[4].c_str(),  "") != 0) {
-        rawResult = ads.readADC_SingleEnded(2); 
-        valueChan2 = (SMOOTHING_GAIN*rawResult) + ((1-SMOOTHING_GAIN)*valueChan2);
-      } 
-
-      //5 = chan3
-      if (strcmp(thisSensorInfo->signalKPath[5].c_str(),  "") != 0) {
-        rawResult = ads.readADC_SingleEnded(3); 
-        valueChan3 = (SMOOTHING_GAIN*rawResult) + ((1-SMOOTHING_GAIN)*valueChan3);
-      }             
-      
+    //0 = diff0_1
+    if (strcmp(si->signalKPath[0].c_str(),  "") != 0) {
+      rawResult = ads.readADC_Differential_0_1(); 
+      valueDiff_0_1 = (SMOOTHING_GAIN*rawResult) + ((1-SMOOTHING_GAIN)*valueDiff_0_1);
     }
 
-  }
-  
+    //1 = diff2_3
+    if (strcmp(si->signalKPath[1].c_str(),  "") != 0) {
+      rawResult = ads.readADC_Differential_2_3(); 
+      valueDiff_2_3 = (SMOOTHING_GAIN*rawResult) + ((1-SMOOTHING_GAIN)*valueDiff_2_3);
+    }      
+
+    //2 = chan0
+    if (strcmp(si->signalKPath[2].c_str(),  "") != 0) {
+      rawResult = ads.readADC_SingleEnded(0); 
+      valueChan0 = (SMOOTHING_GAIN*rawResult) + ((1-SMOOTHING_GAIN)*valueChan0);
+    } 
+
+    //3 = chan1
+    if (strcmp(si->signalKPath[3].c_str(),  "") != 0) {
+      rawResult = ads.readADC_SingleEnded(1); 
+      valueChan1 = (SMOOTHING_GAIN*rawResult) + ((1-SMOOTHING_GAIN)*valueChan1);
+    } 
+
+    //4 = chan2
+    if (strcmp(si->signalKPath[4].c_str(),  "") != 0) {
+      rawResult = ads.readADC_SingleEnded(2); 
+      valueChan2 = (SMOOTHING_GAIN*rawResult) + ((1-SMOOTHING_GAIN)*valueChan2);
+    } 
+
+    //5 = chan3
+    if (strcmp(si->signalKPath[5].c_str(),  "") != 0) {
+      rawResult = ads.readADC_SingleEnded(3); 
+      valueChan3 = (SMOOTHING_GAIN*rawResult) + ((1-SMOOTHING_GAIN)*valueChan3);
+    }
+  });
 }
 
 
