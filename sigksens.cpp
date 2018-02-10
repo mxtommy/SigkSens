@@ -20,22 +20,11 @@ void parseBytes(const char* str, char sep, byte* bytes, int maxBytes, int base) 
 }
 
 void SensorStorage::add(SensorInfo* sens) {
-  sensorStorage.add(sens);
+  sensorMap[sens->address] = sens;
 }
 
 SensorInfo* SensorStorage::find(String addr) {
-  SensorInfo* current;
-  const char* addr_cstr = addr.c_str();
-  for (int i=0 ; i < sensorStorage.size() ; i++) {
-    current = sensorStorage.get(i);
-    if (strcmp(current->address, addr_cstr) == 0) {
-      return current;
-    }
-  }
-}
-
-int SensorStorage::size() {
-  return sensorStorage.size();
+  return sensorMap[addr];
 }
 
 SensorStorage sensorStorage[(int)SensorType::SensorType_MAX+1];

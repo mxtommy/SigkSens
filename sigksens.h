@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 #include <WString.h>
-#include <LinkedList.h>
+#include<map>
 #include <ArduinoJson.h>
 
 #define MAX_SENSOR_ATTRIBUTES 10
@@ -51,17 +51,15 @@ class SensorStorage {
     SensorInfo* find(String addr);
     template<typename F>
     void forEach(F&& lambda);
-    int size();
-  private: 
-    LinkedList<SensorInfo*> sensorStorage;
+  private:
+    std::map<String, SensorInfo*> sensorMap;
 };
 
 template<typename F>
 void SensorStorage::forEach(F&& lambda) {
-  SensorInfo* current;
-  for (int i=0 ; i < sensorStorage.size() ; ++i) {
-    current = sensorStorage.get(i);
-    lambda(current);
+  // this returns an std::pair of key, value
+  for (auto const& x : sensorMap) {
+    lambda(x.second);
   }
 }
 
