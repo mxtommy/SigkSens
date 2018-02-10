@@ -108,6 +108,8 @@ void pollBMP280() {
 
   readytoPollBMP280 = false; //reset interupt
 
+  
+
   for (int x=0;x<sensorStorage.size() ; x++) {
     thisSensorInfo = sensorStorage.get(x);
     if (thisSensorInfo->type==SensorType::bmp280) {
