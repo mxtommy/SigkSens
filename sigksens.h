@@ -37,9 +37,6 @@ class SensorInfo {
     float offset[MAX_SENSOR_ATTRIBUTES];
     SensorType type;
 
-    float sensorMagBias[3], sensorMagScale[3];
-    int32_t sensorGyroBias[3], sensorAccelBias[3];
-
     bool isUpdated;
 
     static SensorInfo *fromJson(JsonObject&);

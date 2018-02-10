@@ -2,6 +2,8 @@ extern "C" {
 #include "user_interface.h"
 }
 
+#include <FS.h>
+
 #include "config.h"
 
 #include <Wire.h>
@@ -11,8 +13,6 @@ extern "C" {
 #include "sigksens.h"
 #include "quaternionFilters.h"
 #include "mpu9250.h"
-
-#include "FSConfig.h"
 
 MPU9250SensorInfo::MPU9250SensorInfo(String addr) {
   strcpy(address, addr.c_str());
@@ -40,30 +40,13 @@ MPU9250SensorInfo::MPU9250SensorInfo(String addr) {
   scale[2] = 1;
   scale[3] = 1;
 
-  sensorGyroBias[0] = 0;
-  sensorGyroBias[1] = 0;
-  sensorGyroBias[2] = 0;
-	sensorAccelBias[0] = 0;
-  sensorAccelBias[1] = 0;
-  sensorAccelBias[2] = 0;
-	sensorMagBias[0] = 0;
-  sensorMagBias[1] = 0;
-  sensorMagBias[2] = 0;
-  sensorMagScale[0]  = 1;
-  sensorMagScale[1]  = 1;
-  sensorMagScale[2]  = 1;
-
   isUpdated = false;
 }
 
 MPU9250SensorInfo::MPU9250SensorInfo(String addr, 
                                       String path1, String path2, String path3, String path4,
                                       float offset0, float offset1, float offset2, float offset3,
-                                      float scale0, float scale1, float scale2, float scale3,
-                                      int32_t gyroBias0, int32_t gyroBias1, int32_t gyroBias2, 
-                                      int32_t accelBias0, int32_t accelBias1, int32_t accelBias2, 
-                                      float magBias0, float magBias1, float magBias2, 
-                                      float magScale0, float magScale1, float magScale2 ) {
+                                      float scale0, float scale1, float scale2, float scale3) {
   strcpy(address, addr.c_str());
   signalKPath[0] = path1;
   signalKPath[1] = path2;
@@ -89,19 +72,6 @@ MPU9250SensorInfo::MPU9250SensorInfo(String addr,
   scale[2] = scale2;
   scale[3] = scale3;
 
-  sensorGyroBias[0] = gyroBias0; 
-  sensorGyroBias[1] = gyroBias1;
-  sensorGyroBias[2] = gyroBias2;
-	sensorAccelBias[0] = accelBias0;
-  sensorAccelBias[1] = accelBias1;
-  sensorAccelBias[2] = accelBias2;
-	sensorMagBias[0] = magBias0;
-  sensorMagBias[1] = magBias1;
-  sensorMagBias[2] = magBias2;
-  sensorMagScale[0]  = magScale0;
-  sensorMagScale[1]  = magScale1;
-  sensorMagScale[2]  = magScale2;
-
   isUpdated = false;
 }
 
@@ -122,23 +92,7 @@ MPU9250SensorInfo *MPU9250SensorInfo::fromJson(JsonObject &jsonSens) {
     jsonSens["scales"][0],
     jsonSens["scales"][1],
     jsonSens["scales"][2],
-    jsonSens["scales"][3],
-
-    jsonSens["mpuCal"]["gyroBias"][0],
-    jsonSens["mpuCal"]["gyroBias"][1],
-    jsonSens["mpuCal"]["gyroBias"][2],
-
-    jsonSens["mpuCal"]["accelBias"][0],
-    jsonSens["mpuCal"]["accelBias"][1],
-    jsonSens["mpuCal"]["accelBias"][2],
-
-    jsonSens["mpuCal"]["magBias"][0],
-    jsonSens["mpuCal"]["magBias"][1],
-    jsonSens["mpuCal"]["magBias"][2],
-
-    jsonSens["mpuCal"]["magScale"][0],
-    jsonSens["mpuCal"]["magScale"][1],
-    jsonSens["mpuCal"]["magScale"][2]);
+    jsonSens["scales"][3]);
 
 }
 
@@ -156,15 +110,7 @@ void MPU9250SensorInfo::toJson(JsonObject &jsonSens) {
     jsonOffsets.add(offset[x]);
     jsonScales.add(scale[x]);
   }
-  JsonObject& jsonCal = jsonSens.createNestedObject("mpuCal");
-  JsonArray& jsonCalGryoBias = jsonCal.createNestedArray("gyroBias");
-  JsonArray& jsonCalAccelBias = jsonCal.createNestedArray("accelBias");
-  JsonArray& jsonCalMagBias = jsonCal.createNestedArray("magBias");
-  JsonArray& jsonCalMagScale = jsonCal.createNestedArray("magScale");
-  jsonCalGryoBias.add(sensorGyroBias[0]); jsonCalGryoBias.add(sensorGyroBias[1]); jsonCalGryoBias.add(sensorGyroBias[2]);
-  jsonCalAccelBias.add(sensorAccelBias[0]); jsonCalAccelBias.add(sensorAccelBias[1]); jsonCalAccelBias.add(sensorAccelBias[2]);
-  jsonCalMagBias.add(sensorMagBias[0]); jsonCalMagBias.add(sensorMagBias[1]); jsonCalMagBias.add(sensorMagBias[2]);
-  jsonCalMagScale.add(sensorMagScale[0]); jsonCalMagScale.add(sensorMagScale[1]); jsonCalMagScale.add(sensorMagScale[2]);
+  
 }
 
 
@@ -223,8 +169,12 @@ void readBytes(uint8_t address, uint8_t subAddress, uint8_t count, uint8_t * des
 void getMres();
 void getGres();
 void getAres();
+void saveMPUCalibrationFS();
+void loadMPUCalibrationFS();
 void readMPU9250Data(int16_t * destination);
 int16_t readTempData();
+bool testMPU9250();
+bool testAK8963();
 void initAK8963(float * destination);
 void initMPU9250();
 void magcalMPU9250(float * dest1, float * dest2);
@@ -233,6 +183,7 @@ void loadAccelAndGyroBiases();
 void readMagData(int16_t * destination);
 
 bool MPUisValid = false;
+bool AK8963isValid = false;
 bool mpuUpdateReady = false;
 volatile bool newData = false;
 /* ---------------------------------------------------------------------------------------------
@@ -265,10 +216,34 @@ void interruptMPUSensorInfo(void *pArg) {
 
 
 void setupMPU9250() {
-  MPUisValid = configureMPU9250();
-  os_timer_setfn(&mpuUpdateSensorInfo, interruptMPUSensorInfo, NULL);
-  os_timer_arm(&mpuUpdateSensorInfo, updateMPUDelay, true);
-  attachInterrupt(12, interruptMPUNewData, RISING); // define interrupt for INT pin output of MPU9250
+  MPUisValid = testMPU9250();
+  
+
+  if (MPUisValid) {
+    loadMPUCalibrationFS(); //load calibration from FS
+    loadAccelAndGyroBiases(); // load calibration into MPU
+
+    initMPU9250(); 
+    Serial.println("MPU925X initialized...");
+
+    AK8963isValid = testAK8963();
+    if (AK8963isValid) {
+      initAK8963(magCalibration); 
+      Serial.println("AK8963 initialized... Mag hardware cablibration");
+      Serial.print("X-Axis sensitivity adjustment value "); Serial.println(magCalibration[0], 2);
+      Serial.print("Y-Axis sensitivity adjustment value "); Serial.println(magCalibration[1], 2);
+      Serial.print("Z-Axis sensitivity adjustment value "); Serial.println(magCalibration[2], 2);
+      os_timer_setfn(&mpuUpdateSensorInfo, interruptMPUSensorInfo, NULL);
+      os_timer_arm(&mpuUpdateSensorInfo, updateMPUDelay, true);
+      attachInterrupt(12, interruptMPUNewData, RISING); // define interrupt for INT pin output of MPU9250
+      Serial.println("Interrupts setup");
+    }
+  }
+
+
+  //accelgyrocalMPU9250();
+  magcalMPU9250(magBias, magScale);
+  saveMPUCalibrationFS();
 }
 
 void handleMPU9250() {
@@ -296,14 +271,87 @@ void handleMPU9250() {
 
 
 
+void saveMPUCalibrationFS(){
+  Serial.println("Saving MPU Calibrations");
+  DynamicJsonBuffer jsonBuffer;
+  JsonObject& json = jsonBuffer.createObject();
+
+  JsonArray& jsonCalGryoBias = json.createNestedArray("gyroBias");
+  JsonArray& jsonCalAccelBias = json.createNestedArray("accelBias");
+  JsonArray& jsonCalMagBias = json.createNestedArray("magBias");
+  JsonArray& jsonCalMagScale = json.createNestedArray("magScale");
+  jsonCalGryoBias.add(gyroBias[0]); jsonCalGryoBias.add(gyroBias[1]); jsonCalGryoBias.add(gyroBias[2]);
+  jsonCalAccelBias.add(accelBias[0]); jsonCalAccelBias.add(accelBias[1]); jsonCalAccelBias.add(accelBias[2]);
+  jsonCalMagBias.add(magBias[0]); jsonCalMagBias.add(magBias[1]); jsonCalMagBias.add(magBias[2]);
+  jsonCalMagScale.add(magScale[0]); jsonCalMagScale.add(magScale[1]); jsonCalMagScale.add(magScale[2]);
+
+  File configFile = SPIFFS.open("/mpuCal.json", "w");
+  if (!configFile) {
+    Serial.println("failed to open MPU Calibration file for writing");
+  }
+  json.prettyPrintTo(Serial);
+  json.printTo(configFile);
+  configFile.close();
+}
 
 
+void loadMPUCalibrationFS() {
+  Serial.println("Loading MPU Calibration.");
+  if (!SPIFFS.exists("/mpuCal.json")) {
+    return; // no calibrations to load
+    Serial.println("No Calibration found");
+  }
 
+  DynamicJsonBuffer jsonBuffer;
+  File configFile = SPIFFS.open("/mpuCal.json", "r");
+  if (configFile) {
+    size_t size = configFile.size();
+    // Allocate a buffer to store contents of the file.
+    std::unique_ptr<char[]> buf(new char[size]);
+    configFile.readBytes(buf.get(), size);
+      
+    JsonObject& json = jsonBuffer.parseObject(buf.get());
 
+    if (json.success()) {
+      gyroBias[0] = json["gyroBias"][0];
+      gyroBias[1] = json["gyroBias"][1];
+      gyroBias[2] = json["gyroBias"][2];
 
+      accelBias[0] = json["accelBias"][0];
+      accelBias[1] = json["accelBias"][1];
+      accelBias[2] = json["accelBias"][2];
 
+      magBias[0] = json["magBias"][0];
+      magBias[1] = json["magBias"][1];
+      magBias[2] = json["magBias"][2];
+    
+      magScale[0] = json["magScale"][0];
+      magScale[1] = json["magScale"][1];
+      magScale[2] = json["magScale"][2];
+    }
+  }
+  Serial.print("accel biases (ug) : "); 
+  Serial.print(accelBias[0]); Serial.print(", "); 
+  Serial.print(accelBias[1]); Serial.print(", "); 
+  Serial.println(accelBias[2]);
+  
+  Serial.print("gyro biases (dps) : "); 
+  Serial.print(gyroBias[0]); Serial.print(", ");  
+  Serial.print(gyroBias[1]); Serial.print(", "); 
+  Serial.println(gyroBias[2]);
 
+  Serial.print("mag biases (mG) : "); 
+  Serial.print(magBias[0]); Serial.print(", ");
+  Serial.print(magBias[1]); Serial.print(", ");
+  Serial.println(magBias[2]); 
+  
+  Serial.print("mag scale (mG) : "); 
+  Serial.print(magScale[0]); Serial.print(", "); 
+  Serial.print(magScale[1]); Serial.print(", "); 
+  Serial.println(magScale[2]); 
+ 
 
+}
 
 
 
@@ -316,9 +364,10 @@ void handleMPU9250() {
    ---------------------------------------------------------------------------------------------
    ---------------------------------------------------------------------------------------------
    --------------------------------------------------------------------------------------------- */
-bool configureMPU9250() {
-  // Read the WHO_AM_I register, this is a good test of communication
-  Serial.println("MPU9250 9-axis motion sensor...");
+
+bool testMPU9250() {
+ // Read the WHO_AM_I register, this is a good test of communication
+  Serial.println("Testing MPU9250 9-axis motion sensor...");
   byte c = readByte(MPU9250_ADDRESS, WHO_AM_I_MPU9250);  // Read WHO_AM_I register for MPU-9250
 
   if (c == 0x71) {
@@ -345,42 +394,39 @@ bool configureMPU9250() {
     getAres();
     getGres();
     getMres();
-    
-    accelgyrocalMPU9250(); // Calibrate gyro and accelerometers, load biases in bias registers
-    loadAccelAndGyroBiases();
-    //Serial.println("accel biases (mg)"); Serial.println(1000.*accelBias[0]); Serial.println(1000.*accelBias[1]); Serial.println(1000.*accelBias[2]);
-    //Serial.println("gyro biases (dps)"); Serial.println(gyroBias[0]); Serial.println(gyroBias[1]); Serial.println(gyroBias[2]);
-
-    initMPU9250(); 
-    Serial.println("MPU925X initialized for active data mode...."); // Initialize device for active mode read of acclerometer, gyroscope, and temperature
-  
-    // Read the WHO_AM_I register of the magnetometer, this is a good test of communication
-    byte d = readByte(AK8963_ADDRESS, AK8963_WHO_AM_I);  // Read WHO_AM_I register for AK8963
-    Serial.print("AK8963 "); Serial.print("I AM "); Serial.print(d, HEX); Serial.print(" I should be "); Serial.println(0x48, HEX);
- 
-    // Get magnetometer calibration from AK8963 ROM
-    initAK8963(magCalibration); Serial.println("AK8963 initialized for active data mode...."); // Initialize device for active mode read of magnetometer
-
-
-    ////////////////////////////////////////////////////////////////////////////////////////
-    magcalMPU9250(magBias, magScale);
-    Serial.println("AK8963 mag biases (mG)"); Serial.println(magBias[0]); Serial.println(magBias[1]); Serial.println(magBias[2]); 
-    Serial.println("AK8963 mag scale (mG)"); Serial.println(magScale[0]); Serial.println(magScale[1]); Serial.println(magScale[2]); 
- 
-    if(SerialDebug) {
-      //  Serial.println("Calibration values: ");
-      Serial.print("X-Axis sensitivity adjustment value "); Serial.println(magCalibration[0], 2);
-      Serial.print("Y-Axis sensitivity adjustment value "); Serial.println(magCalibration[1], 2);
-      Serial.print("Z-Axis sensitivity adjustment value "); Serial.println(magCalibration[2], 2);
-    }
     return true;
-  }
-  else
+  } else
   {
     Serial.print("Could not connect to MPU9250: 0x");
     Serial.println(c, HEX);
     return false;
   }
+
+}
+
+bool testAK8963() {
+  byte d = readByte(AK8963_ADDRESS, AK8963_WHO_AM_I);  // Read WHO_AM_I register for AK8963
+  if (d == 0x48) {
+    return true;
+  } else {
+    Serial.print("AK8963 WHOAMI Register"); Serial.print("I AM "); Serial.print(d, HEX); Serial.print(" I should be "); Serial.println(0x48, HEX);
+    return false;
+  }
+}
+
+bool configureMPU9250() {
+ 
+    
+    //accelgyrocalMPU9250(); // Calibrate gyro and accelerometers, load biases in bias registers
+  
+    
+    // Get magnetometer calibration from AK8963 ROM
+
+
+    ////////////////////////////////////////////////////////////////////////////////////////
+    
+    
+  
 }
 
 
@@ -790,20 +836,13 @@ void accelgyrocalMPU9250() {
   else {accel_bias[2] += (int32_t) accelsensitivity;}
 
 
-  for (uint8_t i=0; i < sensorList.size(); i++) {
-    thisSensorInfo = sensorList.get(i);
-    if (thisSensorInfo->type==SensorType::mpu925x) {
-      //we're just going to assume there's only one for now...
-      thisSensorInfo->sensorGyroBias[0] = gyro_bias[0];
-      thisSensorInfo->sensorGyroBias[1] = gyro_bias[1];
-      thisSensorInfo->sensorGyroBias[2] = gyro_bias[2];
-      thisSensorInfo->sensorAccelBias[0] = accel_bias[0];
-      thisSensorInfo->sensorAccelBias[1] = accel_bias[1];
-      thisSensorInfo->sensorAccelBias[2] = accel_bias[2];
+  gyroBias[0] = gyro_bias[0];
+  gyroBias[1] = gyro_bias[1];
+  gyroBias[2] = gyro_bias[2];
+  accelBias[0] = accel_bias[0];
+  accelBias[1] = accel_bias[1];
+  accelBias[2] = accel_bias[2];
 
-    }
-  }
-  saveConfig();
 }
 
 
@@ -813,19 +852,13 @@ void loadAccelAndGyroBiases() {
   int32_t gyro_bias[3], accel_bias[3];	
   uint8_t data[12]; // data array to hold accelerometer and gyro x, y, z, data
   uint16_t ii;
-  
-  for (uint8_t i=0; i < sensorList.size(); i++) {
-    thisSensorInfo = sensorList.get(i);
-    if (thisSensorInfo->type==SensorType::mpu925x) {
-      //we're just going to assume there's only one for now...  
-      gyro_bias[0] = thisSensorInfo->sensorGyroBias[0];
-      gyro_bias[1] = thisSensorInfo->sensorGyroBias[1];
-      gyro_bias[2] = thisSensorInfo->sensorGyroBias[2];
-      accel_bias[0] = thisSensorInfo->sensorAccelBias[0];
-      accel_bias[1] = thisSensorInfo->sensorAccelBias[1];
-      accel_bias[2] = thisSensorInfo->sensorAccelBias[2];
-    }
-  }
+
+  gyro_bias[0] = gyroBias[0];
+  gyro_bias[1] = gyroBias[1];
+  gyro_bias[2] = gyroBias[2];
+  accel_bias[0] = accelBias[0];
+  accel_bias[1] = accelBias[1];
+  accel_bias[2] = accelBias[2];
   // Construct the gyro biases for push to the hardware gyro bias registers, which are reset to zero upon device startup
   data[0] = (-gyro_bias[0]/4  >> 8) & 0xFF; // Divide by 4 to get 32.9 LSB per deg/s to conform to expected bias input format
   data[1] = (-gyro_bias[0]/4)       & 0xFF; // Biases are additive, so change sign on calculated average gyro biases
