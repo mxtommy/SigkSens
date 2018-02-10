@@ -75,13 +75,9 @@ void setupSystemHz(bool &need_save) {
   SensorInfo *tmpSensorInfo;
 
   // Setup "sensor" if not already existing
-  bool known = false;
-  for (int x=0;x<sensorStorage[(int)SensorType::local].size() ; x++) {
-    tmpSensorInfo = sensorStorage[(int)SensorType::local].get(x);
-    if (strcmp(tmpSensorInfo->address, "Local") == 0) {
-      known = true;                
-    }
-  }    
+  bool known = sensorStorage[(int)SensorType::local].find(
+    "Local") != nullptr;
+
   if (!known) {
     Serial.print("Setting up System info ");
     SensorInfo *newSensor = new SystemHzSensorInfo("Local");

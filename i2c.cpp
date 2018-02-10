@@ -70,8 +70,7 @@ void scanI2C(bool &need_save) {
   if (scanI2CAddress(0x45)) { //Sht on D1 sheild
     sensorSHT30Present = true;
     bool known = sensorStorage[(int)SensorType::sht30].find(
-      (int)SensorType::sht30 + String("0x45")
-    ) != nullptr;
+      "0x45") != nullptr;
     if (!known) {
       Serial.print("New SHT Sensor found at: 0x45 ");
       SensorInfo *newSensor = new SHT30SensorInfo("0x45");
@@ -86,8 +85,7 @@ void scanI2C(bool &need_save) {
   if (scanI2CAddress(0x68)) {
     sensorMPU925XPresent = true;
     bool known = sensorStorage[(int)SensorType::mpu925x].find(
-      (int)SensorType::mpu925x + String("0x68")
-    ) != nullptr;
+      "0x68") != nullptr;
     if (!known) {
       Serial.print("New MPU925X found at: 0x68 ");
       SensorInfo *newSensor = new MPU9250SensorInfo("0x68");
@@ -102,8 +100,7 @@ void scanI2C(bool &need_save) {
   if (scanI2CAddress(0x77)) {
     sensorBMP280Present = true;
     bool known = sensorStorage[(int)SensorType::bmp280].find(
-      (int)SensorType::bmp280 + String("0x77")
-    ) != nullptr;
+      "0x77") != nullptr;
     if (!known) {
       Serial.print("New BMP280 found at: 0x77 ");
       SensorInfo *newSensor = new BMP280SensorInfo("0x77");
@@ -119,8 +116,7 @@ void scanI2C(bool &need_save) {
     sensorADS1115Present = true;
     Serial.println("Found ADS1115 chip at 0x48");
     bool known = sensorStorage[(int)SensorType::ads1115].find(
-      (int)SensorType::ads1115 + String("0x48")
-    ) != nullptr;
+      "0x48") != nullptr;
     if (!known) {
       SensorInfo *newSensor = new ADSSensorInfo("0x48");
       sensorStorage[(int)newSensor->type].add(newSensor);

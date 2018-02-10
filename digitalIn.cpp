@@ -144,16 +144,8 @@ void initializeDigitalPin(uint8_t index, bool &need_save) {
   pinMode(digitalPins[index], INPUT);
 
   // Setup "sensors" if not already existing
-  bool known = false;
-  for (int x=0;x<sensorStorage[(int)SensorType::digitalIn].size() ; x++) {
-    tmpSensorInfo = sensorStorage[(int)SensorType::digitalIn].get(x);
-    if (tmpSensorInfo->type==SensorType::digitalIn) {
-      if (strcmp(tmpSensorInfo->address, digitalPinNames[index]) == 0) {
-        known = true;                
-      }
-    }
-  }   
-
+  bool known = sensorStorage[(int)SensorType::digitalIn].find(
+    digitalPinNames[index]) != nullptr;
   if (!known) {
     Serial.print("Setting up Digital Input on pin: ");
     Serial.println(digitalPinNames[index]);

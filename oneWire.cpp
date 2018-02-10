@@ -245,13 +245,8 @@ void oneWireScanBus(bool &need_save) {
       addrToString(strAddress, tempDeviceAddress);
 
       //see if it's in sensorInfo
-      bool known = false;
-      for (int x=0;x<sensorStorage[(int)SensorType::oneWire].size() ; x++) {
-        tmpSensorInfo = sensorStorage[(int)SensorType::oneWire].get(x);
-        if (strcmp(tmpSensorInfo->address, strAddress) == 0) {
-          known = true;                
-        }
-      }
+      bool known = sensorStorage[(int)SensorType::oneWire].find(
+        strAddress) != nullptr;
 
       if (!known) {
         Serial.print("New Sensor found: ");
