@@ -23,10 +23,6 @@ void SensorStorage::add(SensorInfo* sens) {
   sensorStorage.add(sens);
 }
 
-SensorInfo* SensorStorage::get(const int i) {
-  return sensorStorage.get(i);
-}
-
 SensorInfo* SensorStorage::find(String addr) {
   SensorInfo* current;
   const char* addr_cstr = addr.c_str();

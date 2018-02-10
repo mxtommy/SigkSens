@@ -48,7 +48,6 @@ class SensorInfo {
 class SensorStorage {
   public:
     void add(SensorInfo* sens);
-    SensorInfo* get(const int i);
     SensorInfo* find(String addr);
     template<typename F>
     void forEach(F&& lambda);
