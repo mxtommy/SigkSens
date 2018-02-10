@@ -68,7 +68,14 @@ void SensorStorage::forEach(F&& lambda) {
 }
 
 // memory to save sensor info
-extern SensorStorage sensorStorage;
+extern SensorStorage sensorStorage[];
+
+template<typename F>
+void sensorStorageForEach(F&& lambda) {
+  for (int i=0; i <= (int)SensorType::SensorType_MAX; ++i) {
+    sensorStorage[i].forEach(lambda);
+  }
+}
 
 typedef SensorInfo *(*fromJsonFunc)(JsonObject &);
 extern fromJsonFunc fromJson[(int)SensorType::SensorType_MAX];

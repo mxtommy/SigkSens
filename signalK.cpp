@@ -14,21 +14,16 @@ void setupSignalK() {
 
 
 void handleSignalK() {
-  SensorInfo *thisSensorInfo;
   bool needToSend = false;
   
-  for (uint8_t i=0; i < sensorStorage.size(); i++) {
-
-    thisSensorInfo = sensorStorage.get(i);
-    if (thisSensorInfo->isUpdated) {
+  sensorStorageForEach([&](SensorInfo* si) {
+    if (si->isUpdated) {
       needToSend = true;
     }
-  }
+  });
   if (needToSend) {
     sendDelta();
   }
-
-    
 }
 
 void sendDelta() {
@@ -44,35 +39,33 @@ void sendDelta() {
   //updated array
   JsonArray& updatesArr = delta.createNestedArray("updates");
   
-  for (uint8_t i=0; i < sensorStorage.size(); i++) {
-
-    thisSensorInfo = sensorStorage.get(i);
-    if (thisSensorInfo->isUpdated) {
+  sensorStorageForEach([&](SensorInfo* si) {
+    if (si->isUpdated) {
       JsonObject& thisUpdate = updatesArr.createNestedObject();
 
       JsonObject& source = thisUpdate.createNestedObject("source");
       source["label"] = myHostname;
-      source["src"] = (int)thisSensorInfo->type;
+      source["src"] = (int)si->type;
       // values array
      
       JsonArray& values = thisUpdate.createNestedArray("values");
 
       for (int x=0;x<MAX_SENSOR_ATTRIBUTES; x++) {
-        if (strcmp(thisSensorInfo->attrName[x].c_str(), "") == 0) {
+        if (strcmp(si->attrName[x].c_str(), "") == 0) {
           break; // if attr is empty, no more attr's for this sensor
         } 
-        if (strcmp(thisSensorInfo->signalKPath[x].c_str(),  "") == 0) {
+        if (strcmp(si->signalKPath[x].c_str(),  "") == 0) {
           continue; // no path set for this...
         }
         JsonObject& thisValue = values.createNestedObject();
-        thisValue["path"] = thisSensorInfo->signalKPath[x].c_str();
-        thisValue["value"] = RawJson(thisSensorInfo->valueJson[x].c_str());
+        thisValue["path"] = si->signalKPath[x].c_str();
+        thisValue["value"] = RawJson(si->valueJson[x].c_str());
         
       }
       //reset updated
-      thisSensorInfo->isUpdated = false;
+      si->isUpdated = false;
     }
-  }
+  });
 
   delta.printTo(deltaText);
   //Serial.println(deltaText);

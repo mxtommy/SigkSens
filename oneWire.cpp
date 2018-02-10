@@ -193,8 +193,8 @@ void read1WSensors() {
   float tempK;
   float tempC;
 
-  for (uint8_t i=0; i < sensorStorage.size(); i++) {
-    thisSensorInfo = sensorStorage.get(i);
+  for (uint8_t i=0; i < sensorStorage[(int)SensorType::oneWire].size(); i++) {
+    thisSensorInfo = sensorStorage[(int)SensorType::oneWire].get(i);
     if (thisSensorInfo->type==SensorType::oneWire) {
       parseBytes(thisSensorInfo->address, ':', address,  8, 16); // convert string address to uint_8 array
     
@@ -250,8 +250,8 @@ void oneWireScanBus(bool &need_save) {
 
       //see if it's in sensorInfo
       bool known = false;
-      for (int x=0;x<sensorStorage.size() ; x++) {
-        tmpSensorInfo = sensorStorage.get(x);
+      for (int x=0;x<sensorStorage[(int)SensorType::oneWire].size() ; x++) {
+        tmpSensorInfo = sensorStorage[(int)SensorType::oneWire].get(x);
         if (strcmp(tmpSensorInfo->address, strAddress) == 0) {
           known = true;                
         }
@@ -262,7 +262,7 @@ void oneWireScanBus(bool &need_save) {
         Serial.print(strAddress);
         Serial.println("");
         OneWireSensorInfo *newSensor = new OneWireSensorInfo(strAddress);
-        sensorStorage.add(newSensor);
+        sensorStorage[(int)newSensor->type].add(newSensor);
         need_save = true;
       }
     }

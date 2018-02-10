@@ -169,27 +169,27 @@ void htmlGetSensorInfo() {
   JsonArray& sensorArr = json.createNestedArray("sensors");
   
   
-  for (uint8_t i=0; i < sensorStorage.size(); i++) {
-    tmpSensorInfo = sensorStorage.get(i);
+  //for (uint8_t i=0; i < sensorStorage.size(); i++) {
+  sensorStorageForEach([&](SensorInfo* si) {
     JsonObject& tmpSens = sensorArr.createNestedObject();
     
-    tmpSens.set("address", tmpSensorInfo->address);
-    tmpSens.set("type", (int)tmpSensorInfo->type);
+    tmpSens.set("address", si->address);
+    tmpSens.set("type", (int)si->type);
 
     JsonArray& jsonAttr = tmpSens.createNestedArray("attr");
     for (int x=0;x<MAX_SENSOR_ATTRIBUTES; x++) {
-      if (strcmp(tmpSensorInfo->attrName[x].c_str(), "") == 0) {
+      if (strcmp(si->attrName[x].c_str(), "") == 0) {
         break; // no more attrs
       }
       JsonObject& tmpAttr = jsonAttr.createNestedObject();
-      tmpAttr.set("attrName", tmpSensorInfo->attrName[x]);
-      tmpAttr.set("signalKPath", tmpSensorInfo->signalKPath[x] );
-      tmpAttr.set("scale", tmpSensorInfo->scale[x] );
-      tmpAttr.set("offset", tmpSensorInfo->offset[x] );
-      tmpAttr["value"] = RawJson(tmpSensorInfo->valueJson[x].c_str());
+      tmpAttr.set("attrName", si->attrName[x]);
+      tmpAttr.set("signalKPath", si->signalKPath[x] );
+      tmpAttr.set("scale", si->scale[x] );
+      tmpAttr.set("offset", si->offset[x] );
+      tmpAttr["value"] = RawJson(si->valueJson[x].c_str());
     }
     //tmpSensorInfo->toJson(tmpSens);
-  }
+  });
 
   json.prettyPrintTo(response);
   httpServer.send(200, "application/json", response);
@@ -212,35 +212,31 @@ void htmlSetSensorAttr() {
   httpServer.arg("attrName").toCharArray(attrName, 32);
 
 
-  for (int x=0;x<sensorStorage.size() ; x++) {
-    tmpSensorInfo = sensorStorage.get(x);
-    if (strcmp(tmpSensorInfo->address, address) == 0) {
+  //for (int x=0;x<sensorStorage.size() ; x++) 
+  sensorStorageForEach([&](SensorInfo* si) {
+    if (strcmp(si->address, address) == 0) {
       // found our sensor, now find index
       for (int y=0; y<MAX_SENSOR_ATTRIBUTES; y++) {
-        if (strcmp(tmpSensorInfo->attrName[y].c_str(), attrName) == 0) {
+        if (strcmp(si->attrName[y].c_str(), attrName) == 0) {
           //  found index!
           if(httpServer.hasArg("path")) {
             httpServer.arg("path").toCharArray(pathStr, MAX_SIGNALK_PATH_LEN);
-            tmpSensorInfo->signalKPath[y] = pathStr;
+            si->signalKPath[y] = pathStr;
           }
           
           if(httpServer.hasArg("offset")) {
-            tmpSensorInfo->offset[y] = httpServer.arg("offset").toFloat();
+            si->offset[y] = httpServer.arg("offset").toFloat();
           }
           if(httpServer.hasArg("scale")) {
-            tmpSensorInfo->scale[y] = httpServer.arg("scale").toFloat();
+            si->scale[y] = httpServer.arg("scale").toFloat();
           }          
           
           
           found = true;          
-          break; //no need to check others if we found it
         }
-      }
-      
-      if (found) { break; } // break out of outer for loop too if we found it
-     
+      }     
     }
-  }
+  });
 
   if (found) {
     saveConfig();

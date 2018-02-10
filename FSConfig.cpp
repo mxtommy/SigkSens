@@ -82,11 +82,10 @@ void saveConfig() {
 
   //sensors
   JsonArray& jsonSensors = json.createNestedArray("sensors");
-  for (uint8_t i=0; i < sensorStorage.size(); i++) {
-    tmpSensorInfo = sensorStorage.get(i);
-    JsonObject& tmpSens = jsonSensors.createNestedObject();
-    tmpSensorInfo->toJson(tmpSens);
-  }
+  //for (uint8_t i=0; i < sensorStorage.size(); i++) 
+  sensorStorageForEach([&](SensorInfo* si){
+    si->toJson(jsonSensors.createNestedObject());
+  });
 
   #ifdef ENABLE_ONEWIRE
   uint32_t oneWireReadDelay = getOneWireReadDelay();
@@ -164,7 +163,7 @@ void loadConfig() {
           fromJsonFunc func = fromJson[type];
           if ((int)func != 0) {
             newSensor = fromJson[type](json["sensors"][i]);
-            sensorStorage.add(newSensor);
+            sensorStorage[(int)newSensor->type].add(newSensor);
           }
         }
 

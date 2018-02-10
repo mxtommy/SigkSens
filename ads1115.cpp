@@ -253,8 +253,8 @@ void setADSReadDelay(uint32_t newDelay) {
 void updateADS1115() {
   SensorInfo *thisSensorInfo;
   
-  for (uint8_t i=0; i < sensorStorage.size(); i++) {
-    thisSensorInfo = sensorStorage.get(i);
+  for (uint8_t i=0; i < sensorStorage[(int)SensorType::ads1115].size(); i++) {
+    thisSensorInfo = sensorStorage[(int)SensorType::ads1115].get(i);
     
     if (thisSensorInfo->type==SensorType::ads1115) {
       //0 = diff0_1
@@ -292,7 +292,7 @@ void updateADS1115() {
 }
 
 void readADS1115() {
-  sensorStorage.forEach([&](SensorInfo* si){
+  sensorStorage[(int)SensorType::ads1115].forEach([&](SensorInfo* si){
     int16_t rawResult;
   
     if (si->type != SensorType::ads1115) return;

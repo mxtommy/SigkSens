@@ -108,8 +108,8 @@ void pollSHT() {
 
   readytoPollSHT = false; //reset interupt
 
-  for (int x=0;x<sensorStorage.size() ; x++) {
-    thisSensorInfo = sensorStorage.get(x);
+  for (int x=0;x<sensorStorage[(int)SensorType::sht30].size() ; x++) {
+    thisSensorInfo = sensorStorage[(int)SensorType::sht30].get(x);
     if (thisSensorInfo->type==SensorType::sht30) {
       //convert address string to int
       parseBytes(thisSensorInfo->address,':',&address,1,16);
@@ -140,8 +140,8 @@ void readSHT() {
   
   readytoReadSHT = false; //reset interupt
 
-  for (int x=0;x<sensorStorage.size() ; x++) {
-    thisSensorInfo = sensorStorage.get(x);
+  for (int x=0;x<sensorStorage[(int)SensorType::sht30].size() ; x++) {
+    thisSensorInfo = sensorStorage[(int)SensorType::sht30].get(x);
     if (thisSensorInfo->type==SensorType::sht30) {
       //convert address string to int
       parseBytes(thisSensorInfo->address,':',&address,1,16);

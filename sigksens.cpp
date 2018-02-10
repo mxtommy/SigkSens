@@ -19,7 +19,6 @@ void parseBytes(const char* str, char sep, byte* bytes, int maxBytes, int base) 
   }
 }
 
-
 void SensorStorage::add(SensorInfo* sens) {
   sensorStorage.add(sens);
 }
@@ -42,4 +41,4 @@ int SensorStorage::size() {
   return sensorStorage.size();
 }
 
-SensorStorage sensorStorage = SensorStorage();
+SensorStorage sensorStorage[(int)SensorType::SensorType_MAX+1];

@@ -80,8 +80,8 @@ void setupSystemHz(bool &need_save) {
 
   // Setup "sensor" if not already existing
   bool known = false;
-  for (int x=0;x<sensorStorage.size() ; x++) {
-    tmpSensorInfo = sensorStorage.get(x);
+  for (int x=0;x<sensorStorage[(int)SensorType::local].size() ; x++) {
+    tmpSensorInfo = sensorStorage[(int)SensorType::local].get(x);
     if (strcmp(tmpSensorInfo->address, "Local") == 0) {
       known = true;                
     }
@@ -89,7 +89,7 @@ void setupSystemHz(bool &need_save) {
   if (!known) {
     Serial.print("Setting up System info ");
     SensorInfo *newSensor = new SystemHzSensorInfo("Local");
-    sensorStorage.add(newSensor);
+    sensorStorage[(int)newSensor->type].add(newSensor);
     need_save = true;
   }    
 }
@@ -105,8 +105,8 @@ void updateSystemHz() {
  // Serial.print ("System Hz :");
  // Serial.println (systemHz);
 
-  for (uint8_t i=0; i < sensorStorage.size(); i++) {
-    thisSensorInfo = sensorStorage.get(i);
+  for (uint8_t i=0; i < sensorStorage[(int)SensorType::local].size(); i++) {
+    thisSensorInfo = sensorStorage[(int)SensorType::local].get(i);
     if (thisSensorInfo->type==SensorType::local) {
       if (strcmp(thisSensorInfo->signalKPath[0].c_str(),  "") != 0) {
         thisSensorInfo->valueJson[0] = systemHz;
