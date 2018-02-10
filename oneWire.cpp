@@ -184,27 +184,23 @@ void request1WSensors() {
 
 void read1WSensors() {
   readyToRead1Wire = false; // reset interupt
-  SensorInfo *thisSensorInfo;
-  DeviceAddress address;
-  float tempK;
-  float tempC;
 
-  for (uint8_t i=0; i < sensorStorage[(int)SensorType::oneWire].size(); i++) {
-    thisSensorInfo = sensorStorage[(int)SensorType::oneWire].get(i);
-    if (thisSensorInfo->type==SensorType::oneWire) {
-      parseBytes(thisSensorInfo->address, ':', address,  8, 16); // convert string address to uint_8 array
-    
-      tempC = sensors.getTempC(address);
-      if (tempC == DEVICE_DISCONNECTED) {
-        thisSensorInfo->valueJson[0] = "null";
-      } else {
-        tempK = tempC + 273.15;
-        thisSensorInfo->valueJson[0] = tempK;
-      } 
-      thisSensorInfo->isUpdated = true;
-    }
+  sensorStorage[(int)SensorType::oneWire].forEach([&](SensorInfo* si) {
+    DeviceAddress address;
+    float tempK;
+    float tempC;
 
-  }
+    parseBytes(si->address, ':', address,  8, 16); // convert string address to uint_8 array
+  
+    tempC = sensors.getTempC(address);
+    if (tempC == DEVICE_DISCONNECTED) {
+      si->valueJson[0] = "null";
+    } else {
+      tempK = tempC + 273.15;
+      si->valueJson[0] = tempK;
+    } 
+    si->isUpdated = true;    
+  });
 }
 
 

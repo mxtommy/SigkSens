@@ -98,83 +98,75 @@ void setupSHT30() {
 
 
 void pollSHT() {
-  SensorInfo *thisSensorInfo;
-  uint8_t address;
-  uint8_t errorCode;
-
   readytoPollSHT = false; //reset interupt
 
-  for (int x=0;x<sensorStorage[(int)SensorType::sht30].size() ; x++) {
-    thisSensorInfo = sensorStorage[(int)SensorType::sht30].get(x);
-    if (thisSensorInfo->type==SensorType::sht30) {
-      //convert address string to int
-      parseBytes(thisSensorInfo->address,':',&address,1,16);
-      Wire.beginTransmission(address);
-      Wire.write(0x2C);
-      Wire.write(0x06);
-      // Stop I2C transmission
-      errorCode = Wire.endTransmission();
-      if (errorCode != 0) {
-        Serial.print("Error pollling SHT at address: ");
-        Serial.print(address, HEX);
-        Serial.print(" ErrorCode: ");
-        Serial.println(errorCode);
-      }
+  sensorStorage[(int)SensorType::sht30].forEach([&](SensorInfo* si) {
+    uint8_t address;
+    uint8_t errorCode;
+    //convert address string to int
+    parseBytes(si->address,':',&address,1,16);
+    Wire.beginTransmission(address);
+    Wire.write(0x2C);
+    Wire.write(0x06);
+    // Stop I2C transmission
+    errorCode = Wire.endTransmission();
+    if (errorCode != 0) {
+      Serial.print("Error pollling SHT at address: ");
+      Serial.print(address, HEX);
+      Serial.print(" ErrorCode: ");
+      Serial.println(errorCode);
     }
-  }
+  });
+
   os_timer_arm(&sensorSHTReadTimer, 100, false); // prepare to read after 100ms
 }
 
 
 void readSHT() {
-  SensorInfo *thisSensorInfo;
-  uint8_t errorCode;
-  uint8_t data[6];
-  uint8_t address;
-  float tempK;
-  float humidity;
-  
   readytoReadSHT = false; //reset interupt
 
-  for (int x=0;x<sensorStorage[(int)SensorType::sht30].size() ; x++) {
-    thisSensorInfo = sensorStorage[(int)SensorType::sht30].get(x);
-    if (thisSensorInfo->type==SensorType::sht30) {
-      //convert address string to int
-      parseBytes(thisSensorInfo->address,':',&address,1,16);
-
-      Wire.beginTransmission(address);
-      Wire.requestFrom(address, (uint8_t)6); // either both int or both uint8_t...
-      // Read 6 bytes of data
-      // cTemp msb, cTemp lsb, cTemp crc, humidity msb, humidity lsb, humidity crc
-      if (Wire.available() == 6)
-      {
-        data[0] = Wire.read();
-        data[1] = Wire.read();
-        data[2] = Wire.read();
-        data[3] = Wire.read();
-        data[4] = Wire.read();
-        data[5] = Wire.read();
-      }
-      errorCode = Wire.endTransmission();
-      if (errorCode != 0) {
-        Serial.print("Error reading from SHT30 at address: ");
-        Serial.print(address, HEX);
-        Serial.print(" ErrorCode: ");
-        Serial.println(errorCode);
-        thisSensorInfo->valueJson[0] = "null";
-        thisSensorInfo->valueJson[1] = "null";
-        return;
-      }
+  sensorStorage[(int)SensorType::sht30].forEach([&](SensorInfo* si) {
+    uint8_t errorCode;
+    uint8_t data[6];
+    uint8_t address;
+    float tempK;
+    float humidity;
   
-      // Convert the data
-      tempK = (((((data[0] * 256.0) + data[1]) * 175) / 65535.0) - 45) + 273.15;
-      humidity = ((((data[3] * 256.0) + data[4]) * 100) / 65535.0);
+    //convert address string to int
+    parseBytes(si->address,':',&address,1,16);
 
-      thisSensorInfo->valueJson[0] = tempK;
-      thisSensorInfo->valueJson[1] = humidity;
-      thisSensorInfo->isUpdated = true;
+    Wire.beginTransmission(address);
+    Wire.requestFrom(address, (uint8_t)6); // either both int or both uint8_t...
+    // Read 6 bytes of data
+    // cTemp msb, cTemp lsb, cTemp crc, humidity msb, humidity lsb, humidity crc
+    if (Wire.available() == 6)
+    {
+      data[0] = Wire.read();
+      data[1] = Wire.read();
+      data[2] = Wire.read();
+      data[3] = Wire.read();
+      data[4] = Wire.read();
+      data[5] = Wire.read();
     }
-  }
+    errorCode = Wire.endTransmission();
+    if (errorCode != 0) {
+      Serial.print("Error reading from SHT30 at address: ");
+      Serial.print(address, HEX);
+      Serial.print(" ErrorCode: ");
+      Serial.println(errorCode);
+      si->valueJson[0] = "null";
+      si->valueJson[1] = "null";
+      return;
+    }
+
+    // Convert the data
+    tempK = (((((data[0] * 256.0) + data[1]) * 175) / 65535.0) - 45) + 273.15;
+    humidity = ((((data[3] * 256.0) + data[4]) * 100) / 65535.0);
+
+    si->valueJson[0] = tempK;
+    si->valueJson[1] = humidity;
+    si->isUpdated = true;
+  });
 }
 
 

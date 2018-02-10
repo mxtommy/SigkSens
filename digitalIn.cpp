@@ -187,18 +187,23 @@ void updateDigitalIn(uint8_t index) {
   SensorInfo *thisSensorInfo;
 
   digitalUpdateReady[index] = false; // reset update ready
-  for (uint8_t i=0; i < sensorStorage[(int)SensorType::digitalIn].size(); i++) {
-    thisSensorInfo = sensorStorage[(int)SensorType::digitalIn].get(i);
-    
-    if ((thisSensorInfo->type==SensorType::digitalIn) && (strcmp(thisSensorInfo->address, digitalPinNames[index]) == 0) ) {
-        if (digitalValue[index]) {
-          thisSensorInfo->valueJson[0] = "true";
-        } else {
-          thisSensorInfo->valueJson[0] = "false";
-        }
-        thisSensorInfo->valueJson[1] = "null";
-        thisSensorInfo->isUpdated = true;
-    }    
+
+  sensorStorage[(int)SensorType::digitalIn].forEach([&](SensorInfo* si) {
+
+  });
+
+  thisSensorInfo = sensorStorage[(int)SensorType::digitalIn].find(
+    digitalPinNames[index]
+  );
+
+  if (thisSensorInfo != nullptr) {
+    if (digitalValue[index]) {
+      thisSensorInfo->valueJson[0] = "true";
+    } else {
+      thisSensorInfo->valueJson[0] = "false";
+    }
+    thisSensorInfo->valueJson[1] = "null";
+    thisSensorInfo->isUpdated = true;    
   }
 }
 

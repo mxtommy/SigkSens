@@ -98,38 +98,31 @@ void setupBMP280() {
 
 
 void pollBMP280() {
-  SensorInfo *thisSensorInfo;
   uint8_t address;
   uint8_t errorCode;
 
   readytoPollBMP280 = false; //reset interupt
 
-  
-
-  for (int x=0;x<sensorStorage[(int)SensorType::bmp280].size() ; x++) {
-    thisSensorInfo = sensorStorage[(int)SensorType::bmp280].get(x);
-    if (thisSensorInfo->type==SensorType::bmp280) {
-      //convert address string to int
-      parseBytes(thisSensorInfo->address,':',&address,1,16);
-      Wire.beginTransmission(address);
-      Wire.write(0x2C);
-      Wire.write(0x06);
-      // Stop I2C transmission
-      errorCode = Wire.endTransmission();
-      if (errorCode != 0) {
-        Serial.print("Error pollling BMP280 at address: ");
-        Serial.print(address, HEX);
-        Serial.print(" ErrorCode: ");
-        Serial.println(errorCode);
-      }
+  sensorStorage[(int)SensorType::bmp280].forEach([&](SensorInfo* si) {
+    //convert address string to int
+    parseBytes(si->address, ':', &address, 1, 16);
+    Wire.beginTransmission(address);
+    Wire.write(0x2C);
+    Wire.write(0x06);
+    // Stop I2C transmission
+    errorCode = Wire.endTransmission();
+    if (errorCode != 0) {
+      Serial.print("Error polling BMP280 at address: ");
+      Serial.print(address, HEX);
+      Serial.print(" ErrorCode: ");
+      Serial.println(errorCode);
     }
-  }
+  });
   os_timer_arm(&sensorBMP280ReadTimer, 100, false); // prepare to read after 100ms
 }
 
 
 void readBMP280() {
-  SensorInfo *thisSensorInfo;
   uint8_t errorCode;
   uint8_t data[6];
   uint8_t address;
@@ -141,14 +134,11 @@ void readBMP280() {
   Pa = bmp.readPressure();
   tempK = bmp.readTemperature() + 273.15;
 
-  for (int x=0;x<sensorStorage[(int)SensorType::bmp280].size() ; x++) {
-    thisSensorInfo = sensorStorage[(int)SensorType::bmp280].get(x);
-    if (thisSensorInfo->type==SensorType::bmp280) {
-      thisSensorInfo->valueJson[0] = tempK;
-      thisSensorInfo->valueJson[1] = Pa;
-      thisSensorInfo->isUpdated = true;
-    }
-  }
+  sensorStorage[(int)SensorType::bmp280].forEach([&](SensorInfo* si) {
+    si->valueJson[0] = tempK;
+    si->valueJson[1] = Pa;
+    si->isUpdated = true;
+  });
 }
 
 
