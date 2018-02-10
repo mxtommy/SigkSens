@@ -29,7 +29,6 @@ enum class SensorType {
 // memory to save sensor info
 class SensorInfo {
   public:
-    String key;  // hashing key
     char address[32];
     String attrName[MAX_SENSOR_ATTRIBUTES];
     String signalKPath[MAX_SENSOR_ATTRIBUTES];
@@ -50,7 +49,7 @@ class SensorStorage {
   public:
     void add(SensorInfo* sens);
     SensorInfo* get(const int i);
-    SensorInfo* find(String key);
+    SensorInfo* find(String addr);
     template<typename F>
     void forEach(F&& lambda);
     int size();

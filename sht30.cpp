@@ -18,8 +18,6 @@ SHT30SensorInfo::SHT30SensorInfo(String addr) {
   valueJson[0] = "null";
   valueJson[1] = "null";
 
-  key = (int)SensorType::sht30 + addr;
-
   isUpdated = false;
 }
 
@@ -32,8 +30,6 @@ SHT30SensorInfo::SHT30SensorInfo(String addr, String path1, String path2) {
   type = SensorType::sht30;
   valueJson[0] = "null";
   valueJson[1] = "null";
-
-  key = (int)SensorType::sht30 + addr;
 
   isUpdated = false;
 }

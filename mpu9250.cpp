@@ -27,8 +27,6 @@ MPU9250SensorInfo::MPU9250SensorInfo(String addr) {
   valueJson[2] = "null";
   valueJson[3] = "null";
 
-  key = (int)SensorType::mpu925x + addr;
-
   isUpdated = false;
 }
 
@@ -48,8 +46,6 @@ MPU9250SensorInfo::MPU9250SensorInfo(String addr, String path1, String path2,
   valueJson[1] = "null";
   valueJson[2] = "null";
   valueJson[3] = "null";
-
-  key = (int)SensorType::mpu925x + addr;
 
   isUpdated = false;
 }

@@ -27,11 +27,12 @@ SensorInfo* SensorStorage::get(const int i) {
   return sensorStorage.get(i);
 }
 
-SensorInfo* SensorStorage::find(String key) {
+SensorInfo* SensorStorage::find(String addr) {
   SensorInfo* current;
+  const char* addr_cstr = addr.c_str();
   for (int i=0 ; i < sensorStorage.size() ; i++) {
     current = sensorStorage.get(i);
-    if (current->key == key) {
+    if (strcmp(current->address, addr_cstr) == 0) {
       return current;
     }
   }
