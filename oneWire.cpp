@@ -20,6 +20,7 @@ OneWireSensorInfo::OneWireSensorInfo(String addr) {
   attrName[0] = "tempK";
   type = SensorType::oneWire;
   valueJson[0] = "null";
+
   isUpdated = false;
 }
 
@@ -29,6 +30,7 @@ OneWireSensorInfo::OneWireSensorInfo(String addr, String path) {
   attrName[0] = "tempK";
   type = SensorType::oneWire;
   valueJson[0] = "null";
+
   isUpdated = false;
 }
 
@@ -182,27 +184,23 @@ void request1WSensors() {
 
 void read1WSensors() {
   readyToRead1Wire = false; // reset interupt
-  SensorInfo *thisSensorInfo;
-  DeviceAddress address;
-  float tempK;
-  float tempC;
 
-  for (uint8_t i=0; i < sensorList.size(); i++) {
-    thisSensorInfo = sensorList.get(i);
-    if (thisSensorInfo->type==SensorType::oneWire) {
-      parseBytes(thisSensorInfo->address, ':', address,  8, 16); // convert string address to uint_8 array
-    
-      tempC = sensors.getTempC(address);
-      if (tempC == DEVICE_DISCONNECTED) {
-        thisSensorInfo->valueJson[0] = "null";
-      } else {
-        tempK = tempC + 273.15;
-        thisSensorInfo->valueJson[0] = tempK;
-      } 
-      thisSensorInfo->isUpdated = true;
-    }
+  sensorStorage[(int)SensorType::oneWire].forEach([&](SensorInfo* si) {
+    DeviceAddress address;
+    float tempK;
+    float tempC;
 
-  }
+    parseBytes(si->address, ':', address,  8, 16); // convert string address to uint_8 array
+  
+    tempC = sensors.getTempC(address);
+    if (tempC == DEVICE_DISCONNECTED) {
+      si->valueJson[0] = "null";
+    } else {
+      tempK = tempC + 273.15;
+      si->valueJson[0] = tempK;
+    } 
+    si->isUpdated = true;    
+  });
 }
 
 
@@ -243,20 +241,15 @@ void oneWireScanBus(bool &need_save) {
       addrToString(strAddress, tempDeviceAddress);
 
       //see if it's in sensorInfo
-      bool known = false;
-      for (int x=0;x<sensorList.size() ; x++) {
-        tmpSensorInfo = sensorList.get(x);
-        if (strcmp(tmpSensorInfo->address, strAddress) == 0) {
-          known = true;                
-        }
-      }
+      bool known = sensorStorage[(int)SensorType::oneWire].find(
+        strAddress) != nullptr;
 
       if (!known) {
         Serial.print("New Sensor found: ");
         Serial.print(strAddress);
         Serial.println("");
         OneWireSensorInfo *newSensor = new OneWireSensorInfo(strAddress);
-        sensorList.add(newSensor);
+        sensorStorage[(int)newSensor->type].add(newSensor);
         need_save = true;
       }
     }

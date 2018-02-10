@@ -530,18 +530,15 @@ void updateMPUSensorInfo() {
   lin_ay = ay + a32;
   lin_az = az - a33;
 
-  for (uint8_t i=0; i < sensorList.size(); i++) {
-    thisSensorInfo = sensorList.get(i);
-    if (thisSensorInfo->type==SensorType::mpu925x) {
-      //we're just going to assume there's only one for now...
-    
-      thisSensorInfo->valueJson[0] = temperature + 273.15;
-      thisSensorInfo->valueJson[1] = String(yaw * (myPI/180.0f),4);
-      thisSensorInfo->valueJson[2] = String(pitch * (myPI/180.0f),4);
-      thisSensorInfo->valueJson[3] = String(roll * (myPI/180.0f),4);
-      thisSensorInfo->isUpdated = true;
-    }
-  }
+  sensorStorage[(int)SensorType::mpu925x].forEach([&](SensorInfo* si) {
+    //we're just going to assume there's only one for now...
+  
+    si->valueJson[0] = temperature + 273.15;
+    si->valueJson[1] = String(yaw * (myPI/180.0f),4);
+    si->valueJson[2] = String(pitch * (myPI/180.0f),4);
+    si->valueJson[3] = String(roll * (myPI/180.0f),4);
+    si->isUpdated = true;    
+  });
 
   if(SerialDebug) {
     //Serial.print("ax = "); Serial.print((int)1000*ax);  

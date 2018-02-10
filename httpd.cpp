@@ -5,8 +5,10 @@ extern "C" {
 #include <FS.h> //this needs to be first, or it all crashes and burns...
 
 #include <ArduinoJson.h>     //https://github.com/bblanchon/ArduinoJson
-#include <ESP8266WebServer.h>     //Local WebServer used to serve the configuration portal
+#include <ESPAsyncTCP.h>
+#include <ESPAsyncWebServer.h>
 #include <ESP8266SSDP.h>
+#include <StreamString.h>
 
 #include "config.h"
 
@@ -33,6 +35,34 @@ extern "C" {
 #include "webSocket.h"
 #include "sigksens.h"
 
+// SSDP related stuff
+
+//SSDP properties
+const char * modelName = "WifiSensorNode";
+const char * modelNumber = "12345";
+
+static const char* ssdpTemplate =
+  "<?xml version=\"1.0\"?>"
+  "<root xmlns=\"urn:schemas-upnp-org:device-1-0\">"
+    "<specVersion>"
+      "<major>1</major>"
+      "<minor>0</minor>"
+    "</specVersion>"
+    "<URLBase>http://%u.%u.%u.%u/</URLBase>"
+    "<device>"
+      "<deviceType>upnp:rootdevice</deviceType>"
+      "<friendlyName>%s</friendlyName>"
+      "<presentationURL>index.html</presentationURL>"
+      "<serialNumber>%u</serialNumber>"
+      "<modelName>%s</modelName>"
+      "<modelNumber>%s</modelNumber>"
+      "<modelURL>http://www.espressif.com</modelURL>"
+      "<manufacturer>Espressif Systems</manufacturer>"
+      "<manufacturerURL>http://www.espressif.com</manufacturerURL>"
+      "<UDN>uuid:38323636-4558-4dda-9188-cda0e6%02x%02x%02x</UDN>"
+    "</device>"
+  "</root>\r\n"
+  "\r\n";
 
 /*----------------------------------------------------------------------------
 ------------------------------------------------------------------------------
@@ -40,7 +70,7 @@ HTTP
 ------------------------------------------------------------------------------
 ----------------------------------------------------------------------------*/
 
-ESP8266WebServer httpServer(80);
+AsyncWebServer server(80);
 
 
 void createStaticFiles() {
@@ -52,66 +82,118 @@ void createStaticFiles() {
 }
 
 
-void handleNotFound() {
-  httpServer.send(404, "text/plain", "404: Not found"); // Send HTTP status 404 (Not Found) when there's no handler for the URI in the request
+void handleNotFound(AsyncWebServerRequest *request) {
+  Serial.printf("NOT_FOUND: ");
+  if(request->method() == HTTP_GET)
+    Serial.printf("GET");
+  else if(request->method() == HTTP_POST)
+    Serial.printf("POST");
+  else if(request->method() == HTTP_DELETE)
+    Serial.printf("DELETE");
+  else if(request->method() == HTTP_PUT)
+    Serial.printf("PUT");
+  else if(request->method() == HTTP_PATCH)
+    Serial.printf("PATCH");
+  else if(request->method() == HTTP_HEAD)
+    Serial.printf("HEAD");
+  else if(request->method() == HTTP_OPTIONS)
+    Serial.printf("OPTIONS");
+  else
+    Serial.printf("UNKNOWN");
+  Serial.printf(" http://%s%s\n", request->host().c_str(), request->url().c_str());
+
+  if(request->contentLength()){
+    Serial.printf("_CONTENT_TYPE: %s\n", request->contentType().c_str());
+    Serial.printf("_CONTENT_LENGTH: %u\n", request->contentLength());
+  }
+
+  int headers = request->headers();
+  int i;
+  for(i=0;i<headers;i++){
+    AsyncWebHeader* h = request->getHeader(i);
+    Serial.printf("_HEADER[%s]: %s\n", h->name().c_str(), h->value().c_str());
+  }
+
+  int params = request->params();
+  for(i=0;i<params;i++){
+    AsyncWebParameter* p = request->getParam(i);
+    if(p->isFile()){
+      Serial.printf("_FILE[%s]: %s, size: %u\n", p->name().c_str(), p->value().c_str(), p->size());
+    } else if(p->isPost()){
+      Serial.printf("_POST[%s]: %s\n", p->name().c_str(), p->value().c_str());
+    } else {
+      Serial.printf("_GET[%s]: %s\n", p->name().c_str(), p->value().c_str());
+    }
+  }
+
+  request->send(404);
 }
 
 
-void htmlNewHostname() {
-  if(!httpServer.hasArg("hostname")) {httpServer.send(500, "text/plain", "missing arg 'hostname'"); return;}
-  httpServer.arg("hostname").toCharArray(myHostname, 16);
+void httpNewHostname(AsyncWebServerRequest *request) {
+  if(!request->hasArg("hostname")) {
+    request->send(400, "text/plain", "missing arg 'hostname'");
+    return;
+  }
+  request->arg("hostname").toCharArray(myHostname, 16);
   saveConfig();
-  httpServer.send(200, "application/json", "{ \"success\": true }");
+  request->send(200, "application/json", "{ \"success\": true }");
   delay(1000);
   ESP.reset();
 }
 
 
-void htmlSetSignalKHost() {
-  if(!httpServer.hasArg("host")) {httpServer.send(500, "text/plain", "missing arg 'host'"); return;}
-  signalKClientInfo.host = httpServer.arg("host");
+void httpSetSignalKHost(AsyncWebServerRequest *request) {
+  if(!request->hasArg("host")) {
+    request->send(400, "text/plain", "missing arg 'host'"); 
+    return;
+  }
+  signalKClientInfo.host = request->arg("host");
   saveConfig();
-  httpServer.send(200, "application/json", "{ \"success\": true }");
+  request->send(200, "application/json", "{ \"success\": true }");
   restartWebSocketClient();
 }
 
 
-void htmlSetSignalKPort() {
-  if(!httpServer.hasArg("port")) {httpServer.send(500, "text/plain", "missing arg 'port'"); return;}
-  signalKClientInfo.port = httpServer.arg("port").toInt();
+void httpSetSignalKPort(AsyncWebServerRequest *request) {
+  if(!request->hasArg("port")) {
+    request->send(500, "text/plain", "missing arg 'port'");
+    return;
+  }
+  signalKClientInfo.port = request->arg("port").toInt();
   saveConfig();
-  httpServer.send(200, "application/json", "{ \"success\": true }");
+  request->send(200, "application/json", "{ \"success\": true }");
   restartWebSocketClient();
 }
 
 
-void htmlSetSignalKPath() {
-  if(!httpServer.hasArg("path")) {httpServer.send(500, "text/plain", "missing arg 'path'"); return;}
-  signalKClientInfo.path = httpServer.arg("path");
+void httpSetSignalKPath(AsyncWebServerRequest *request) {
+  if(!request->hasArg("path")) {request->send(500, "text/plain", "missing arg 'path'"); return;}
+  signalKClientInfo.path = request->arg("path");
   saveConfig();
-  httpServer.send(200, "application/json", "{ \"success\": true }");
+  request->send(200, "application/json", "{ \"success\": true }");
   restartWebSocketClient();
 }
 
 #ifdef ENABLE_DIGITALIN
-void htmlSetDigitalMode() {
-  if(!httpServer.hasArg("input")) {httpServer.send(500, "text/plain", "missing arg 'input'"); return;}
-  if(!httpServer.hasArg("mode")) {httpServer.send(500, "text/plain", "missing arg 'mode'"); return;}
+void httpSetDigitalMode(AsyncWebServerRequest *request) {
+  if(!request->hasArg("input")) {request->send(500, "text/plain", "missing arg 'input'"); return;}
+  if(!request->hasArg("mode")) {request->send(500, "text/plain", "missing arg 'mode'"); return;}
 
-  if (setDigitalMode(httpServer.arg("input").c_str(), httpServer.arg("mode").toInt())) {
+  if (setDigitalMode(request->arg("input").c_str(), request->arg("mode").toInt())) {
     saveConfig();
-    httpServer.send(200, "application/json", "{ \"success\": true }");    
+    request->send(200, "application/json", "{ \"success\": true }");    
   } else {
-    httpServer.send(404, "text/plain", "404: Not found"); // Send HTTP status 404 (Not Found) when there's no handler for the URI in the request
+    request->send(404, "text/plain", "404: Not found"); // Send HTTP status 404 (Not Found) when there's no handler for the URI in the request
   }
 }
 #endif
 
 
-void htmlGetSensorInfo() {
+void httpGetSensorInfo(AsyncWebServerRequest *request) {
+  AsyncResponseStream *response = request->beginResponseStream("application/json");
   DynamicJsonBuffer jsonBuffer;
   SensorInfo *tmpSensorInfo;
-  char response[2048];
   JsonObject& json = jsonBuffer.createObject();
   char strAddress[32];
   char tmpPinStr[10];
@@ -169,34 +251,34 @@ void htmlGetSensorInfo() {
   JsonArray& sensorArr = json.createNestedArray("sensors");
   
   
-  for (uint8_t i=0; i < sensorList.size(); i++) {
-    tmpSensorInfo = sensorList.get(i);
+  //for (uint8_t i=0; i < sensorStorage.size(); i++) {
+  sensorStorageForEach([&](SensorInfo* si) {
     JsonObject& tmpSens = sensorArr.createNestedObject();
     
-    tmpSens.set("address", tmpSensorInfo->address);
-    tmpSens.set("type", (int)tmpSensorInfo->type);
+    tmpSens.set("address", si->address);
+    tmpSens.set("type", (int)si->type);
 
     JsonArray& jsonAttr = tmpSens.createNestedArray("attr");
     for (int x=0;x<MAX_SENSOR_ATTRIBUTES; x++) {
-      if (strcmp(tmpSensorInfo->attrName[x].c_str(), "") == 0) {
+      if (strcmp(si->attrName[x].c_str(), "") == 0) {
         break; // no more attrs
       }
       JsonObject& tmpAttr = jsonAttr.createNestedObject();
-      tmpAttr.set("attrName", tmpSensorInfo->attrName[x]);
-      tmpAttr.set("signalKPath", tmpSensorInfo->signalKPath[x] );
-      tmpAttr.set("scale", tmpSensorInfo->scale[x] );
-      tmpAttr.set("offset", tmpSensorInfo->offset[x] );
-      tmpAttr["value"] = RawJson(tmpSensorInfo->valueJson[x].c_str());
+      tmpAttr.set("attrName", si->attrName[x]);
+      tmpAttr.set("signalKPath", si->signalKPath[x] );
+      tmpAttr.set("scale", si->scale[x] );
+      tmpAttr.set("offset", si->offset[x] );
+      tmpAttr["value"] = RawJson(si->valueJson[x].c_str());
     }
     //tmpSensorInfo->toJson(tmpSens);
-  }
+  });
 
-  json.prettyPrintTo(response);
-  httpServer.send(200, "application/json", response);
+  json.prettyPrintTo(*response);
+  request->send(response);
 }
 
 
-void htmlSetSensorAttr() {
+void httpSetSensorAttr(AsyncWebServerRequest *request) {
   
   SensorInfo *tmpSensorInfo;
   char pathStr[MAX_SIGNALK_PATH_LEN];
@@ -205,64 +287,59 @@ void htmlSetSensorAttr() {
   bool found = false;
 
   Serial.print("Setting attributes for Sensor");
-  if(!httpServer.hasArg("address")) {httpServer.send(500, "text/plain", "missing arg 'address'"); return;}
-  if(!httpServer.hasArg("attrName")) {httpServer.send(500, "text/plain", "missing arg 'attrName'"); return;}
+  if(!request->hasArg("address")) {request->send(400, "text/plain", "missing arg 'address'"); return;}
+  if(!request->hasArg("attrName")) {request->send(400, "text/plain", "missing arg 'attrName'"); return;}
   
-  httpServer.arg("address").toCharArray(address, 32);
-  httpServer.arg("attrName").toCharArray(attrName, 32);
+  request->arg("address").toCharArray(address, 32);
+  request->arg("attrName").toCharArray(attrName, 32);
 
 
-  for (int x=0;x<sensorList.size() ; x++) {
-    tmpSensorInfo = sensorList.get(x);
-    if (strcmp(tmpSensorInfo->address, address) == 0) {
+  //for (int x=0;x<sensorStorage.size() ; x++) 
+  sensorStorageForEach([&](SensorInfo* si) {
+    if (strcmp(si->address, address) == 0) {
       // found our sensor, now find index
       for (int y=0; y<MAX_SENSOR_ATTRIBUTES; y++) {
-        if (strcmp(tmpSensorInfo->attrName[y].c_str(), attrName) == 0) {
+        if (strcmp(si->attrName[y].c_str(), attrName) == 0) {
           //  found index!
-          if(httpServer.hasArg("path")) {
-            httpServer.arg("path").toCharArray(pathStr, MAX_SIGNALK_PATH_LEN);
-            tmpSensorInfo->signalKPath[y] = pathStr;
+          if(request->hasArg("path")) {
+            request->arg("path").toCharArray(pathStr, MAX_SIGNALK_PATH_LEN);
+            si->signalKPath[y] = pathStr;
           }
           
-          if(httpServer.hasArg("offset")) {
-            tmpSensorInfo->offset[y] = httpServer.arg("offset").toFloat();
+          if(request->hasArg("offset")) {
+            si->offset[y] = request->arg("offset").toFloat();
           }
-          if(httpServer.hasArg("scale")) {
-            tmpSensorInfo->scale[y] = httpServer.arg("scale").toFloat();
+          if(request->hasArg("scale")) {
+            si->scale[y] = request->arg("scale").toFloat();
           }          
           
-          
           found = true;          
-          break; //no need to check others if we found it
         }
-      }
-      
-      if (found) { break; } // break out of outer for loop too if we found it
-     
+      }     
     }
-  }
+  });
 
   if (found) {
     saveConfig();
-    httpServer.send(200, "application/json", "{ \"success\": true }");
+    request->send(200, "application/json", "{ \"success\": true }");
   } else {
-    httpServer.send(500, "application/json", "{ \"success\": false }");
+    request->send(400, "application/json", "{ \"success\": false }");
   }
   
 }
 
 
-void htmlSetTimerDelay() {
+void httpSetTimerDelay(AsyncWebServerRequest *request) {
   uint32_t newDelay = 0;
   char timer[15];
   bool ok = false;
 
   Serial.print("Setting Timer delay");
-  if(!httpServer.hasArg("timer")) {httpServer.send(500, "text/plain", "missing arg 'timer'"); return;}
-  if(!httpServer.hasArg("delay")) {httpServer.send(500, "text/plain", "missing arg 'delay'"); return;}
+  if(!request->hasArg("timer")) {request->send(400, "text/plain", "missing arg 'timer'"); return;}
+  if(!request->hasArg("delay")) {request->send(400, "text/plain", "missing arg 'delay'"); return;}
 
-  httpServer.arg("timer").toCharArray(timer, 15);
-  newDelay = httpServer.arg("delay").toInt();
+  request->arg("timer").toCharArray(timer, 15);
+  newDelay = request->arg("delay").toInt();
 
   if (newDelay > 5) { //ostimer min delay is 5ms
     if (strcmp(timer, "oneWire") == 0) {
@@ -304,18 +381,17 @@ void htmlSetTimerDelay() {
 
   if (ok) {
     saveConfig();
-    httpServer.send(200, "application/json", "{ \"success\": true }");
+    request->send(200, "application/json", "{ \"success\": true }");
   } else {
-    httpServer.send(500, "application/json", "{ \"success\": false }");
+    request->send(400, "application/json", "{ \"success\": false }");
   }
-  
 }
 
 
-void htmlSignalKEndpoints() {
+void httpSignalKEndpoints(AsyncWebServerRequest *request) {
   IPAddress ip;  
   DynamicJsonBuffer jsonBuffer;
-  char response[2048];
+  AsyncResponseStream *response = request->beginResponseStream("application/json");
   String wsURL;
   ip = WiFi.localIP();
  
@@ -333,15 +409,9 @@ void htmlSignalKEndpoints() {
   v1["signalk-ws"] = wsURL;
   JsonObject& serverInfo = json.createNestedObject("server");
   serverInfo["id"] = "ESP-SigKSen";
-  json.printTo(response);
-  httpServer.send ( 200, "application/json", response);
+  json.printTo(*response);
+  request->send(response);
   
-}
-
-
-void htmlReturnSignalKREST() {
-  DynamicJsonBuffer jsonBuffer; 
-  SensorInfo *thisSensorInfo;  
 }
 
 
@@ -350,32 +420,50 @@ void setupHTTP() {
 
   createStaticFiles();
 
-  httpServer.onNotFound(handleNotFound);
+  server.onNotFound(handleNotFound);
 
-  httpServer.serveStatic("/", SPIFFS, "/web/index.html");
-  httpServer.serveStatic("/index.html", SPIFFS, "/web/index.html");
-  httpServer.on("/getSensorInfo", HTTP_GET, htmlGetSensorInfo);
+  server.serveStatic("/", SPIFFS, "/web/index.html");
+  server.serveStatic("/index.html", SPIFFS, "/web/index.html");
+  server.on("/getSensorInfo", HTTP_GET, httpGetSensorInfo);
 
-  //httpServer.on("/getMPUCalibration", HTTP_GET, htmlGetMPUCalibration);
-  httpServer.on("/setSensorPath", HTTP_GET, htmlSetSensorAttr); //path for legacy
-  httpServer.on("/setSensorAttr", HTTP_GET, htmlSetSensorAttr);
+  //server.on("/getMPUCalibration", HTTP_GET, httpGetMPUCalibration);
+  server.on("/setSensorPath", HTTP_GET, httpSetSensorAttr); //path for legacy
+  server.on("/setSensorAttr", HTTP_GET, httpSetSensorAttr);
 
-  httpServer.on("/setTimerDelay", HTTP_GET, htmlSetTimerDelay);
-  httpServer.on("/setNewHostname", HTTP_GET, htmlNewHostname);
+  server.on("/setTimerDelay", HTTP_GET, httpSetTimerDelay);
+  server.on("/setNewHostname", HTTP_GET, httpNewHostname);
 
   #ifdef ENABLE_DIGITALIN
-  httpServer.on("/setDigitalMode", HTTP_GET, htmlSetDigitalMode);
+  server.on("/setDigitalMode", HTTP_GET, httpSetDigitalMode);
   #endif
   
-  httpServer.on("/setSignalKHost", HTTP_GET, htmlSetSignalKHost);
-  httpServer.on("/setSignalKPort", HTTP_GET, htmlSetSignalKPort);
-  httpServer.on("/setSignalKPath", HTTP_GET, htmlSetSignalKPath);
+  server.on("/setSignalKHost", HTTP_GET, httpSetSignalKHost);
+  server.on("/setSignalKPort", HTTP_GET, httpSetSignalKPort);
+  server.on("/setSignalKPath", HTTP_GET, httpSetSignalKPath);
 
-  
-  httpServer.on("/description.xml", HTTP_GET, [](){  SSDP.schema(httpServer.client()); });
+  server.on("/description.xml", HTTP_GET, [](AsyncWebServerRequest *request){
+      StreamString output;
+      if(output.reserve(1024)){
+        IPAddress ip = WiFi.localIP();
+        uint32_t chipId = ESP.getChipId();
+        output.printf(ssdpTemplate,
+          ip[0], ip[1], ip[2], ip[3],
+          myHostname,
+          chipId,
+          modelName,
+          modelNumber,
+          (uint8_t) ((chipId >> 16) & 0xff),
+          (uint8_t) ((chipId >>  8) & 0xff),
+          (uint8_t)   chipId        & 0xff
+        );
+        request->send(200, "text/xml", (String)output);
+      } else {
+        request->send(500);
+      }
+  });
 
-  httpServer.on("/signalk", HTTP_GET, htmlSignalKEndpoints);
-  httpServer.on("/signalk/", HTTP_GET, htmlSignalKEndpoints);
+  server.on("/signalk", HTTP_GET, httpSignalKEndpoints);
+  server.on("/signalk/", HTTP_GET, httpSignalKEndpoints);
   
-  httpServer.begin();
+  server.begin();
 }

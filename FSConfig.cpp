@@ -144,7 +144,7 @@ void loadConfig() {
       std::unique_ptr<char[]> buf(new char[size]);
 
       configFile.readBytes(buf.get(), size);
-      DynamicJsonBuffer jsonBuffer;
+      
       JsonObject& json = jsonBuffer.parseObject(buf.get());
       Serial.println("Current Configuration:");
       json.prettyPrintTo(Serial);

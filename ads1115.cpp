@@ -44,7 +44,6 @@ ADSSensorInfo::ADSSensorInfo(String addr) {
   scale[4] = 1;
   scale[5] = 1;
 
-  
   isUpdated = false;
 }
 
@@ -83,7 +82,8 @@ ADSSensorInfo::ADSSensorInfo( String addr,
   scale[2] = scale2;
   scale[3] = scale3;
   scale[4] = scale4;
-  scale[5] = scale5;    
+  scale[5] = scale5;
+  
   isUpdated = false;
 }
 
@@ -108,7 +108,6 @@ ADSSensorInfo *ADSSensorInfo::fromJson(JsonObject &jsonSens) {
     jsonSens["scales"][3],
     jsonSens["scales"][4],
     jsonSens["scales"][5]
-
   );
 }
 
@@ -248,95 +247,82 @@ void setADSReadDelay(uint32_t newDelay) {
 
 
 void updateADS1115() {
-  SensorInfo *thisSensorInfo;
-  
-  for (uint8_t i=0; i < sensorList.size(); i++) {
-    thisSensorInfo = sensorList.get(i);
-    
-    if (thisSensorInfo->type==SensorType::ads1115) {
-      //0 = diff0_1
-      if (strcmp(thisSensorInfo->signalKPath[0].c_str(),  "") != 0) {
-        thisSensorInfo->valueJson[0] = ( (valueDiff_0_1 * gainMultiplier) * thisSensorInfo->scale[0] ) + thisSensorInfo->offset[0];
-        thisSensorInfo->isUpdated = true;         
-      }
-      //1 = diff2_3
-      if (strcmp(thisSensorInfo->signalKPath[1].c_str(),  "") != 0) {
-        thisSensorInfo->valueJson[1] = ( (valueDiff_2_3 * gainMultiplier) * thisSensorInfo->scale[1] ) + thisSensorInfo->offset[1];
-        thisSensorInfo->isUpdated = true;         
-      }
-      //2 = chan0
-      if (strcmp(thisSensorInfo->signalKPath[2].c_str(),  "") != 0) {
-        thisSensorInfo->valueJson[2] = ( (valueChan0 * gainMultiplier) * thisSensorInfo->scale[2] ) + thisSensorInfo->offset[2];
-        thisSensorInfo->isUpdated = true;         
-      }
-      //3 = chan1
-      if (strcmp(thisSensorInfo->signalKPath[3].c_str(),  "") != 0) {
-        thisSensorInfo->valueJson[3] = ( (valueChan1 * gainMultiplier) * thisSensorInfo->scale[3] ) + thisSensorInfo->offset[3];
-        thisSensorInfo->isUpdated = true;         
-      }
-      //4 = chan2
-      if (strcmp(thisSensorInfo->signalKPath[4].c_str(),  "") != 0) {
-        thisSensorInfo->valueJson[4] = ( (valueChan2 * gainMultiplier) * thisSensorInfo->scale[4] ) + thisSensorInfo->offset[4];
-        thisSensorInfo->isUpdated = true;         
-      }
-      //5 = chan3
-      if (strcmp(thisSensorInfo->signalKPath[5].c_str(),  "") != 0) {
-        thisSensorInfo->valueJson[5] = ( (valueChan3 * gainMultiplier) * thisSensorInfo->scale[5] ) + thisSensorInfo->offset[5];
-        thisSensorInfo->isUpdated = true;         
-      }
-    }    
-  }
+  sensorStorage[(int)SensorType::ads1115].forEach([&](SensorInfo* si) {
+    //0 = diff0_1
+    if (strcmp(si->signalKPath[0].c_str(),  "") != 0) {
+      si->valueJson[0] = ( (valueDiff_0_1 * gainMultiplier) * si->scale[0] ) + si->offset[0];
+      si->isUpdated = true;         
+    }
+    //1 = diff2_3
+    if (strcmp(si->signalKPath[1].c_str(),  "") != 0) {
+      si->valueJson[1] = ( (valueDiff_2_3 * gainMultiplier) * si->scale[1] ) + si->offset[1];
+      si->isUpdated = true;         
+    }
+    //2 = chan0
+    if (strcmp(si->signalKPath[2].c_str(),  "") != 0) {
+      si->valueJson[2] = ( (valueChan0 * gainMultiplier) * si->scale[2] ) + si->offset[2];
+      si->isUpdated = true;         
+    }
+    //3 = chan1
+    if (strcmp(si->signalKPath[3].c_str(),  "") != 0) {
+      si->valueJson[3] = ( (valueChan1 * gainMultiplier) * si->scale[3] ) + si->offset[3];
+      si->isUpdated = true;         
+    }
+    //4 = chan2
+    if (strcmp(si->signalKPath[4].c_str(),  "") != 0) {
+      si->valueJson[4] = ( (valueChan2 * gainMultiplier) * si->scale[4] ) + si->offset[4];
+      si->isUpdated = true;         
+    }
+    //5 = chan3
+    if (strcmp(si->signalKPath[5].c_str(),  "") != 0) {
+      si->valueJson[5] = ( (valueChan3 * gainMultiplier) * si->scale[5] ) + si->offset[5];
+      si->isUpdated = true;         
+    }
+  });
 }
 
 void readADS1115() {
-  SensorInfo *thisSensorInfo;
-  int16_t rawResult;
+  sensorStorage[(int)SensorType::ads1115].forEach([&](SensorInfo* si){
+    int16_t rawResult;
   
-  for (uint8_t i=0; i < sensorList.size(); i++) {
-    thisSensorInfo = sensorList.get(i);
-    
-    if (thisSensorInfo->type==SensorType::ads1115) {
+    if (si->type != SensorType::ads1115) return;
       
-      //0 = diff0_1
-      if (strcmp(thisSensorInfo->signalKPath[0].c_str(),  "") != 0) {
-        rawResult = ads.readADC_Differential_0_1(); 
-        valueDiff_0_1 = (SMOOTHING_GAIN*rawResult) + ((1-SMOOTHING_GAIN)*valueDiff_0_1);
-      }
-
-      //1 = diff2_3
-      if (strcmp(thisSensorInfo->signalKPath[1].c_str(),  "") != 0) {
-        rawResult = ads.readADC_Differential_2_3(); 
-        valueDiff_2_3 = (SMOOTHING_GAIN*rawResult) + ((1-SMOOTHING_GAIN)*valueDiff_2_3);
-      }      
-
-      //2 = chan0
-      if (strcmp(thisSensorInfo->signalKPath[2].c_str(),  "") != 0) {
-        rawResult = ads.readADC_SingleEnded(0); 
-        valueChan0 = (SMOOTHING_GAIN*rawResult) + ((1-SMOOTHING_GAIN)*valueChan0);
-      } 
-
-      //3 = chan1
-      if (strcmp(thisSensorInfo->signalKPath[3].c_str(),  "") != 0) {
-        rawResult = ads.readADC_SingleEnded(1); 
-        valueChan1 = (SMOOTHING_GAIN*rawResult) + ((1-SMOOTHING_GAIN)*valueChan1);
-      } 
-
-      //4 = chan2
-      if (strcmp(thisSensorInfo->signalKPath[4].c_str(),  "") != 0) {
-        rawResult = ads.readADC_SingleEnded(2); 
-        valueChan2 = (SMOOTHING_GAIN*rawResult) + ((1-SMOOTHING_GAIN)*valueChan2);
-      } 
-
-      //5 = chan3
-      if (strcmp(thisSensorInfo->signalKPath[5].c_str(),  "") != 0) {
-        rawResult = ads.readADC_SingleEnded(3); 
-        valueChan3 = (SMOOTHING_GAIN*rawResult) + ((1-SMOOTHING_GAIN)*valueChan3);
-      }             
-      
+    //0 = diff0_1
+    if (strcmp(si->signalKPath[0].c_str(),  "") != 0) {
+      rawResult = ads.readADC_Differential_0_1(); 
+      valueDiff_0_1 = (SMOOTHING_GAIN*rawResult) + ((1-SMOOTHING_GAIN)*valueDiff_0_1);
     }
 
-  }
-  
+    //1 = diff2_3
+    if (strcmp(si->signalKPath[1].c_str(),  "") != 0) {
+      rawResult = ads.readADC_Differential_2_3(); 
+      valueDiff_2_3 = (SMOOTHING_GAIN*rawResult) + ((1-SMOOTHING_GAIN)*valueDiff_2_3);
+    }      
+
+    //2 = chan0
+    if (strcmp(si->signalKPath[2].c_str(),  "") != 0) {
+      rawResult = ads.readADC_SingleEnded(0); 
+      valueChan0 = (SMOOTHING_GAIN*rawResult) + ((1-SMOOTHING_GAIN)*valueChan0);
+    } 
+
+    //3 = chan1
+    if (strcmp(si->signalKPath[3].c_str(),  "") != 0) {
+      rawResult = ads.readADC_SingleEnded(1); 
+      valueChan1 = (SMOOTHING_GAIN*rawResult) + ((1-SMOOTHING_GAIN)*valueChan1);
+    } 
+
+    //4 = chan2
+    if (strcmp(si->signalKPath[4].c_str(),  "") != 0) {
+      rawResult = ads.readADC_SingleEnded(2); 
+      valueChan2 = (SMOOTHING_GAIN*rawResult) + ((1-SMOOTHING_GAIN)*valueChan2);
+    } 
+
+    //5 = chan3
+    if (strcmp(si->signalKPath[5].c_str(),  "") != 0) {
+      rawResult = ads.readADC_SingleEnded(3); 
+      valueChan3 = (SMOOTHING_GAIN*rawResult) + ((1-SMOOTHING_GAIN)*valueChan3);
+    }
+  });
 }
 
 
