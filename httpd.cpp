@@ -191,9 +191,9 @@ void httpSetDigitalMode(AsyncWebServerRequest *request) {
 
 
 void httpGetSensorInfo(AsyncWebServerRequest *request) {
+  AsyncResponseStream *response = request->beginResponseStream("application/json");
   DynamicJsonBuffer jsonBuffer;
   SensorInfo *tmpSensorInfo;
-  char response[2048];
   JsonObject& json = jsonBuffer.createObject();
   char strAddress[32];
   char tmpPinStr[10];
@@ -273,8 +273,8 @@ void httpGetSensorInfo(AsyncWebServerRequest *request) {
     //tmpSensorInfo->toJson(tmpSens);
   });
 
-  json.prettyPrintTo(response);
-  request->send(200, "application/json", response);
+  json.prettyPrintTo(*response);
+  request->send(response);
 }
 
 
