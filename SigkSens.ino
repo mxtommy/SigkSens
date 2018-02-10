@@ -216,7 +216,6 @@ void loop() {
       #ifdef ENABLE_DIGITALIN
       handleDigitalIn();
       #endif
-      httpServer.handleClient(); //http client
       
       handleConfigReset(); 
       mainLoopCount = 0;
