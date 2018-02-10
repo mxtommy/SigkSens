@@ -15,6 +15,7 @@ SystemHzSensorInfo::SystemHzSensorInfo(String addr) {
   type = SensorType::local;
   valueJson[0] = "null";
   valueJson[1] = "null";
+
   isUpdated = false;
 }
 
@@ -29,6 +30,7 @@ SystemHzSensorInfo::SystemHzSensorInfo(String addr,
   type = SensorType::local;
   valueJson[0] = "null";
   valueJson[1] = "null";
+
   isUpdated = false;
 }
 
@@ -73,24 +75,19 @@ void setupSystemHz(bool &need_save) {
   SensorInfo *tmpSensorInfo;
 
   // Setup "sensor" if not already existing
-  bool known = false;
-  for (int x=0;x<sensorList.size() ; x++) {
-    tmpSensorInfo = sensorList.get(x);
-    if (strcmp(tmpSensorInfo->address, "Local") == 0) {
-      known = true;                
-    }
-  }    
+  bool known = sensorStorage[(int)SensorType::local].find(
+    "Local") != nullptr;
+
   if (!known) {
     Serial.print("Setting up System info ");
     SensorInfo *newSensor = new SystemHzSensorInfo("Local");
-    sensorList.add(newSensor);
+    sensorStorage[(int)newSensor->type].add(newSensor);
     need_save = true;
   }    
 }
 
 
 void updateSystemHz() {
-  SensorInfo *thisSensorInfo;
   uint32_t elapsed = millis() - systemHzMs;
   
   if (elapsed == 0) { return; } // getting sporadic devide by 0 exceptions, no harm in skipping a loop.
@@ -99,20 +96,16 @@ void updateSystemHz() {
  // Serial.print ("System Hz :");
  // Serial.println (systemHz);
 
-  for (uint8_t i=0; i < sensorList.size(); i++) {
-    thisSensorInfo = sensorList.get(i);
-    if (thisSensorInfo->type==SensorType::local) {
-      if (strcmp(thisSensorInfo->signalKPath[0].c_str(),  "") != 0) {
-        thisSensorInfo->valueJson[0] = systemHz;
-        thisSensorInfo->isUpdated = true;
-      }
-      if (strcmp(thisSensorInfo->signalKPath[1].c_str(),  "") != 0) {
-        thisSensorInfo->valueJson[1] = ESP.getFreeHeap();
-        thisSensorInfo->isUpdated = true;
-      }        
-      
+  sensorStorage[(int)SensorType::local].forEach([&](SensorInfo* si) {
+    if (strcmp(si->signalKPath[0].c_str(),  "") != 0) {
+      si->valueJson[0] = systemHz;
+      si->isUpdated = true;
     }
-  }
+    if (strcmp(si->signalKPath[1].c_str(),  "") != 0) {
+      si->valueJson[1] = ESP.getFreeHeap();
+      si->isUpdated = true;
+    }          
+  });
 
   systemHzCount = 0;
   systemHzMs = millis();

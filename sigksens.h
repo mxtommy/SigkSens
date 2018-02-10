@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 #include <WString.h>
-#include <LinkedList.h>
+#include<map>
 #include <ArduinoJson.h>
 
 #define MAX_SENSOR_ATTRIBUTES 10
@@ -40,10 +40,38 @@ class SensorInfo {
 
     static SensorInfo *fromJson(JsonObject&);
     virtual void toJson(JsonObject&) = 0;
+  private:
+    String createKey(int type, String address);
 };
 
+
+class SensorStorage {
+  public:
+    void add(SensorInfo* sens);
+    SensorInfo* find(String addr);
+    template<typename F>
+    void forEach(F&& lambda);
+  private:
+    std::map<String, SensorInfo*> sensorMap;
+};
+
+template<typename F>
+void SensorStorage::forEach(F&& lambda) {
+  // this returns an std::pair of key, value
+  for (auto const& x : sensorMap) {
+    lambda(x.second);
+  }
+}
+
 // memory to save sensor info
-extern LinkedList<SensorInfo*> sensorList;
+extern SensorStorage sensorStorage[];
+
+template<typename F>
+void sensorStorageForEach(F&& lambda) {
+  for (int i=0; i <= (int)SensorType::SensorType_MAX; ++i) {
+    sensorStorage[i].forEach(lambda);
+  }
+}
 
 typedef SensorInfo *(*fromJsonFunc)(JsonObject &);
 extern fromJsonFunc fromJson[(int)SensorType::SensorType_MAX];
