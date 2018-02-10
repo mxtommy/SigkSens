@@ -64,18 +64,11 @@ uint32_t sensorBMP280ReadDelay = 5000; //ms between reading
 uint32_t getSensorBMP280ReadDelay() { return sensorBMP280ReadDelay; }
 
 os_timer_t  sensorBMP280PollTimer; // repeating timer that fires ever X/time to start poll cycle
-os_timer_t  sensorBMP280ReadTimer; // once request cycle starts, this timer set so we can send when ready
 
 bool readytoPollBMP280 = false;
-bool readytoReadBMP280 = false;
-
 
 void interruptBMP280Poll(void *pArg) {
   readytoPollBMP280 = true;
-}
-
-void interruptBMP280Read(void *pArg) {
-  readytoReadBMP280 = true;
 }
 
 // sensor object
@@ -84,9 +77,8 @@ Adafruit_BMP280 bmp;
 void setupBMP280() {
   // prepare BMP280 Timers 
   os_timer_setfn(&sensorBMP280PollTimer, interruptBMP280Poll, NULL);
-  os_timer_setfn(&sensorBMP280ReadTimer, interruptBMP280Read, NULL);
 
-  Serial.print("Starting BMP280 polling timer at: ");
+  Serial.print("Starting BMP280 polling timer");
   Serial.print(sensorBMP280ReadDelay);  
   Serial.println("ms");
   os_timer_arm(&sensorBMP280PollTimer, sensorBMP280ReadDelay, true); // TODO should probably confirm we actually have an BMP280 connected
@@ -97,31 +89,6 @@ void setupBMP280() {
 }
 
 
-void pollBMP280() {
-  uint8_t address;
-  uint8_t errorCode;
-
-  readytoPollBMP280 = false; //reset interupt
-
-  sensorStorage[(int)SensorType::bmp280].forEach([&](SensorInfo* si) {
-    //convert address string to int
-    parseBytes(si->address, ':', &address, 1, 16);
-    Wire.beginTransmission(address);
-    Wire.write(0x2C);
-    Wire.write(0x06);
-    // Stop I2C transmission
-    errorCode = Wire.endTransmission();
-    if (errorCode != 0) {
-      Serial.print("Error polling BMP280 at address: ");
-      Serial.print(address, HEX);
-      Serial.print(" ErrorCode: ");
-      Serial.println(errorCode);
-    }
-  });
-  os_timer_arm(&sensorBMP280ReadTimer, 100, false); // prepare to read after 100ms
-}
-
-
 void readBMP280() {
   uint8_t errorCode;
   uint8_t data[6];
@@ -129,8 +96,8 @@ void readBMP280() {
   float Pa;
   float tempK;
   
-  readytoReadBMP280 = false; //reset interupt
-
+  readytoPollBMP280 = false; //reset interupt
+  
   Pa = bmp.readPressure();
   tempK = bmp.readTemperature() + 273.15;
 
@@ -143,21 +110,12 @@ void readBMP280() {
 
 
 void handleBMP280() {
-  
   if (readytoPollBMP280){
-    digitalWrite(LED_BUILTIN, LOW);
-    pollBMP280();
-    digitalWrite(LED_BUILTIN, HIGH);  
-  }
-  
-  if (readytoReadBMP280){
     digitalWrite(LED_BUILTIN, LOW);
     readBMP280();
     digitalWrite(LED_BUILTIN, HIGH);  
   }
-  
 }
-
 
 
 void setBMP280ReadDelay(uint32_t newDelay) {
