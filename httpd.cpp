@@ -189,6 +189,12 @@ void httpSetDigitalMode(AsyncWebServerRequest *request) {
 }
 #endif
 
+#ifdef ENABLE_MPU
+void httpMpuCalAccelGyro(AsyncWebServerRequest *request) {
+  runAccelGyroCal();
+  request->send(200, "application/json", "{ \"success\": true }");
+}
+#endif
 
 void httpGetSensorInfo(AsyncWebServerRequest *request) {
   AsyncResponseStream *response = request->beginResponseStream("application/json");
@@ -437,6 +443,11 @@ void setupHTTP() {
   server.on("/setDigitalMode", HTTP_GET, httpSetDigitalMode);
   #endif
   
+  #ifdef ENABLE_MPU
+  server.on("/mpuCalAccelGyro", HTTP_GET, httpMpuCalAccelGyro);
+  #endif
+
+
   server.on("/setSignalKHost", HTTP_GET, httpSetSignalKHost);
   server.on("/setSignalKPort", HTTP_GET, httpSetSignalKPort);
   server.on("/setSignalKPath", HTTP_GET, httpSetSignalKPath);

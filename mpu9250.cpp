@@ -62,7 +62,7 @@ MPU9250SensorInfo::MPU9250SensorInfo(String addr,
   attrName[1] = "yaw";
   attrName[2] = "pitch";
   attrName[3] = "roll";
-  attrName[3] = "filterRate";
+  attrName[4] = "filterRate";
   type = SensorType::mpu925x;
   valueJson[0] = "null";
   valueJson[1] = "null";
@@ -146,7 +146,7 @@ int16_t accelCount[3];  // Stores the 16-bit signed accelerometer sensor output
 int16_t gyroCount[3];   // Stores the 16-bit signed gyro sensor output
 int16_t magCount[3];    // Stores the 16-bit signed magnetometer sensor output
 float magCalibration[3] = {0, 0, 0};  // Factory mag calibration and mag bias
-float magBias[3] = {0, 0, 0}, magScale[3]  = {0, 0, 0};      // Bias corrections for gyro and accelerometer
+float magBias[3] = {0, 0, 0}, magScale[3]  = {1, 1, 1};      // Bias corrections for gyro and accelerometer
 int32_t gyroBias[3] = {0, 0, 0}, accelBias[3] = {0, 0, 0};
 int16_t tempCount;            // temperature raw count output
 float   temperature;          // Stores the MPU9250 gyro internal chip temperature in degrees Celsius
@@ -199,6 +199,7 @@ bool MPUisValid = false;
 bool AK8963isValid = false;
 bool mpuUpdateReady = false;
 volatile bool newData = false;
+MpuRunMode mpuRunMode = MpuRunMode::mpuOff;
 /* ---------------------------------------------------------------------------------------------
    ---------------------------------------------------------------------------------------------
    ---------------------------------------------------------------------------------------------
@@ -251,38 +252,49 @@ void setupMPU9250() {
       attachInterrupt(12, interruptMPUNewData, RISING); // define interrupt for INT pin output of MPU9250
       Serial.println("Interrupts setup");
     }
+    if (MPUisValid && AK8963isValid) {
+      mpuRunMode = MpuRunMode::mpuRun;
+    }
   }
 
-
-  //accelgyrocalMPU9250();
-  magcalMPU9250(magBias, magScale);
-  saveMPUCalibrationFS();
 }
 
 void handleMPU9250() {
+  switch(mpuRunMode) {
+    case MpuRunMode::mpuRun:
+      if(newData) { //newData is from pin Interrupt
+        newData = false; // reset newData flag
+        processMPU9250();
+      }
 
-  if (!MPUisValid) {
-    return;
+      updateQuaternion();
+
+      if (mpuUpdateReady) {
+        // reset interupt
+        mpuUpdateReady = false;
+        updateMPUSensorInfo();
+      }
+      break;
+
+    case MpuRunMode::calAccelGyro:
+      accelgyrocalMPU9250();
+      loadAccelAndGyroBiases();
+      saveMPUCalibrationFS();
+      initMPU9250(); 
+      mpuRunMode = MpuRunMode::mpuRun;
+      break;
+
+    case MpuRunMode::calMag:
+      magcalMPU9250(magBias, magScale);
+      break;
+
+
   }
 
-  //if (readByte(MPU9250_ADDRESS, INT_STATUS) & 0x01) {  //If there's new data
-  if(newData) {
-    newData = false; // reset newData flag
-    processMPU9250();
-  }
 
-  updateQuaternion();
-
-  if (mpuUpdateReady) {
-    // reset interupt
-    mpuUpdateReady = false;
-    updateMPUSensorInfo();
-  }
+  
+  
 }
-
-
-
-
 
 void saveMPUCalibrationFS(){
   Serial.println("Saving MPU Calibrations");
@@ -366,8 +378,10 @@ void loadMPUCalibrationFS() {
 
 }
 
-
-
+void runAccelGyroCal() {
+  mpuRunMode = MpuRunMode::calAccelGyro;
+    
+}
 
 
 
@@ -426,22 +440,6 @@ bool testAK8963() {
     return false;
   }
 }
-
-bool configureMPU9250() {
- 
-    
-    //accelgyrocalMPU9250(); // Calibrate gyro and accelerometers, load biases in bias registers
-  
-    
-    // Get magnetometer calibration from AK8963 ROM
-
-
-    ////////////////////////////////////////////////////////////////////////////////////////
-    
-    
-  
-}
-
 
 void processMPU9250() {  
   readMPU9250Data(MPU9250Data); // INT cleared on any read
@@ -542,9 +540,7 @@ void updateMPUSensorInfo() {
   lin_ax = ax + a31;
   lin_ay = ay + a32;
   lin_az = az - a33;
-
   sensorStorage[(int)SensorType::mpu925x].forEach([&](SensorInfo* si) {
-  
     si->valueJson[0] = temperature + 273.15;
     si->valueJson[1] = String(yaw * (myPI/180.0f),4);
     si->valueJson[2] = String(pitch * (myPI/180.0f),4);
@@ -772,7 +768,6 @@ void initMPU9250() {
 // Function which accumulates gyro and accelerometer data after device initialization. It calculates the average
 // of the at-rest readings and then loads the resulting offsets into accelerometer and gyro bias registers.
 void accelgyrocalMPU9250() {  
-  SensorInfo *thisSensorInfo;
  
   uint8_t data[12]; // data array to hold accelerometer and gyro x, y, z, data
   uint16_t ii, packet_count, fifo_count;
@@ -816,6 +811,7 @@ void accelgyrocalMPU9250() {
   readBytes(MPU9250_ADDRESS, FIFO_COUNTH, 2, &data[0]); // read FIFO sample count
   fifo_count = ((uint16_t)data[0] << 8) | data[1];
   packet_count = fifo_count/12;// How many sets of full gyro and accelerometer data for averaging
+  Serial.print("Datapoints for bias: "); Serial.println(packet_count);
   
   for (ii = 0; ii < packet_count; ii++) {
     int16_t accel_temp[3] = {0, 0, 0}, gyro_temp[3] = {0, 0, 0};
@@ -857,7 +853,6 @@ void accelgyrocalMPU9250() {
 
 
 void loadAccelAndGyroBiases() {
-  SensorInfo *thisSensorInfo;
 
   int32_t gyro_bias[3], accel_bias[3];	
   uint8_t data[12]; // data array to hold accelerometer and gyro x, y, z, data

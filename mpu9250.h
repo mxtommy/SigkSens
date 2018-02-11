@@ -19,18 +19,20 @@ class MPU9250SensorInfo : public SensorInfo {
 
 };
 
+enum class MpuRunMode { mpuOff, mpuRun, calAccelGyro, calMag };
+
+
 uint32_t getUpdateMPUDelay();
 void setMPUUpdateDelay(uint32_t newDelay);
 
 void setupMPU9250();
 void handleMPU9250();
 
-bool configureMPU9250();
 void processMPU9250();
 void updateQuaternion();
 void updateMPUSensorInfo();
 
-
+void runAccelGyroCal();
 
 // Based on https://raw.githubusercontent.com/kriswiner/MPU9250/master/MPU9250_MS5637_AHRS_t3.ino
 
