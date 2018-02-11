@@ -20,7 +20,6 @@ extern "C" {
 #endif
 #ifdef ENABLE_MPU
   #include "mpu9250.h"
-  #include "mpu.h"
 #endif
 #ifdef ENABLE_ADS1115
   #include "ads1115.h"

@@ -36,6 +36,7 @@ class SensorInfo {
     float scale[MAX_SENSOR_ATTRIBUTES];
     float offset[MAX_SENSOR_ATTRIBUTES];
     SensorType type;
+
     bool isUpdated;
 
     static SensorInfo *fromJson(JsonObject&);

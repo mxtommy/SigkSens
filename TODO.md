@@ -5,5 +5,3 @@ Just a list of stuff to do in no particular order
 - Offset and scale for sensors
 - Digital Out
 - Digital In (Freq)
-- ADS1115 sensor
-- Presure sensor

@@ -16,7 +16,7 @@ extern "C" {
   #include "i2c.h"
 #endif
 #ifdef ENABLE_MPU
-  #include "mpu.h"
+  #include "mpu9250.h"
 #endif
 #ifdef ENABLE_SHT30
   #include "sht30.h"
@@ -189,6 +189,23 @@ void httpSetDigitalMode(AsyncWebServerRequest *request) {
 }
 #endif
 
+#ifdef ENABLE_MPU
+void httpMpuCalAccelGyro(AsyncWebServerRequest *request) {
+  runAccelGyroCal();
+  request->send(200, "application/json", "{ \"success\": true }");
+}
+
+void httpMpuCalMagStart(AsyncWebServerRequest *request) {
+  runMagCalStart();
+  request->send(200, "application/json", "{ \"success\": true }");
+}
+
+void httpMpuCalMagStop(AsyncWebServerRequest *request) {
+  runMagCalStop();
+  request->send(200, "application/json", "{ \"success\": true }");
+}
+
+#endif
 
 void httpGetSensorInfo(AsyncWebServerRequest *request) {
   AsyncResponseStream *response = request->beginResponseStream("application/json");
@@ -437,6 +454,13 @@ void setupHTTP() {
   server.on("/setDigitalMode", HTTP_GET, httpSetDigitalMode);
   #endif
   
+  #ifdef ENABLE_MPU
+  server.on("/mpuCalAccelGyro", HTTP_GET, httpMpuCalAccelGyro);
+  server.on("/mpuCalMagStart", HTTP_GET, httpMpuCalMagStart);
+  server.on("/mpuCalMagStop", HTTP_GET, httpMpuCalMagStop);
+  #endif
+
+
   server.on("/setSignalKHost", HTTP_GET, httpSetSignalKHost);
   server.on("/setSignalKPort", HTTP_GET, httpSetSignalKPort);
   server.on("/setSignalKPath", HTTP_GET, httpSetSignalKPath);
