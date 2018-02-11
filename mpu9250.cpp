@@ -398,7 +398,7 @@ void loadMPUCalibrationFS() {
 }
 
 void runAccelGyroCal() {
-  Serial.println("Starting Accel and Gyro ")
+  Serial.println("Starting Accel and Gyro ");
   mpuRunMode = MpuRunMode::calAccelGyro;
     
 }
@@ -529,9 +529,7 @@ void updateMPUSensorInfo() {
   temperature = ((float) tempCount) / 333.87 + 21.0; // Gyro chip temperature in degrees Centigrade
   // Print temperature in degrees Centigrade      
  
-  count = millis(); 
-  filterIntegrationCount = 0;
-  filterIntegrationInterval = 0;    
+
   
   // Define output variables from updated quaternion---these are Tait-Bryan angles, commonly used in aircraft orientation.
   // In this coordinate system, the positive z-axis is down toward Earth. 
@@ -572,11 +570,11 @@ void updateMPUSensorInfo() {
     si->valueJson[1] = String(yaw * (myPI/180.0f),4);
     si->valueJson[2] = String(pitch * (myPI/180.0f),4);
     si->valueJson[3] = String(roll * (myPI/180.0f),4);
-    si->valueJson[4] = String((float)filterIntegrationCount/filterIntegrationInterval);
+    si->valueJson[4] = String((int)filterIntegrationCount/filterIntegrationInterval);
     si->isUpdated = true;    
   });
 
-  if(SerialDebug) {
+  //if(SerialDebug) {
     //Serial.print("ax = "); Serial.print((int)1000*ax);  
     //Serial.print(" ay = "); Serial.print((int)1000*ay); 
     //Serial.print(" az = "); Serial.print((int)1000*az); Serial.println(" mg");
@@ -613,8 +611,10 @@ void updateMPUSensorInfo() {
     //Serial.print(", ");
     //Serial.print(lin_az*1000, 2);  Serial.println(" mg");
     
-  }
-
+  //}
+  count = millis(); 
+  filterIntegrationCount = 0;
+  filterIntegrationInterval = 0;    
 }
 
 
