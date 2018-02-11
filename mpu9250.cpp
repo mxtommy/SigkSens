@@ -190,7 +190,10 @@ bool testMPU9250();
 bool testAK8963();
 void initAK8963(float * destination);
 void initMPU9250();
-void magcalMPU9250(float * dest1, float * dest2);
+void magCalMPU9250Start();
+void magCalMPU9250Run();
+void magcalMPU9250Stop();
+//void magcalMPU9250(float * dest1, float * dest2);
 void accelgyrocalMPU9250();
 void loadAccelAndGyroBiases();
 void readMagData(int16_t * destination);
@@ -200,6 +203,11 @@ bool AK8963isValid = false;
 bool mpuUpdateReady = false;
 volatile bool newData = false;
 MpuRunMode mpuRunMode = MpuRunMode::mpuOff;
+
+//variables for Mag Calibration
+int16_t magCalMax[3] = {-32767, -32767, -32767};
+int16_t magCalMin[3] = {32767, 32767, 32767};
+
 /* ---------------------------------------------------------------------------------------------
    ---------------------------------------------------------------------------------------------
    ---------------------------------------------------------------------------------------------
@@ -284,10 +292,21 @@ void handleMPU9250() {
       mpuRunMode = MpuRunMode::mpuRun;
       break;
 
-    case MpuRunMode::calMag:
-      magcalMPU9250(magBias, magScale);
+    case MpuRunMode::calMagStart:
+      magCalMPU9250Start();
+      mpuRunMode = MpuRunMode::calMagRun;
       break;
 
+    case MpuRunMode::calMagRun:
+      magCalMPU9250Run();
+      mpuRunMode = MpuRunMode::calMagRun;
+      break;
+
+    case MpuRunMode::calMagStop:
+      magcalMPU9250Stop();
+      saveMPUCalibrationFS();
+      mpuRunMode = MpuRunMode::mpuRun;
+      break;
 
   }
 
@@ -379,12 +398,20 @@ void loadMPUCalibrationFS() {
 }
 
 void runAccelGyroCal() {
+  Serial.println("Starting Accel and Gyro ")
   mpuRunMode = MpuRunMode::calAccelGyro;
     
 }
 
+void runMagCalStart() {
+  Serial.println("Starting Magnometer Calibration...");
+  mpuRunMode = MpuRunMode::calMagStart;
+}
 
-
+void runMagCalStop() {
+  Serial.println("Stoping Magnometer Calibration...");
+  mpuRunMode = MpuRunMode::calMagStop;
+}
 
 
 /* ---------------------------------------------------------------------------------------------
@@ -932,6 +959,54 @@ void loadAccelAndGyroBiases() {
 }
 
 
+
+void magCalMPU9250Start() {
+  for (int jj = 0; jj < 3; jj++) {
+    magCalMax[jj] = -32767;
+    magCalMin[jj] = 32767;
+  }
+}
+
+
+void magCalMPU9250Run() {
+  int16_t mag_temp[3] = {0, 0, 0};
+  readMagData(mag_temp);  // Read the mag data   
+  for (int jj = 0; jj < 3; jj++) {
+    if(mag_temp[jj] > magCalMax[jj]) magCalMax[jj] = mag_temp[jj];
+    if(mag_temp[jj] < magCalMin[jj]) magCalMin[jj] = mag_temp[jj];
+  }
+}
+
+
+void magcalMPU9250Stop() {
+  int32_t mag_bias[3] = {0, 0, 0}, mag_scale[3] = {0, 0, 0};
+ 
+  // Get hard iron correction
+  mag_bias[0]  = (magCalMax[0] + magCalMin[0])/2;  // get average x mag bias in counts
+  mag_bias[1]  = (magCalMax[1] + magCalMin[1])/2;  // get average y mag bias in counts
+  mag_bias[2]  = (magCalMax[2] + magCalMin[2])/2;  // get average z mag bias in counts
+  
+  magBias[0] = (float) mag_bias[0]*mRes*magCalibration[0];  // save mag biases in G for main program
+  magBias[1] = (float) mag_bias[1]*mRes*magCalibration[1];   
+  magBias[2] = (float) mag_bias[2]*mRes*magCalibration[2];  
+      
+  // Get soft iron correction estimate
+  mag_scale[0]  = (magCalMax[0] - magCalMin[0])/2;  // get average x axis max chord length in counts
+  mag_scale[1]  = (magCalMax[1] - magCalMin[1])/2;  // get average y axis max chord length in counts
+  mag_scale[2]  = (magCalMax[2] - magCalMin[2])/2;  // get average z axis max chord length in counts
+
+  float avg_rad = mag_scale[0] + mag_scale[1] + mag_scale[2];
+  avg_rad /= 3.0;
+
+  magScale[0] = avg_rad/((float)mag_scale[0]);
+  magScale[1] = avg_rad/((float)mag_scale[1]);
+  magScale[2] = avg_rad/((float)mag_scale[2]);
+
+  Serial.println("Mag Calibration done!");
+  
+}
+
+/*  replaced with 3 functions above
 void magcalMPU9250(float * dest1, float * dest2) {
   uint16_t ii = 0, sample_count = 0;
   int32_t mag_bias[3] = {0, 0, 0}, mag_scale[3] = {0, 0, 0};
@@ -980,7 +1055,7 @@ void magcalMPU9250(float * dest1, float * dest2) {
   
    Serial.println("Mag Calibration done!");
 }
-
+*/
 
 
 // Accelerometer and gyroscope self test; check calibration wrt factory settings

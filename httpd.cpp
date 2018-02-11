@@ -194,6 +194,17 @@ void httpMpuCalAccelGyro(AsyncWebServerRequest *request) {
   runAccelGyroCal();
   request->send(200, "application/json", "{ \"success\": true }");
 }
+
+void httpMpuCalMagStart(AsyncWebServerRequest *request) {
+  runMagCalStart();
+  request->send(200, "application/json", "{ \"success\": true }");
+}
+
+void httpMpuCalMagStop(AsyncWebServerRequest *request) {
+  runMagCalStop();
+  request->send(200, "application/json", "{ \"success\": true }");
+}
+
 #endif
 
 void httpGetSensorInfo(AsyncWebServerRequest *request) {
@@ -445,6 +456,8 @@ void setupHTTP() {
   
   #ifdef ENABLE_MPU
   server.on("/mpuCalAccelGyro", HTTP_GET, httpMpuCalAccelGyro);
+  server.on("/mpuCalMagStart", HTTP_GET, httpMpuCalMagStart);
+  server.on("/mpuCalMagStop", HTTP_GET, httpMpuCalMagStop);
   #endif
 
 
