@@ -104,17 +104,8 @@ void saveConfig() {
   #endif
   #ifdef ENABLE_DIGITALIN
   json["updateDigitalInDelay"] = getUpdateDigitalInDelay();
-  
-  //Digital Pins
-  JsonObject& digitalPins = json.createNestedObject("digitalPinModes");
-  for (uint8_t x=0; x < NUMBER_DIGITAL_INPUT; x++) {
-    ;
-    getDigitalPinName(x, tmpPinStr[x]); // sets tmpPinStr to the name of pin (array of char)
-    digitalPins.set(tmpPinStr[x], getDigitalMode(x));
-  }
   #endif
-
-
+  
   File configFile = SPIFFS.open("/config.json", "w");
   if (!configFile) {
     Serial.println("failed to open config file for writing");
@@ -184,12 +175,6 @@ void loadConfig() {
         #endif
         #ifdef ENABLE_DIGITALIN
         setDigitalInUpdateDelay(json["updateDigitalInDelay"]);
-
-        //Digital
-        JsonObject& digitalPins = json["digitalPinModes"];
-        for (auto keyValue : digitalPins) {
-          setDigitalMode(keyValue.key, keyValue.value.as<uint8_t>());
-        }
         #endif
       } else {
         Serial.println("failed to load json config");

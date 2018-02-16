@@ -57,11 +57,8 @@ void DigitalInSensorInfo::toJson(JsonObject &jsonSens) {
 
 int     digitalPins[NUMBER_DIGITAL_INPUT] = DIGITAL_INPUT_PINS;
 char    digitalPinNames[NUMBER_DIGITAL_INPUT][10] = DIGITAL_INPUT_NAME;
-bool    digitalValueLast[NUMBER_DIGITAL_INPUT] = { false };
-bool    digitalValue[NUMBER_DIGITAL_INPUT] = { false };
-uint8_t digitalMode[NUMBER_DIGITAL_INPUT] = { DIGITAL_MODE_OFF };
 bool    digitalUpdateReady[NUMBER_DIGITAL_INPUT] = { false };
-
+uint32_t digitalPinCount[NUMBER_DIGITAL_INPUT] = { 0 };
 
 //Timers
 uint32_t updateDigitalInDelay = 1000;
@@ -73,36 +70,57 @@ bool periodicUpdateReady = false;
 
 uint32_t getUpdateDigitalInDelay() { return updateDigitalInDelay; }
 
-uint8_t getDigitalMode(uint8_t index) {
-  return digitalMode[index];
-}
-
 void getDigitalPinName(uint8_t index, char *dstCharArr) {
   strcpy(dstCharArr, digitalPinNames[index]);
 }
 
-// setters
-
-bool setDigitalMode(const char *nameCharArr, uint8_t mode) { 
-  for (int index=0;index<(sizeof(digitalPins)/sizeof(digitalPins[0])); index++) {
-    if (strcmp(nameCharArr, digitalPinNames[index]) == 0) {
-      digitalMode[index] = mode;
-      return true;
-    }
-  }
-  // if we got here we did not find a match to name
-  return false;
-}
 
 void interruptUpdateDigitalIn(void *pArg) {
   periodicUpdateReady = true;
 }
 
+void ICACHE_RAM_ATTR interruptDigitalPin0() {
+  digitalUpdateReady[0] = true; 
+  digitalPinCount[0]++;
+}
+
+void ICACHE_RAM_ATTR interruptDigitalPin1() {
+  digitalUpdateReady[1] = true; 
+  digitalPinCount[1]++;
+}
+
+void ICACHE_RAM_ATTR interruptDigitalPin2() {
+  digitalUpdateReady[2] = true; 
+  digitalPinCount[2]++;
+}
+
+void ICACHE_RAM_ATTR interruptDigitalPin3() {
+  digitalUpdateReady[3] = true; 
+  digitalPinCount[3]++;
+}
+
+void ICACHE_RAM_ATTR interruptDigitalPin4() {
+  digitalUpdateReady[4] = true; 
+  digitalPinCount[4]++;
+}
+
+void ICACHE_RAM_ATTR interruptDigitalPin5() {
+  digitalUpdateReady[5] = true; 
+  digitalPinCount[5]++;
+}
 
 void setupDigitalIn(bool &need_save) {
   for (int index=0;index<(sizeof(digitalPins)/sizeof(digitalPins[0])); index++) {
     initializeDigitalPin(index, need_save); 
   }
+
+  //configure interupts pins. would  be awesome to do this dynamically...
+  if (NUMBER_DIGITAL_INPUT >= 1) { attachInterrupt(digitalPins[0], interruptDigitalPin0, CHANGE); }
+  if (NUMBER_DIGITAL_INPUT >= 2) { attachInterrupt(digitalPins[1], interruptDigitalPin1, CHANGE); }
+  if (NUMBER_DIGITAL_INPUT >= 3) { attachInterrupt(digitalPins[2], interruptDigitalPin2, CHANGE); }
+  if (NUMBER_DIGITAL_INPUT >= 4) { attachInterrupt(digitalPins[3], interruptDigitalPin3, CHANGE); }
+  if (NUMBER_DIGITAL_INPUT >= 5) { attachInterrupt(digitalPins[4], interruptDigitalPin4, CHANGE); }
+  if (NUMBER_DIGITAL_INPUT >= 6) { attachInterrupt(digitalPins[5], interruptDigitalPin5, CHANGE); }
 
   os_timer_setfn(&digitalInTimer, interruptUpdateDigitalIn, NULL);
   os_timer_arm(&digitalInTimer, updateDigitalInDelay, true);  
@@ -111,21 +129,11 @@ void setupDigitalIn(bool &need_save) {
 
 void handleDigitalIn() {
 
-  //Check Pins
-  for (int index=0;index<(sizeof(digitalPins)/sizeof(digitalPins[0])); index++) {
-    // State
-    if (digitalMode[index] == DIGITAL_MODE_IN_STATE) {
-      digitalCheckState(index);
-    }
-  }
-
   //Check if periodic update ready
   if (periodicUpdateReady) {
     periodicUpdateReady = false;
     for (int index=0;index<(sizeof(digitalPins)/sizeof(digitalPins[0])); index++) {
-      if (digitalMode[index] != DIGITAL_MODE_OFF) {
-        digitalUpdateReady[index] = true; //set them all to true  
-      }
+      digitalUpdateReady[index] = true; //set them all to true  
     }
   }
 
@@ -156,31 +164,9 @@ void initializeDigitalPin(uint8_t index, bool &need_save) {
     need_save = true;
   }      
 
-  // take initial read.
-  if (digitalRead(digitalPins[index]) == LOW) {
-    digitalValueLast[index] = true;
-    digitalValue[index] = true;
-  }  
 }
 
 
-void digitalCheckState(uint8_t index) {
-  if (digitalRead(digitalPins[index]) == LOW) {
-    digitalValue[index] = true;
-  } else {
-    digitalValue[index] = false; 
-  }
-  if (digitalValue[index] && !digitalValueLast[index]) { 
-    //just activated!
-    digitalValueLast[index] = digitalValue[index];
-    digitalUpdateReady[index] = true;
-  }
-  if (!digitalValue[index] && digitalValueLast[index]) { 
-    //just deactivated!
-    digitalValueLast[index] = digitalValue[index];
-    digitalUpdateReady[index] = true;
-  }
-}
 
 
 void updateDigitalIn(uint8_t index) {
@@ -188,16 +174,12 @@ void updateDigitalIn(uint8_t index) {
 
   digitalUpdateReady[index] = false; // reset update ready
 
-  sensorStorage[(int)SensorType::digitalIn].forEach([&](SensorInfo* si) {
-
-  });
-
   thisSensorInfo = sensorStorage[(int)SensorType::digitalIn].find(
     digitalPinNames[index]
   );
 
   if (thisSensorInfo != nullptr) {
-    if (digitalValue[index]) {
+    if (digitalRead(digitalPins[index]) == LOW) {
       thisSensorInfo->valueJson[0] = "true";
     } else {
       thisSensorInfo->valueJson[0] = "false";
