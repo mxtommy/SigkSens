@@ -55,6 +55,11 @@ Defines
 #define TEMPERATURE_PRECISION 10
 #define ONEWIRE_READ_DELAY 187
 
+// MPU9250 uses interrupts for performance. The interrupt
+// pin is defined below:
+
+#define MPU_INTERRUPT_PIN 12
+
 // Button configuration for resetting the device
 
 #define RESET_CONFIG_PIN 0
