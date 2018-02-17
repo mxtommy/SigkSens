@@ -40,6 +40,7 @@ Defines
 // Digital input pins
 
 #define NUMBER_DIGITAL_INPUT 2  // set to number of elements in next two arrays...s
+                                // Note if more than 6, update DigitalIn to have more interrupt routines.
 #define DIGITAL_INPUT_PINS { 14, 12 } 
 #define DIGITAL_INPUT_NAME {"D1", "D2"}
 
