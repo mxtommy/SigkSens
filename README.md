@@ -42,19 +42,17 @@ Device should accept commands from Wifi. (WIP: how?)
 - 1Wire Bus (supporting MAX31850 Thermocouple breakout)
 	- Done!
 - MPU925X 9 axis IMU
-	- Proof of concept done.
-	- need some work on calibration, currently not saved across reboots, and calibrates at startup only.
+	- Done!
 - 2 Digital in (Opto isolated)
-	- State done.
-	- Frequency not done.
+    - Done!
 - 2 Digital out (Opto isolated)
 	- Planned.
 - SHT30 temp/humidity sensor
 	- Done
 - ADS1115 ADC (2 input 16 bits)
-	- Planned
+	- Done!
 - Pressure sensor
-	- Planned
+	- Done!
 
 		
 ## Requirement List
@@ -102,6 +100,8 @@ Device should accept commands from Wifi. (WIP: how?)
 
 #### Signalk
 - Hosts a simple websocket only (no rest interface) signalk server. Responds to endpoint URL with URL of websocket, and hosts websocket server. Can handle one or two clients.
-- Configurable SignalK Websocket URL for Signalk Server. Is set via webapp. Connects to existing signalk server to push deltas there.
-- Sends delta messages at regular (configurable) interval, preferably combining multiple updates into one message.
+- Auto-discovers SignalK Server via mDNS. Can also be manually set. Connects to existing signalk server to push deltas there.
+- Sends delta messages at regular (configurable) interval, combining multiple updates into one message when needed.
+
+
 
