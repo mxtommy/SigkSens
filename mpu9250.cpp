@@ -257,7 +257,8 @@ void setupMPU9250() {
       Serial.print("Z-Axis sensitivity adjustment value "); Serial.println(magCalibration[2], 2);
       os_timer_setfn(&mpuUpdateSensorInfo, interruptMPUSensorInfo, NULL);
       os_timer_arm(&mpuUpdateSensorInfo, updateMPUDelay, true);
-      attachInterrupt(12, interruptMPUNewData, RISING); // define interrupt for INT pin output of MPU9250
+      // define interrupt for INT pin output of MPU9250
+      attachInterrupt(MPU_INTERRUPT_PIN, interruptMPUNewData, RISING); 
       Serial.println("Interrupts setup");
     }
     if (MPUisValid && AK8963isValid) {
