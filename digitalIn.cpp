@@ -10,26 +10,44 @@ DigitalInSensorInfo::DigitalInSensorInfo(String addr) {
   strcpy(address, addr.c_str());
   signalKPath[0] = "";
   signalKPath[1] = "";
+  signalKPath[2] = "";
   attrName[0] = "state";
   attrName[1] = "freq";
+  attrName[1] = "count";
   type = SensorType::digitalIn;
   valueJson[0] = "null";
   valueJson[1] = "null";
+  valueJson[2] = "null";
+  offset[0] = 0;
+  offset[1] = 0;
+  offset[2] = 0;
+  scale[0] = 1;
+  scale[1] = 1;
+  scale[2] = 1;
 
   isUpdated = false;
 }
 
-DigitalInSensorInfo::DigitalInSensorInfo(String addr, 
-                                         String path1, 
-                                         String path2) {
+DigitalInSensorInfo::DigitalInSensorInfo(String addr, String path1, String path2, String path3,
+                                         float offset0, float offset1, float offset2,
+                                         float scale0, float scale1, float scale2) {
   strcpy(address, addr.c_str());
   signalKPath[0] = path1;
   signalKPath[1] = path2;
+  signalKPath[2] = path3;
   attrName[0] = "state";
   attrName[1] = "freq";
+  attrName[2] = "count";
   type = SensorType::digitalIn;
   valueJson[0] = "null";
   valueJson[1] = "null";
+  valueJson[2] = "null";
+  offset[0] = offset0;
+  offset[1] = offset1;
+  offset[2] = offset2;
+  scale[0] = scale0;
+  scale[1] = scale1;
+  scale[2] = scale2;
 
   isUpdated = false;
 }
@@ -38,7 +56,14 @@ DigitalInSensorInfo *DigitalInSensorInfo::fromJson(JsonObject &jsonSens) {
   return new DigitalInSensorInfo(
     jsonSens["address"],
     jsonSens["signalKPaths"][0],
-    jsonSens["signalKPaths"][1]
+    jsonSens["signalKPaths"][1],
+    jsonSens["signalKPaths"][2],
+    jsonSens["offsets"][0],
+    jsonSens["offsets"][1],
+    jsonSens["offsets"][2],
+    jsonSens["scales"][0],
+    jsonSens["scales"][1],
+    jsonSens["scales"][2]
   );
 }
 
@@ -46,21 +71,27 @@ void DigitalInSensorInfo::toJson(JsonObject &jsonSens) {
   jsonSens["address"] = address;
   jsonSens["type"] = (int)SensorType::digitalIn;
   JsonArray& jsonPaths = jsonSens.createNestedArray("signalKPaths");
+  JsonArray& jsonOffsets = jsonSens.createNestedArray("offsets");
+  JsonArray& jsonScales = jsonSens.createNestedArray("scales");
   for (int x=0 ; x < MAX_SENSOR_ATTRIBUTES ; x++) {
     if (strcmp(attrName[x].c_str(), "") == 0 ) {
       break; //no more attributes
     }
     jsonPaths.add(signalKPath[x]);
+    jsonOffsets.add(offset[x]);
+    jsonScales.add(scale[x]);
   }
 }
 
 
-int     digitalPins[NUMBER_DIGITAL_INPUT] = DIGITAL_INPUT_PINS;
-char    digitalPinNames[NUMBER_DIGITAL_INPUT][10] = DIGITAL_INPUT_NAME;
-bool    digitalValueLast[NUMBER_DIGITAL_INPUT] = { false };
-bool    digitalValue[NUMBER_DIGITAL_INPUT] = { false };
-uint8_t digitalMode[NUMBER_DIGITAL_INPUT] = { DIGITAL_MODE_OFF };
-bool    digitalUpdateReady[NUMBER_DIGITAL_INPUT] = { false };
+int               digitalPins[NUMBER_DIGITAL_INPUT] = DIGITAL_INPUT_PINS;
+char              digitalPinNames[NUMBER_DIGITAL_INPUT][10] = DIGITAL_INPUT_NAME;
+uint32_t          digitPinLastUpdateState[NUMBER_DIGITAL_INPUT] = { 0 };
+uint32_t          digitPinLastUpdatePeriodic[NUMBER_DIGITAL_INPUT] = { 0 };
+uint32_t          digitalPinCountLast[NUMBER_DIGITAL_INPUT] = { 0 };
+bool              digitalUpdateReady[NUMBER_DIGITAL_INPUT] = { false };
+volatile bool     digitalPinStateChange[NUMBER_DIGITAL_INPUT] = { false };
+volatile uint32_t digitalPinCount[NUMBER_DIGITAL_INPUT] = { 0 };
 
 
 //Timers
@@ -73,36 +104,57 @@ bool periodicUpdateReady = false;
 
 uint32_t getUpdateDigitalInDelay() { return updateDigitalInDelay; }
 
-uint8_t getDigitalMode(uint8_t index) {
-  return digitalMode[index];
-}
-
 void getDigitalPinName(uint8_t index, char *dstCharArr) {
   strcpy(dstCharArr, digitalPinNames[index]);
 }
 
-// setters
-
-bool setDigitalMode(const char *nameCharArr, uint8_t mode) { 
-  for (int index=0;index<(sizeof(digitalPins)/sizeof(digitalPins[0])); index++) {
-    if (strcmp(nameCharArr, digitalPinNames[index]) == 0) {
-      digitalMode[index] = mode;
-      return true;
-    }
-  }
-  // if we got here we did not find a match to name
-  return false;
-}
 
 void interruptUpdateDigitalIn(void *pArg) {
   periodicUpdateReady = true;
 }
 
+void ICACHE_RAM_ATTR interruptDigitalPin0() {
+  digitalPinStateChange[0] = true; 
+  digitalPinCount[0]++;
+}
+
+void ICACHE_RAM_ATTR interruptDigitalPin1() {
+  digitalPinStateChange[1] = true; 
+  digitalPinCount[1]++;
+}
+
+void ICACHE_RAM_ATTR interruptDigitalPin2() {
+  digitalPinStateChange[2] = true; 
+  digitalPinCount[2]++;
+}
+
+void ICACHE_RAM_ATTR interruptDigitalPin3() {
+  digitalPinStateChange[3] = true; 
+  digitalPinCount[3]++;
+}
+
+void ICACHE_RAM_ATTR interruptDigitalPin4() {
+  digitalPinStateChange[4] = true; 
+  digitalPinCount[4]++;
+}
+
+void ICACHE_RAM_ATTR interruptDigitalPin5() {
+  digitalPinStateChange[5] = true; 
+  digitalPinCount[5]++;
+}
 
 void setupDigitalIn(bool &need_save) {
   for (int index=0;index<(sizeof(digitalPins)/sizeof(digitalPins[0])); index++) {
     initializeDigitalPin(index, need_save); 
   }
+
+  //configure interupts pins. would  be awesome to do this dynamically...
+  if (NUMBER_DIGITAL_INPUT >= 1) { attachInterrupt(digitalPins[0], interruptDigitalPin0, CHANGE); }
+  if (NUMBER_DIGITAL_INPUT >= 2) { attachInterrupt(digitalPins[1], interruptDigitalPin1, CHANGE); }
+  if (NUMBER_DIGITAL_INPUT >= 3) { attachInterrupt(digitalPins[2], interruptDigitalPin2, CHANGE); }
+  if (NUMBER_DIGITAL_INPUT >= 4) { attachInterrupt(digitalPins[3], interruptDigitalPin3, CHANGE); }
+  if (NUMBER_DIGITAL_INPUT >= 5) { attachInterrupt(digitalPins[4], interruptDigitalPin4, CHANGE); }
+  if (NUMBER_DIGITAL_INPUT >= 6) { attachInterrupt(digitalPins[5], interruptDigitalPin5, CHANGE); }
 
   os_timer_setfn(&digitalInTimer, interruptUpdateDigitalIn, NULL);
   os_timer_arm(&digitalInTimer, updateDigitalInDelay, true);  
@@ -111,28 +163,26 @@ void setupDigitalIn(bool &need_save) {
 
 void handleDigitalIn() {
 
-  //Check Pins
-  for (int index=0;index<(sizeof(digitalPins)/sizeof(digitalPins[0])); index++) {
-    // State
-    if (digitalMode[index] == DIGITAL_MODE_IN_STATE) {
-      digitalCheckState(index);
-    }
-  }
-
   //Check if periodic update ready
   if (periodicUpdateReady) {
     periodicUpdateReady = false;
     for (int index=0;index<(sizeof(digitalPins)/sizeof(digitalPins[0])); index++) {
-      if (digitalMode[index] != DIGITAL_MODE_OFF) {
-        digitalUpdateReady[index] = true; //set them all to true  
-      }
+      digitalUpdateReady[index] = true; //set them all to true  
+    }
+  }
+
+  for (int index=0;index<(sizeof(digitalPins)/sizeof(digitalPins[0])); index++) {
+    if (digitalPinStateChange[index]) {
+      updateDigitalInState(index);
     }
   }
 
   //Update Sensorinfo
   for (int index=0;index<(sizeof(digitalPins)/sizeof(digitalPins[0])); index++) {
     if (digitalUpdateReady[index]) {
-      updateDigitalIn(index);
+      digitalUpdateReady[index] = false; // reset update ready
+      updateDigitalInPeriodic(index);
+      
     }
   }
 }
@@ -156,54 +206,86 @@ void initializeDigitalPin(uint8_t index, bool &need_save) {
     need_save = true;
   }      
 
-  // take initial read.
-  if (digitalRead(digitalPins[index]) == LOW) {
-    digitalValueLast[index] = true;
-    digitalValue[index] = true;
-  }  
 }
 
+void updateDigitalInState(uint8_t index) {
+  SensorInfo *si;
+  uint32_t timeNow = micros();
+  uint32_t delta;
 
-void digitalCheckState(uint8_t index) {
-  if (digitalRead(digitalPins[index]) == LOW) {
-    digitalValue[index] = true;
-  } else {
-    digitalValue[index] = false; 
+
+  if (timeNow < digitPinLastUpdateState[index]) { //protection against wrap around
+    digitPinLastUpdateState[index] = timeNow;
+    return; //skip this update...
   }
-  if (digitalValue[index] && !digitalValueLast[index]) { 
-    //just activated!
-    digitalValueLast[index] = digitalValue[index];
-    digitalUpdateReady[index] = true;
-  }
-  if (!digitalValue[index] && digitalValueLast[index]) { 
-    //just deactivated!
-    digitalValueLast[index] = digitalValue[index];
-    digitalUpdateReady[index] = true;
-  }
-}
-
-
-void updateDigitalIn(uint8_t index) {
-  SensorInfo *thisSensorInfo;
-
-  digitalUpdateReady[index] = false; // reset update ready
-
-  sensorStorage[(int)SensorType::digitalIn].forEach([&](SensorInfo* si) {
-
-  });
-
-  thisSensorInfo = sensorStorage[(int)SensorType::digitalIn].find(
+  delta = timeNow - digitPinLastUpdateState[index];
+  if (delta < 200000) {
+    return; //skip this update... don't send more than once every 20ms (10/sec)
+  }      
+  //reset flags
+  digitPinLastUpdateState[index] = timeNow;
+  digitalPinStateChange[index] = false; // reset update ready
+  
+  si = sensorStorage[(int)SensorType::digitalIn].find(
     digitalPinNames[index]
   );
 
-  if (thisSensorInfo != nullptr) {
-    if (digitalValue[index]) {
-      thisSensorInfo->valueJson[0] = "true";
-    } else {
-      thisSensorInfo->valueJson[0] = "false";
+  if (si != nullptr) {
+    //current state
+    if (strcmp(si->signalKPath[0].c_str(), "") != 0) {
+      if (digitalRead(digitalPins[index]) == LOW) {
+        si->valueJson[0] = "true";
+      } else {
+        si->valueJson[0] = "false";
+      }
+      si->isUpdated = true; 
     }
-    thisSensorInfo->valueJson[1] = "null";
-    thisSensorInfo->isUpdated = true;    
+  }
+}
+
+
+void updateDigitalInPeriodic(uint8_t index) {
+  uint32_t timeNow = micros();
+  uint32_t delta;
+  SensorInfo *si;
+  float rawHz;
+    
+  si = sensorStorage[(int)SensorType::digitalIn].find(
+    digitalPinNames[index]
+  );
+
+  if (si != nullptr) {
+    //current state
+    if (strcmp(si->signalKPath[0].c_str(), "") != 0) {
+      if (digitalRead(digitalPins[index]) == LOW) {
+        si->valueJson[0] = "true";
+      } else {
+        si->valueJson[0] = "false";
+      }
+      si->isUpdated = true; 
+    }
+    //Hz (pulse/time)
+    if (strcmp(si->signalKPath[1].c_str(), "") != 0) {
+      if (timeNow < digitPinLastUpdatePeriodic[index]) { //protection against wrap around
+        digitPinLastUpdatePeriodic[index] = timeNow;
+        return; //skip this update...
+      }
+
+      delta = timeNow - digitPinLastUpdatePeriodic[index];
+      rawHz = (float)(((digitalPinCount[index]-digitalPinCountLast[index])*1000000)/delta)/2;  // divide by 2 because interupt is on change (both rise and fall)
+
+      si->valueJson[1] = (rawHz * si->scale[1]) + si->offset[1];
+      si->isUpdated = true; 
+      digitalPinCountLast[index] = digitalPinCount[index];
+      digitPinLastUpdatePeriodic[index] = timeNow;
+    }       
+    //count
+    if (strcmp(si->signalKPath[2].c_str(), "") != 0) {
+
+      si->valueJson[2] = ((digitalPinCount[index]/2) * si->scale[2]) + si->offset[2];
+      si->isUpdated = true;       
+
+    }
   }
 }
 

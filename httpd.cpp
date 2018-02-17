@@ -175,20 +175,6 @@ void httpSetSignalKPath(AsyncWebServerRequest *request) {
   restartWebSocketClient();
 }
 
-#ifdef ENABLE_DIGITALIN
-void httpSetDigitalMode(AsyncWebServerRequest *request) {
-  if(!request->hasArg("input")) {request->send(500, "text/plain", "missing arg 'input'"); return;}
-  if(!request->hasArg("mode")) {request->send(500, "text/plain", "missing arg 'mode'"); return;}
-
-  if (setDigitalMode(request->arg("input").c_str(), request->arg("mode").toInt())) {
-    saveConfig();
-    request->send(200, "application/json", "{ \"success\": true }");    
-  } else {
-    request->send(404, "text/plain", "404: Not found"); // Send HTTP status 404 (Not Found) when there's no handler for the URI in the request
-  }
-}
-#endif
-
 #ifdef ENABLE_MPU
 void httpMpuCalAccelGyro(AsyncWebServerRequest *request) {
   runAccelGyroCal();
@@ -235,15 +221,6 @@ void httpGetSensorInfo(AsyncWebServerRequest *request) {
   json["sensorMPU925X"] = getSensorMPU925XPresent();
   #endif
 
-  #ifdef ENABLE_DIGITALIN
-  //Digital
-  JsonObject& digitalPins = json.createNestedObject("digitalPins");
-  for (uint8_t x=0; x < NUMBER_DIGITAL_INPUT; x++) {
-    getDigitalPinName(x, tmpPinStr); // sets tmpPinStr to the name of pin (array of char)
-    digitalPins[tmpPinStr] = getDigitalMode(x);
-  }
-  #endif
-  
   //Timers
   JsonObject& timers = json.createNestedObject("timers");
 
@@ -450,10 +427,7 @@ void setupHTTP() {
   server.on("/setTimerDelay", HTTP_GET, httpSetTimerDelay);
   server.on("/setNewHostname", HTTP_GET, httpNewHostname);
 
-  #ifdef ENABLE_DIGITALIN
-  server.on("/setDigitalMode", HTTP_GET, httpSetDigitalMode);
-  #endif
-  
+
   #ifdef ENABLE_MPU
   server.on("/mpuCalAccelGyro", HTTP_GET, httpMpuCalAccelGyro);
   server.on("/mpuCalMagStart", HTTP_GET, httpMpuCalMagStart);
