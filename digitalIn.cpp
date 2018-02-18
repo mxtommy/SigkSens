@@ -113,34 +113,9 @@ void interruptUpdateDigitalIn(void *pArg) {
   periodicUpdateReady = true;
 }
 
-void ICACHE_RAM_ATTR interruptDigitalPin0() {
-  digitalPinStateChange[0] = true; 
-  digitalPinCount[0]++;
-}
-
-void ICACHE_RAM_ATTR interruptDigitalPin1() {
-  digitalPinStateChange[1] = true; 
-  digitalPinCount[1]++;
-}
-
-void ICACHE_RAM_ATTR interruptDigitalPin2() {
-  digitalPinStateChange[2] = true; 
-  digitalPinCount[2]++;
-}
-
-void ICACHE_RAM_ATTR interruptDigitalPin3() {
-  digitalPinStateChange[3] = true; 
-  digitalPinCount[3]++;
-}
-
-void ICACHE_RAM_ATTR interruptDigitalPin4() {
-  digitalPinStateChange[4] = true; 
-  digitalPinCount[4]++;
-}
-
-void ICACHE_RAM_ATTR interruptDigitalPin5() {
-  digitalPinStateChange[5] = true; 
-  digitalPinCount[5]++;
+void ICACHE_RAM_ATTR interruptDigitalPin(int pin) {
+  digitalPinStateChange[pin] = true; 
+  digitalPinCount[pin]++;
 }
 
 void setupDigitalIn(bool &need_save) {
@@ -149,12 +124,24 @@ void setupDigitalIn(bool &need_save) {
   }
 
   //configure interupts pins. would  be awesome to do this dynamically...
-  if (NUMBER_DIGITAL_INPUT >= 1) { attachInterrupt(digitalPins[0], interruptDigitalPin0, CHANGE); }
-  if (NUMBER_DIGITAL_INPUT >= 2) { attachInterrupt(digitalPins[1], interruptDigitalPin1, CHANGE); }
-  if (NUMBER_DIGITAL_INPUT >= 3) { attachInterrupt(digitalPins[2], interruptDigitalPin2, CHANGE); }
-  if (NUMBER_DIGITAL_INPUT >= 4) { attachInterrupt(digitalPins[3], interruptDigitalPin3, CHANGE); }
-  if (NUMBER_DIGITAL_INPUT >= 5) { attachInterrupt(digitalPins[4], interruptDigitalPin4, CHANGE); }
-  if (NUMBER_DIGITAL_INPUT >= 6) { attachInterrupt(digitalPins[5], interruptDigitalPin5, CHANGE); }
+  #if (NUMBER_DIGITAL_INPUT > 0)
+  attachInterrupt(digitalPins[0], []() {interruptDigitalPin(0);}, CHANGE);
+  #endif
+  #if (NUMBER_DIGITAL_INPUT > 1)
+  attachInterrupt(digitalPins[1], []() {interruptDigitalPin(1);}, CHANGE);
+  #endif
+  #if (NUMBER_DIGITAL_INPUT > 2)
+  attachInterrupt(digitalPins[2], []() {interruptDigitalPin(2);}, CHANGE);
+  #endif
+  #if (NUMBER_DIGITAL_INPUT > 3)
+  attachInterrupt(digitalPins[3], []() {interruptDigitalPin(3);}, CHANGE);
+  #endif
+  #if (NUMBER_DIGITAL_INPUT > 4)
+  attachInterrupt(digitalPins[4], []() {interruptDigitalPin(4);}, CHANGE);
+  #endif
+  #if (NUMBER_DIGITAL_INPUT > 5)
+  attachInterrupt(digitalPins[5], []() {interruptDigitalPin(5);}, CHANGE);
+  #endif
 
   os_timer_setfn(&digitalInTimer, interruptUpdateDigitalIn, NULL);
   os_timer_arm(&digitalInTimer, updateDigitalInDelay, true);  
