@@ -96,9 +96,6 @@ void saveConfig() {
   
   json["oneWireReadDelay"] = oneWireReadDelay;
   #endif
-  #ifdef ENABLE_SHT30
-  json["sensorSHTReadDelay"] = getSensorSHTReadDelay();
-  #endif
   #ifdef ENABLE_ADS1115
   json["readADSDelay"] = getReadADSDelay();
   json["updateADSDelay"] = getUpdateADSDelay();
@@ -163,9 +160,6 @@ void loadConfig() {
         #ifdef ENABLE_ONEWIRE
         uint32_t oneWireReadDelay = json["oneWireReadDelay"];
         setOneWireReadDelay(oneWireReadDelay);
-        #endif
-        #ifdef ENABLE_SHT30
-        setSHTReadDelay(json["sensorSHTReadDelay"]);
         #endif
         #ifdef ENABLE_ADS1115
         setADSReadDelay(json["readADSDelay"]);

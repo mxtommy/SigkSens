@@ -208,7 +208,7 @@ void loop() {
   //Stuff that runs  once every 1000 loops. (still many many times/sec)
   if (mainLoopCount > 1000) {
       #ifdef ENABLE_I2C
-      handleI2C_slow();
+      handleI2C_slow(sendDelta);
       #endif
       #ifdef ENABLE_ONEWIRE
         handle1Wire(need_save);

@@ -171,10 +171,10 @@ void handleI2C(bool &sendDelta) {
 }
 
 
-void handleI2C_slow() {
+void handleI2C_slow(bool &sendDelta) {
 #ifdef ENABLE_SHT30
   if (sensorSHT30Present) {
-    handleSHT30();  
+    handleSHT30(sendDelta);  
   }
 #endif
 #ifdef ENABLE_BMP280

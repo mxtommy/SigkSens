@@ -228,9 +228,6 @@ void httpGetSensorInfo(AsyncWebServerRequest *request) {
   #ifdef ENABLE_ONEWIRE
   timers["oneWire"] = getOneWireReadDelay();
   #endif
-  #ifdef ENABLE_SHT30
-  timers["sht30"] = getSensorSHTReadDelay();
-  #endif
   #ifdef ENABLE_ADS1115
   timers["ads1115Read"] = getReadADSDelay();
   timers["ads1115Update"] = getUpdateADSDelay();
@@ -342,12 +339,6 @@ void httpSetTimerDelay(AsyncWebServerRequest *request) {
     else if (strcmp(timer, "oneWire") == 0) {
       ok = true;
       setOneWireReadDelay(newDelay);
-    }
-    #endif
-    #ifdef ENABLE_SHT30
-    else if (strcmp(timer, "sht30") == 0) {
-      ok = true;
-      setSHTReadDelay(newDelay);
     }
     #endif
     #ifdef ENABLE_ADS1115
