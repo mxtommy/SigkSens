@@ -184,7 +184,7 @@ void handleI2C_slow(bool &sendDelta) {
 #endif
 #ifdef ENABLE_ADS1115
   if (sensorADS1115Present) {
-    handleADS1115();
+    handleADS1115(sendDelta);
   }
 #endif
 }

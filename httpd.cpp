@@ -230,7 +230,6 @@ void httpGetSensorInfo(AsyncWebServerRequest *request) {
   #endif
   #ifdef ENABLE_ADS1115
   timers["ads1115Read"] = getReadADSDelay();
-  timers["ads1115Update"] = getUpdateADSDelay();
   #endif
   #ifdef ENABLE_DIGITALIN
   timers["digitalIn"] = getUpdateDigitalInDelay();
@@ -346,10 +345,6 @@ void httpSetTimerDelay(AsyncWebServerRequest *request) {
       ok = true;
       setADSReadDelay(newDelay);
     }
-    else if (strcmp(timer, "ads1115Update") == 0) {
-      ok = true;
-      setADSUpdateDelay(newDelay);
-    }        
     #endif
     #ifdef ENABLE_DIGITALIN
     else if (strcmp(timer, "digitalIn") == 0) {

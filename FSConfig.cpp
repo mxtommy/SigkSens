@@ -98,7 +98,6 @@ void saveConfig() {
   #endif
   #ifdef ENABLE_ADS1115
   json["readADSDelay"] = getReadADSDelay();
-  json["updateADSDelay"] = getUpdateADSDelay();
   #endif
   #ifdef ENABLE_DIGITALIN
   json["updateDigitalInDelay"] = getUpdateDigitalInDelay();
@@ -163,7 +162,6 @@ void loadConfig() {
         #endif
         #ifdef ENABLE_ADS1115
         setADSReadDelay(json["readADSDelay"]);
-        setADSUpdateDelay(json["updateADSDelay"]);
         #endif
         #ifdef ENABLE_DIGITALIN
         setDigitalInUpdateDelay(json["updateDigitalInDelay"]);
