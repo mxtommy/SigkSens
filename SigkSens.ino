@@ -32,7 +32,9 @@
 #ifdef ENABLE_DIGITALIN
   #include "digitalIn.h"
 #endif
-
+#ifdef ENABLE_ANALOGIN
+  #include "analogIn.h"
+#endif
 
 
 #include "systemHz.h"
@@ -169,6 +171,9 @@ void setup() {
   #ifdef ENABLE_DIGITALIN
   setupDigitalIn(need_save);
   #endif
+  #ifdef ENABLE_ANALOGIN
+  setupAnalogIn(need_save);
+  #endif
   setupSystemHz(need_save);
   
   if (need_save) {
@@ -215,7 +220,10 @@ void loop() {
       #ifdef ENABLE_DIGITALIN
       handleDigitalIn();
       #endif
-      
+      #ifdef ENABLE_ANALOGIN
+      handleAnalogIn();
+      #endif
+
       handleConfigReset(); 
       mainLoopCount = 0;
   }

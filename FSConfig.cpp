@@ -27,6 +27,9 @@ extern "C" {
 #ifdef ENABLE_DIGITALIN
   #include "digitalIn.h"
 #endif
+#ifdef ENABLE_ANALOGIN
+  #include "analogIn.h"
+#endif
 #include "systemHz.h"
 #include "sigksens.h"
 

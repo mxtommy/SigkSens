@@ -23,7 +23,8 @@ enum class SensorType {
   mpu925x,
   bmp280,
   ads1115,
-  SensorType_MAX = ads1115  // update this if you add items!
+  analogIn,
+  SensorType_MAX = analogIn  // update this if you add items!
 };
 
 // memory to save sensor info
