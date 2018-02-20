@@ -179,7 +179,7 @@ void handleI2C_slow(bool &sendDelta) {
 #endif
 #ifdef ENABLE_BMP280
   if (sensorBMP280Present) {
-    handleBMP280();  
+    handleBMP280(sendDelta);  
   }
 #endif
 #ifdef ENABLE_ADS1115
