@@ -41,7 +41,7 @@
 #include "signalK.h"
 #include "httpd.h"
 #include "sigksens.h"
-
+#include "timer.h"
 
 /*---------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------
@@ -171,6 +171,8 @@ void setup() {
   #endif
   setupSystemHz(need_save);
   
+  setupTimers();
+
   if (need_save) {
     saveConfig();
   }
@@ -187,11 +189,16 @@ Main Loop!
 
 void loop() {
   bool need_save = false;
+  bool sendDelta = false;
   //device mgmt
   yield();           
   
+  // see if we're ready to send deltas
+  handleTimers(sendDelta);
+
+
   //Stuff here run's all the time
-  handleSystemHz();
+  handleSystemHz(sendDelta);
   #ifdef ENABLE_I2C
   handleI2C();
   #endif

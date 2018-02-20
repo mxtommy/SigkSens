@@ -19,6 +19,6 @@ class SystemHzSensorInfo : public SensorInfo {
 
 
 void setupSystemHz(bool&);
-void handleSystemHz();
+void handleSystemHz(bool&);
 
 #endif

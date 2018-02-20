@@ -55,22 +55,12 @@ void SystemHzSensorInfo::toJson(JsonObject &jsonSens) {
 }
 
 
-os_timer_t  updateHz; // once request cycle starts, this timer set so we can send when ready
-bool readyToUpdateHz = false;
 
 uint32_t systemHzCount = 0, systemHzMs = 0;
 
 float systemHz = 0;
 
-
-void interruptSystemHz(void *pArg) {
-  readyToUpdateHz = true;
-}
-
-
 void setupSystemHz(bool &need_save) {
-  os_timer_setfn(&updateHz, interruptSystemHz, NULL);
-  os_timer_arm(&updateHz, 1000, true);
   systemHzMs = millis();
   SensorInfo *tmpSensorInfo;
 
@@ -112,10 +102,8 @@ void updateSystemHz() {
 }
 
 
-void handleSystemHz() {
-  if (readyToUpdateHz) {
-    // reset interupt
-    readyToUpdateHz = false;
+void handleSystemHz(bool &sendDelta) {
+  if (sendDelta) {
     updateSystemHz();
   }
   systemHzCount++;
