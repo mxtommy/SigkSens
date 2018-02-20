@@ -225,9 +225,6 @@ void httpGetSensorInfo(AsyncWebServerRequest *request) {
   //Timers
   JsonObject& timers = json.createNestedObject("timers");
   timers["deltaDelay"] = getDeltaDelay();
-  #ifdef ENABLE_ONEWIRE
-  timers["oneWire"] = getOneWireReadDelay();
-  #endif
   #ifdef ENABLE_ADS1115
   timers["ads1115Read"] = getReadADSDelay();
   #endif
@@ -332,12 +329,6 @@ void httpSetTimerDelay(AsyncWebServerRequest *request) {
       ok = true;
       setDeltaDelay(newDelay);
     }
-    #ifdef ENABLE_ONEWIRE
-    else if (strcmp(timer, "oneWire") == 0) {
-      ok = true;
-      setOneWireReadDelay(newDelay);
-    }
-    #endif
     #ifdef ENABLE_ADS1115
     else if (strcmp(timer, "ads1115Read") == 0) {
       ok = true;

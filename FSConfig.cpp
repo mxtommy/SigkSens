@@ -89,10 +89,6 @@ void saveConfig() {
 
   //Timers
   json["deltaTimer"] = getDeltaDelay();
-
-  #ifdef ENABLE_ONEWIRE
-  json["oneWireReadDelay"] = getOneWireReadDelay();
-  #endif
   #ifdef ENABLE_ADS1115
   json["readADSDelay"] = getReadADSDelay();
   #endif
@@ -150,10 +146,6 @@ void loadConfig() {
 
         //Timers
         setDeltaDelay(json["deltaTimer"]);
-        #ifdef ENABLE_ONEWIRE
-        uint32_t oneWireReadDelay = json["oneWireReadDelay"];
-        setOneWireReadDelay(oneWireReadDelay);
-        #endif
         #ifdef ENABLE_ADS1115
         setADSReadDelay(json["readADSDelay"]);
         #endif

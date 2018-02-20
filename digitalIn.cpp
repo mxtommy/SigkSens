@@ -147,6 +147,7 @@ void setupDigitalIn(bool &need_save) {
 
 void handleDigitalIn(bool &sendDelta) {
   //Check if periodic update ready
+  if (sendDelta) {
     for (int index=0;index<(sizeof(digitalPins)/sizeof(digitalPins[0])); index++) {
       digitalUpdateReady[index] = true; //set them all to true  
     }
