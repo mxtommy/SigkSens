@@ -29,6 +29,7 @@ extern "C" {
 #endif
 #include "systemHz.h"
 #include "sigksens.h"
+#include "timer.h"
 
 /*----------------------------------------------------------------------------
 ------------------------------------------------------------------------------
@@ -86,17 +87,17 @@ void saveConfig() {
     si->toJson(jsonSensors.createNestedObject());
   });
 
+  //Timers
+  json["deltaTimer"] = getDeltaDelay();
+
   #ifdef ENABLE_ONEWIRE
   uint32_t oneWireReadDelay = getOneWireReadDelay();
   
-  //Timers
+  
   json["oneWireReadDelay"] = oneWireReadDelay;
   #endif
   #ifdef ENABLE_SHT30
   json["sensorSHTReadDelay"] = getSensorSHTReadDelay();
-  #endif
-  #ifdef ENABLE_MPU
-  json["updateMPUDelay"] = getUpdateMPUDelay();
   #endif
   #ifdef ENABLE_ADS1115
   json["readADSDelay"] = getReadADSDelay();
@@ -158,16 +159,13 @@ void loadConfig() {
         }
 
         //Timers
-
+        setDeltaDelay(json["deltaTimer"]);
         #ifdef ENABLE_ONEWIRE
         uint32_t oneWireReadDelay = json["oneWireReadDelay"];
         setOneWireReadDelay(oneWireReadDelay);
         #endif
         #ifdef ENABLE_SHT30
         setSHTReadDelay(json["sensorSHTReadDelay"]);
-        #endif
-        #ifdef ENABLE_MPU
-        setMPUUpdateDelay(json["updateMPUDelay"]);
         #endif
         #ifdef ENABLE_ADS1115
         setADSReadDelay(json["readADSDelay"]);

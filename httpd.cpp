@@ -34,6 +34,7 @@ extern "C" {
 #include "FSConfig.h"
 #include "webSocket.h"
 #include "sigksens.h"
+#include "timer.h"
 
 // SSDP related stuff
 
@@ -223,15 +224,12 @@ void httpGetSensorInfo(AsyncWebServerRequest *request) {
 
   //Timers
   JsonObject& timers = json.createNestedObject("timers");
-
+  timers["deltaDelay"] = getDeltaDelay();
   #ifdef ENABLE_ONEWIRE
   timers["oneWire"] = getOneWireReadDelay();
   #endif
   #ifdef ENABLE_SHT30
   timers["sht30"] = getSensorSHTReadDelay();
-  #endif
-  #ifdef ENABLE_MPU
-  timers["mpu925x"] = getUpdateMPUDelay();
   #endif
   #ifdef ENABLE_ADS1115
   timers["ads1115Read"] = getReadADSDelay();
@@ -336,22 +334,20 @@ void httpSetTimerDelay(AsyncWebServerRequest *request) {
   newDelay = request->arg("delay").toInt();
 
   if (newDelay > 5) { //ostimer min delay is 5ms
-    if (strcmp(timer, "oneWire") == 0) {
+    if (strcmp(timer, "deltaDelay") == 0) {
+      ok = true;
+      setDeltaDelay(newDelay);
+    }
     #ifdef ENABLE_ONEWIRE
+    else if (strcmp(timer, "oneWire") == 0) {
       ok = true;
       setOneWireReadDelay(newDelay);
-    #endif
     }
+    #endif
     #ifdef ENABLE_SHT30
     else if (strcmp(timer, "sht30") == 0) {
       ok = true;
       setSHTReadDelay(newDelay);
-    }
-    #endif
-    #ifdef ENABLE_MPU
-    else if (strcmp(timer, "mpu925x") == 0) {
-      ok = true;
-      setMPUUpdateDelay(newDelay);
     }
     #endif
     #ifdef ENABLE_ADS1115

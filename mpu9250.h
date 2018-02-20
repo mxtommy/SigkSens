@@ -22,11 +22,8 @@ class MPU9250SensorInfo : public SensorInfo {
 enum class MpuRunMode { mpuOff, mpuRun, calAccelGyro, calMagStart, calMagRun, calMagStop };
 
 
-uint32_t getUpdateMPUDelay();
-void setMPUUpdateDelay(uint32_t newDelay);
-
 void setupMPU9250();
-void handleMPU9250();
+void handleMPU9250(bool&);
 
 void processMPU9250();
 void updateQuaternion();

@@ -200,7 +200,7 @@ void loop() {
   //Stuff here run's all the time
   handleSystemHz(sendDelta);
   #ifdef ENABLE_I2C
-  handleI2C();
+  handleI2C(sendDelta);
   #endif
 
   mainLoopCount++;
