@@ -231,9 +231,7 @@ void httpGetSensorInfo(AsyncWebServerRequest *request) {
   #ifdef ENABLE_ADS1115
   timers["ads1115Read"] = getReadADSDelay();
   #endif
-  #ifdef ENABLE_DIGITALIN
-  timers["digitalIn"] = getUpdateDigitalInDelay();
-  #endif
+
 
   //Sensors
   JsonArray& sensorArr = json.createNestedArray("sensors");
@@ -346,13 +344,7 @@ void httpSetTimerDelay(AsyncWebServerRequest *request) {
       setADSReadDelay(newDelay);
     }
     #endif
-    #ifdef ENABLE_DIGITALIN
-    else if (strcmp(timer, "digitalIn") == 0) {
-      ok = true;
-      setDigitalInUpdateDelay(newDelay);
-    }
-    #endif
-    
+        
   }
 
   if (ok) {

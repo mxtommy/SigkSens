@@ -17,14 +17,11 @@ class DigitalInSensorInfo : public SensorInfo {
 };
 
 void setupDigitalIn(bool &need_save);
-void handleDigitalIn();
+void handleDigitalIn(bool &sendDelta);
 void initializeDigitalPin(uint8_t index, bool &need_save);
 
 void updateDigitalInState(uint8_t index);
 void updateDigitalInPeriodic(uint8_t index);
-
-void setDigitalInUpdateDelay(uint32_t newDelay);
-uint32_t getUpdateDigitalInDelay();
 
 void getDigitalPinName(uint8_t index, char *dstCharArr);
 

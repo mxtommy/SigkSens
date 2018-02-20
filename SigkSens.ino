@@ -197,6 +197,7 @@ void loop() {
   handleTimers(sendDelta);
 
 
+
   //Stuff here run's all the time
   handleSystemHz(sendDelta);
   #ifdef ENABLE_I2C
@@ -204,24 +205,28 @@ void loop() {
   #endif
 
   mainLoopCount++;
-  
+
   //Stuff that runs  once every 1000 loops. (still many many times/sec)
-  if (mainLoopCount > 1000) {
+  if ((mainLoopCount > 1000) || sendDelta) {
+         if (sendDelta) {
+    Serial.println("d"); }
       #ifdef ENABLE_I2C
       handleI2C_slow(sendDelta);
       #endif
       #ifdef ENABLE_ONEWIRE
         handle1Wire(need_save);
       #endif
+      #ifdef ENABLE_DIGITALIN
+      handleDigitalIn(sendDelta);
+      #endif
+
       if (need_save) {
         saveConfig();
       }
   
       handleWebSocket();
       handleSignalK();
-      #ifdef ENABLE_DIGITALIN
-      handleDigitalIn();
-      #endif
+
       
       handleConfigReset(); 
       mainLoopCount = 0;

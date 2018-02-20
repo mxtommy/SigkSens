@@ -91,16 +91,10 @@ void saveConfig() {
   json["deltaTimer"] = getDeltaDelay();
 
   #ifdef ENABLE_ONEWIRE
-  uint32_t oneWireReadDelay = getOneWireReadDelay();
-  
-  
-  json["oneWireReadDelay"] = oneWireReadDelay;
+  json["oneWireReadDelay"] = getOneWireReadDelay();
   #endif
   #ifdef ENABLE_ADS1115
   json["readADSDelay"] = getReadADSDelay();
-  #endif
-  #ifdef ENABLE_DIGITALIN
-  json["updateDigitalInDelay"] = getUpdateDigitalInDelay();
   #endif
   
   File configFile = SPIFFS.open("/config.json", "w");
@@ -162,9 +156,6 @@ void loadConfig() {
         #endif
         #ifdef ENABLE_ADS1115
         setADSReadDelay(json["readADSDelay"]);
-        #endif
-        #ifdef ENABLE_DIGITALIN
-        setDigitalInUpdateDelay(json["updateDigitalInDelay"]);
         #endif
       } else {
         Serial.println("failed to load json config");

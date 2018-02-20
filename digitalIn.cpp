@@ -94,24 +94,10 @@ volatile bool     digitalPinStateChange[NUMBER_DIGITAL_INPUT] = { false };
 volatile uint32_t digitalPinCount[NUMBER_DIGITAL_INPUT] = { 0 };
 
 
-//Timers
-uint32_t updateDigitalInDelay = 1000;
-
-os_timer_t  digitalInTimer; // timer to update signalk
-bool periodicUpdateReady = false;
-
-// getters
-
-uint32_t getUpdateDigitalInDelay() { return updateDigitalInDelay; }
-
 void getDigitalPinName(uint8_t index, char *dstCharArr) {
   strcpy(dstCharArr, digitalPinNames[index]);
 }
 
-
-void interruptUpdateDigitalIn(void *pArg) {
-  periodicUpdateReady = true;
-}
 
 void ICACHE_RAM_ATTR interruptDigitalPin0() {
   digitalPinStateChange[0] = true; 
@@ -156,16 +142,11 @@ void setupDigitalIn(bool &need_save) {
   if (NUMBER_DIGITAL_INPUT >= 5) { attachInterrupt(digitalPins[4], interruptDigitalPin4, CHANGE); }
   if (NUMBER_DIGITAL_INPUT >= 6) { attachInterrupt(digitalPins[5], interruptDigitalPin5, CHANGE); }
 
-  os_timer_setfn(&digitalInTimer, interruptUpdateDigitalIn, NULL);
-  os_timer_arm(&digitalInTimer, updateDigitalInDelay, true);  
 }
 
 
-void handleDigitalIn() {
-
+void handleDigitalIn(bool &sendDelta) {
   //Check if periodic update ready
-  if (periodicUpdateReady) {
-    periodicUpdateReady = false;
     for (int index=0;index<(sizeof(digitalPins)/sizeof(digitalPins[0])); index++) {
       digitalUpdateReady[index] = true; //set them all to true  
     }
@@ -289,11 +270,3 @@ void updateDigitalInPeriodic(uint8_t index) {
   }
 }
 
-void setDigitalInUpdateDelay(uint32_t newDelay) {
-  os_timer_disarm(&digitalInTimer);
-  Serial.print("Restarting DigitalIn polling timer at: ");
-  Serial.print(newDelay);  
-  Serial.println("ms");
-  updateDigitalInDelay = newDelay;
-  os_timer_arm(&digitalInTimer, updateDigitalInDelay, true);
-}
