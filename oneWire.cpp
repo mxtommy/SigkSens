@@ -61,25 +61,19 @@ bool sensorOneWirePresent = false;
 bool getSensorOneWirePresent() { return sensorOneWirePresent; }
 
 // some timers
-uint32_t oneWireReadDelay = 5000; //ms between reading
 uint32_t oneWireScanDelay = 30000; //ms between scan
 
-os_timer_t  oneWireRequestTimer; // repeating timer that fires ever X/time to start temp request cycle
 os_timer_t  oneWireReadyTimer; // once request cycle starts, this timer set so we can send when ready
 os_timer_t  oneWireScanTimer; // timer to scan for new devices
-bool readyToRequest1Wire = false;
 bool readyToRead1Wire = false;
 bool readyToScan1Wire = false;
 
 // forward declarations
 void oneWireScanBus(bool&);
-void interruptRequest1WSensors(void *pArg);
 void interruptReady1WSensors(void *pArg);
 void interruptScan1WSensors(void *pArg);
 void request1WSensors();
 void read1WSensors();
-
-uint32_t getOneWireReadDelay() { return oneWireReadDelay; }
 
 void setup1Wire(bool &need_save) {
   sensors.begin();
@@ -97,10 +91,6 @@ void setup1Wire(bool &need_save) {
   sensors.setResolution(TEMPERATURE_PRECISION);
   Serial.println(" Done!");
 
-  Serial.print("Starting oneWire polling timer at: ");
-  Serial.print(oneWireReadDelay);
-  Serial.println("ms");
-
   Serial.print("Starting oneWire scanning timer at: ");
   Serial.print(oneWireScanDelay);
   Serial.println("ms");
@@ -109,19 +99,17 @@ void setup1Wire(bool &need_save) {
 
   oneWireScanBus(need_save);
 
-  os_timer_setfn(&oneWireRequestTimer, interruptRequest1WSensors, NULL);
   os_timer_setfn(&oneWireReadyTimer, interruptReady1WSensors, NULL);
   os_timer_setfn(&oneWireScanTimer, interruptScan1WSensors, NULL);
 
-  os_timer_arm(&oneWireRequestTimer, oneWireReadDelay, true);
   os_timer_arm(&oneWireScanTimer, oneWireScanDelay, true);
 }
 
 //called once every loop()
-void handle1Wire(bool &need_save) {
+void handle1Wire(bool &need_save, bool &sendDelta) {
 
   // If it's time to request temps, well request it...
-  if (readyToRequest1Wire) {
+  if (sendDelta) {
     request1WSensors();
   }
 
@@ -134,15 +122,6 @@ void handle1Wire(bool &need_save) {
     oneWireScanBus(need_save);
   }
 
-}
-
-void setOneWireReadDelay(uint32_t newDelay) {
-  os_timer_disarm(&oneWireRequestTimer);
-  Serial.print("Restarting oneWire polling timer at: ");
-  Serial.print(newDelay);  
-  Serial.println("ms");
-  oneWireReadDelay = newDelay;
-  os_timer_arm(&oneWireRequestTimer, oneWireReadDelay, true);
 }
 
 // debug function to print a device address
@@ -158,10 +137,6 @@ void printAddress(DeviceAddress deviceAddress) {
   }
 }
 
-void interruptRequest1WSensors(void *pArg) {
-  readyToRequest1Wire = true;
-}
-
 void interruptReady1WSensors(void *pArg) {
   readyToRead1Wire = true;
 } 
@@ -171,8 +146,6 @@ void interruptScan1WSensors(void *pArg) {
 } 
 
 void request1WSensors() {
-  readyToRequest1Wire = false; // reset interupt
-
   if (sensorOneWirePresent) {
       sensors.requestTemperatures();
 

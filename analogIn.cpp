@@ -73,7 +73,7 @@ void setupAnalogIn(bool &need_save) {
 }
 
 
-void handleAnalogIn() {
+void handleAnalogIn(bool &sendDelta) {
     //Serial.println(analogRead(A0));
 };
 

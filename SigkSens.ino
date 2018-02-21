@@ -43,7 +43,7 @@
 #include "signalK.h"
 #include "httpd.h"
 #include "sigksens.h"
-
+#include "timer.h"
 
 /*---------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------
@@ -176,6 +176,8 @@ void setup() {
   #endif
   setupSystemHz(need_save);
   
+  setupTimers();
+
   if (need_save) {
     saveConfig();
   }
@@ -192,38 +194,46 @@ Main Loop!
 
 void loop() {
   bool need_save = false;
+  bool sendDelta = false;
   //device mgmt
   yield();           
   
+  // see if we're ready to send deltas
+  handleTimers(sendDelta);
+
+
+
   //Stuff here run's all the time
-  handleSystemHz();
+  handleSystemHz(sendDelta);
   #ifdef ENABLE_I2C
-  handleI2C();
+  handleI2C(sendDelta);
   #endif
 
   mainLoopCount++;
-  
+
   //Stuff that runs  once every 1000 loops. (still many many times/sec)
-  if (mainLoopCount > 1000) {
+  if ((mainLoopCount > 1000) || sendDelta) {
       #ifdef ENABLE_I2C
-      handleI2C_slow();
+      handleI2C_slow(sendDelta);
       #endif
       #ifdef ENABLE_ONEWIRE
-        handle1Wire(need_save);
+        handle1Wire(need_save, sendDelta);
       #endif
+      #ifdef ENABLE_DIGITALIN
+      handleDigitalIn(sendDelta);
+      #endif
+      #ifdef ENABLE_ANALOGIN
+      handleAnalogIn(sendDelta);
+      #endif
+
       if (need_save) {
         saveConfig();
       }
   
       handleWebSocket();
       handleSignalK();
-      #ifdef ENABLE_DIGITALIN
-      handleDigitalIn();
-      #endif
-      #ifdef ENABLE_ANALOGIN
-      handleAnalogIn();
-      #endif
 
+      
       handleConfigReset(); 
       mainLoopCount = 0;
   }

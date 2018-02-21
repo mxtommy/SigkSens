@@ -4,8 +4,8 @@
 #include "config.h"
 
 void setupI2C(bool&);
-void handleI2C();
-void handleI2C_slow();
+void handleI2C(bool&);
+void handleI2C_slow(bool&);
 
 #ifdef ENABLE_SHT30
 bool getSensorSHT30Present();

@@ -32,6 +32,7 @@ extern "C" {
 #endif
 #include "systemHz.h"
 #include "sigksens.h"
+#include "timer.h"
 
 /*----------------------------------------------------------------------------
 ------------------------------------------------------------------------------
@@ -89,24 +90,10 @@ void saveConfig() {
     si->toJson(jsonSensors.createNestedObject());
   });
 
-  #ifdef ENABLE_ONEWIRE
-  uint32_t oneWireReadDelay = getOneWireReadDelay();
-  
   //Timers
-  json["oneWireReadDelay"] = oneWireReadDelay;
-  #endif
-  #ifdef ENABLE_SHT30
-  json["sensorSHTReadDelay"] = getSensorSHTReadDelay();
-  #endif
-  #ifdef ENABLE_MPU
-  json["updateMPUDelay"] = getUpdateMPUDelay();
-  #endif
+  json["deltaTimer"] = getDeltaDelay();
   #ifdef ENABLE_ADS1115
   json["readADSDelay"] = getReadADSDelay();
-  json["updateADSDelay"] = getUpdateADSDelay();
-  #endif
-  #ifdef ENABLE_DIGITALIN
-  json["updateDigitalInDelay"] = getUpdateDigitalInDelay();
   #endif
   
   File configFile = SPIFFS.open("/config.json", "w");
@@ -161,23 +148,9 @@ void loadConfig() {
         }
 
         //Timers
-
-        #ifdef ENABLE_ONEWIRE
-        uint32_t oneWireReadDelay = json["oneWireReadDelay"];
-        setOneWireReadDelay(oneWireReadDelay);
-        #endif
-        #ifdef ENABLE_SHT30
-        setSHTReadDelay(json["sensorSHTReadDelay"]);
-        #endif
-        #ifdef ENABLE_MPU
-        setMPUUpdateDelay(json["updateMPUDelay"]);
-        #endif
+        setDeltaDelay(json["deltaTimer"]);
         #ifdef ENABLE_ADS1115
         setADSReadDelay(json["readADSDelay"]);
-        setADSUpdateDelay(json["updateADSDelay"]);
-        #endif
-        #ifdef ENABLE_DIGITALIN
-        setDigitalInUpdateDelay(json["updateDigitalInDelay"]);
         #endif
       } else {
         Serial.println("failed to load json config");

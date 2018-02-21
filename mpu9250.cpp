@@ -212,30 +212,10 @@ int16_t magCalMin[3] = {32767, 32767, 32767};
    ---------------------------------------------------------------------------------------------
    ---------------------------------------------------------------------------------------------
    --------------------------------------------------------------------------------------------- */
-// timer delay
-uint32_t updateMPUDelay = 1000;
-os_timer_t  mpuUpdateSensorInfo; // repeating timer that fires ever X/time to start temp request cycle
-uint32_t getUpdateMPUDelay() { return updateMPUDelay; }
-
-void setMPUUpdateDelay(uint32_t newDelay) {
-  os_timer_disarm(&mpuUpdateSensorInfo);
-  Serial.print("Restarting MPU polling timer at: ");
-  Serial.print(newDelay);  
-  Serial.println("ms");
-  updateMPUDelay = newDelay;
-  os_timer_arm(&mpuUpdateSensorInfo, updateMPUDelay, true);
-}
-
-
 
 void ICACHE_RAM_ATTR interruptMPUNewData() {
   newData = true;
 }
-
-void interruptMPUSensorInfo(void *pArg) {
-  mpuUpdateReady = true;
-}
-
 
 void setupMPU9250() {
   MPUisValid = testMPU9250();
@@ -255,8 +235,6 @@ void setupMPU9250() {
       Serial.print("X-Axis sensitivity adjustment value "); Serial.println(magCalibration[0], 2);
       Serial.print("Y-Axis sensitivity adjustment value "); Serial.println(magCalibration[1], 2);
       Serial.print("Z-Axis sensitivity adjustment value "); Serial.println(magCalibration[2], 2);
-      os_timer_setfn(&mpuUpdateSensorInfo, interruptMPUSensorInfo, NULL);
-      os_timer_arm(&mpuUpdateSensorInfo, updateMPUDelay, true);
       // define interrupt for INT pin output of MPU9250
       attachInterrupt(MPU_INTERRUPT_PIN, interruptMPUNewData, RISING); 
       Serial.println("Interrupts setup");
@@ -268,7 +246,7 @@ void setupMPU9250() {
 
 }
 
-void handleMPU9250() {
+void handleMPU9250(bool &sendDelta) {
   switch(mpuRunMode) {
     case MpuRunMode::mpuRun:
       if(newData) { //newData is from pin Interrupt
@@ -278,9 +256,7 @@ void handleMPU9250() {
 
       updateQuaternion();
 
-      if (mpuUpdateReady) {
-        // reset interupt
-        mpuUpdateReady = false;
+      if (sendDelta) {
         updateMPUSensorInfo();
       }
       break;

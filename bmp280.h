@@ -18,9 +18,6 @@ class BMP280SensorInfo : public SensorInfo {
 
 
 void setupBMP280();
-void handleBMP280();
-
-uint32_t getSensorBMP280ReadDelay();
-void setBMP280ReadDelay(uint32_t newDelay);
+void handleBMP280(bool&);
 
 #endif
