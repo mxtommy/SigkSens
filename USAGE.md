@@ -54,15 +54,12 @@ Required HTTP parameters:
   - New value in ms (1 second = 1000ms)
 
 Timer can be one of the following:
-- oneWire
-- sht30
-- mpu925x
+- deltaDelay
 - ads1115Read
-- ads1115Update
-- digitalIn
+
 
 Ex:
-http://A.B.C.D/setTimerDelay?timer=oneWire&delay=500
+http://A.B.C.D/setTimerDelay?timer=deltaDelay&delay=500
 
 ### /setNewHostname
 This command sets a new hostname for the sensor. Note that is causes the sensor to reboot!
