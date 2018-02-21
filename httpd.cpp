@@ -9,6 +9,7 @@ extern "C" {
 #include <ESPAsyncWebServer.h>
 #include <ESP8266SSDP.h>
 #include <StreamString.h>
+#include <AsyncJson.h>
 
 #include "config.h"
 
@@ -195,10 +196,12 @@ void httpMpuCalMagStop(AsyncWebServerRequest *request) {
 #endif
 
 void httpGetSensorInfo(AsyncWebServerRequest *request) {
-  AsyncResponseStream *response = request->beginResponseStream("application/json");
-  DynamicJsonBuffer jsonBuffer;
+  AsyncJsonResponse * response = new AsyncJsonResponse();
+  response->addHeader("Server","ESP Async Web Server");
+ 
+  JsonObject& json = response->getRoot();
+
   SensorInfo *tmpSensorInfo;
-  JsonObject& json = jsonBuffer.createObject();
   char strAddress[32];
   char tmpPinStr[10];
   uint8_t numAttr;
@@ -221,6 +224,13 @@ void httpGetSensorInfo(AsyncWebServerRequest *request) {
   #ifdef ENABLE_MPU
   json["sensorMPU925X"] = getSensorMPU925XPresent();
   #endif
+  #ifdef ENABLE_BMP280
+  json["sensorBMP280"] = getSensorBMP280Present();
+  #endif
+  #ifdef ENABLE_ADS1115
+  json["sensorADS1115"] = getSensorADS1115Present();
+  #endif
+
 
   //Timers
   JsonObject& timers = json.createNestedObject("timers");
@@ -256,7 +266,7 @@ void httpGetSensorInfo(AsyncWebServerRequest *request) {
     //tmpSensorInfo->toJson(tmpSens);
   });
 
-  json.prettyPrintTo(*response);
+  response->setLength();
   request->send(response);
 }
 

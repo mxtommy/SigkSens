@@ -19,7 +19,7 @@ Each sensor will have one or more "attributes". An attribute is a data value tha
 There's a very simple API used to get information or set parameters. All requests are GET for simplicity.
 
 ### /getSensorInfo
-Returns a list of all global config and sensors and their configuration. (Currently WIP, needs updating to handle large responses)
+Returns a list of all global config and sensors and their configuration.
 
 Ex: 
 http://A.B.C.D/getSensorInfo
