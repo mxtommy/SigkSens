@@ -60,20 +60,70 @@ void AinSensorInfo::toJson(JsonObject &jsonSens) {
   }
 }
 
+// By default we start disabled. Ever time we get ready to send a delta, 
+// we see if the signalk path is set. If yes then we enable.
+bool analogInEnabled = false;
+
+//Running values. (we need to keep running value to reduce noise with exponential filter)
+uint16_t valueA0 = 0;
+
+uint16_t readADCDelay = 25;
+os_timer_t  adcReadTimer; // repeating timer that fires to read ADS
+bool adcReadyRead = false;
+
+
 void setupAnalogIn(bool &need_save) {
     bool known = sensorStorage[(int)SensorType::analogIn].find(
       "A0") != nullptr;
     if (!known) {
-      Serial.print("Adding A0 input ");
+      Serial.println("Adding A0 input ");
       SensorInfo *newSensor = new AinSensorInfo("A0");
       sensorStorage[(int)newSensor->type].add(newSensor);
       need_save = true;
     }    
-
+  os_timer_setfn(&adcReadTimer, interruptReadADC, NULL);
+  os_timer_arm(&adcReadTimer, readADCDelay, true);
 }
 
 
 void handleAnalogIn(bool &sendDelta) {
-    //Serial.println(analogRead(A0));
-};
+  if (adcReadyRead && analogInEnabled) {
+    adcReadyRead = false;
+    readADC();
+  }
 
+  if (sendDelta) {
+    updateAnalogIn();
+  }
+
+}
+
+void interruptReadADC(void *pArg) {
+  adcReadyRead = true;
+}
+
+void readADC() {
+  sensorStorage[(int)SensorType::analogIn].forEach([&](SensorInfo* si){
+    int16_t rawResult;
+  
+    if (si->type != SensorType::analogIn) return;
+    rawResult = analogRead(A0);
+    valueA0 = ((0.2*rawResult) + (0.8*valueA0));
+  });
+}
+
+void updateAnalogIn() {
+  // See if there is a signalk path set.
+  sensorStorage[(int)SensorType::analogIn].forEach([&](SensorInfo* si){
+    int16_t rawResult;
+  
+    if (si->type != SensorType::analogIn) return;
+    if (strcmp(si->signalKPath[0].c_str(),  "") != 0) {
+      analogInEnabled = true;
+      si->valueJson[0] = (valueA0 * si->scale[0] ) + si->offset[0];
+      si->isUpdated = true;
+    } else {
+      analogInEnabled = false;
+    }
+  });
+}

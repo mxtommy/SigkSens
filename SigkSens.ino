@@ -70,6 +70,11 @@ void setupFromJson() {
     (fromJsonFunc)&(DigitalInSensorInfo::fromJson);
   #endif
 
+  #ifdef ENABLE_ANALOGIN
+  fromJson[(int)SensorType::analogIn] =
+    (fromJsonFunc)&(AinSensorInfo::fromJson);
+  #endif
+
   #ifdef ENABLE_ONEWIRE
   fromJson[(int)SensorType::oneWire] =
     (fromJsonFunc)&(OneWireSensorInfo::fromJson);

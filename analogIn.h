@@ -19,6 +19,9 @@ class AinSensorInfo : public SensorInfo {
 
 void setupAnalogIn(bool&);
 void handleAnalogIn(bool&);
+void interruptReadADC(void *pArg);
+void readADC();
+void updateAnalogIn();
 
 
 #endif
