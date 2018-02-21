@@ -14,6 +14,7 @@ Feature selection
 // Sensors
 
 #define ENABLE_DIGITALIN
+#define ENABLE_ANALOGIN
 #define ENABLE_ONEWIRE
 
 #define ENABLE_I2C

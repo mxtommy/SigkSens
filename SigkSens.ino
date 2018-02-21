@@ -32,7 +32,9 @@
 #ifdef ENABLE_DIGITALIN
   #include "digitalIn.h"
 #endif
-
+#ifdef ENABLE_ANALOGIN
+  #include "analogIn.h"
+#endif
 
 
 #include "systemHz.h"
@@ -66,6 +68,11 @@ void setupFromJson() {
   #ifdef ENABLE_DIGITALIN
   fromJson[(int)SensorType::digitalIn] =
     (fromJsonFunc)&(DigitalInSensorInfo::fromJson);
+  #endif
+
+  #ifdef ENABLE_ANALOGIN
+  fromJson[(int)SensorType::analogIn] =
+    (fromJsonFunc)&(AinSensorInfo::fromJson);
   #endif
 
   #ifdef ENABLE_ONEWIRE
@@ -169,6 +176,9 @@ void setup() {
   #ifdef ENABLE_DIGITALIN
   setupDigitalIn(need_save);
   #endif
+  #ifdef ENABLE_ANALOGIN
+  setupAnalogIn(need_save);
+  #endif
   setupSystemHz(need_save);
   
   setupTimers();
@@ -216,6 +226,9 @@ void loop() {
       #endif
       #ifdef ENABLE_DIGITALIN
       handleDigitalIn(sendDelta);
+      #endif
+      #ifdef ENABLE_ANALOGIN
+      handleAnalogIn(sendDelta);
       #endif
 
       if (need_save) {
