@@ -18,9 +18,7 @@ class SHT30SensorInfo : public SensorInfo {
 
 
 void setupSHT30();
-void handleSHT30();
+void handleSHT30(bool&);
 
-uint32_t getSensorSHTReadDelay();
-void setSHTReadDelay(uint32_t newDelay);
 
 #endif

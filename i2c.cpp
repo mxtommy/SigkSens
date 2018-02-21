@@ -162,29 +162,29 @@ void setupI2C(bool &need_save) {
 }
 
 
-void handleI2C() {
+void handleI2C(bool &sendDelta) {
   #ifdef ENABLE_MPU
   if (sensorMPU925XPresent) {
-    handleMPU9250();
+    handleMPU9250(sendDelta);
   }
   #endif
 }
 
 
-void handleI2C_slow() {
+void handleI2C_slow(bool &sendDelta) {
 #ifdef ENABLE_SHT30
   if (sensorSHT30Present) {
-    handleSHT30();  
+    handleSHT30(sendDelta);  
   }
 #endif
 #ifdef ENABLE_BMP280
   if (sensorBMP280Present) {
-    handleBMP280();  
+    handleBMP280(sendDelta);  
   }
 #endif
 #ifdef ENABLE_ADS1115
   if (sensorADS1115Present) {
-    handleADS1115();
+    handleADS1115(sendDelta);
   }
 #endif
 }

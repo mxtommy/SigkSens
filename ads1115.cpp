@@ -148,11 +148,6 @@ bool adsReadyRead = false;
 os_timer_t  adsReadTimer; // repeating timer that fires to read ADS
 
 
-uint32_t updateADSDelay = 1000;
-bool adsReadyUpdate = false;
-os_timer_t  adsUpdateSensorInfoTimer; // repeating timer that fires ever X/time
-
-
 //Running values. (we need to keep running value to reduce noise with exponential filter)
 
 float valueDiff_0_1 = 0;
@@ -169,9 +164,6 @@ void setupADS1115() {
   os_timer_setfn(&adsReadTimer, interruptReadADSS, NULL);
   os_timer_arm(&adsReadTimer, updateReadADSDelay, true);
 
-  // UpdateSensorInfo
-  os_timer_setfn(&adsUpdateSensorInfoTimer, interruptUpdateADSSensorInfo, NULL);
-  os_timer_arm(&adsUpdateSensorInfoTimer, updateADSDelay, true);
 
   // The ADC input range (or gain) can be changed via the following
   // functions, but be careful never to exceed VDD +0.3V max, or to
@@ -194,46 +186,25 @@ void setupADS1115() {
 }
 
 
-void handleADS1115() {
+void handleADS1115(bool &sendDelta) {
 
   if (adsReadyRead) {
     adsReadyRead = false;
     readADS1115();
   }
 
-  if (adsReadyUpdate) {
-    adsReadyUpdate = false;
+  if (sendDelta) {
     updateADS1115();
   }
   
 
 }
-
-
-void interruptUpdateADSSensorInfo(void *pArg) {
-  adsReadyUpdate = true;
-}
-
-
 void interruptReadADSS(void *pArg) {
   adsReadyRead = true;
 }
 
-
-uint32_t getUpdateADSDelay() { 
-  return updateADSDelay; 
-}
 uint32_t getReadADSDelay() { 
   return updateReadADSDelay; 
-}
-
-void setADSUpdateDelay(uint32_t newDelay) {
-  os_timer_disarm(&adsUpdateSensorInfoTimer);
-  Serial.print("Restarting ADS Update timer at: ");
-  Serial.print(newDelay);  
-  Serial.println("ms");
-  updateADSDelay = newDelay;
-  os_timer_arm(&adsUpdateSensorInfoTimer, updateADSDelay, true); 
 }
 
 void setADSReadDelay(uint32_t newDelay) {

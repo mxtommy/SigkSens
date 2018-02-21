@@ -18,7 +18,7 @@ class ADSSensorInfo : public SensorInfo {
 };
 
 void setupADS1115();
-void handleADS1115();
+void handleADS1115(bool&);
 
 uint32_t getUpdateADSDelay();
 uint32_t getReadADSDelay();

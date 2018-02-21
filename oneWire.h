@@ -14,9 +14,7 @@ class OneWireSensorInfo : public SensorInfo {
 };
 
 void setup1Wire(bool&);
-void handle1Wire(bool&);
-void setOneWireReadDelay(uint32_t);
-uint32_t getOneWireReadDelay();
+void handle1Wire(bool&, bool&);
 bool getSensorOneWirePresent();
 
 #endif
