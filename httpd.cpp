@@ -36,6 +36,7 @@ extern "C" {
 #include "webSocket.h"
 #include "sigksens.h"
 #include "timer.h"
+#include "configReset.h"
 
 // SSDP related stuff
 
@@ -383,6 +384,11 @@ void httpSignalKEndpoints(AsyncWebServerRequest *request) {
   
 }
 
+void httpResetConfig(AsyncWebServerRequest *request) {
+  request->send(200, "application/json", "{ \"success\": true }");
+  resetConfig();
+}
+
 
 void setupHTTP() {
   Serial.println("starting webserver");
@@ -438,5 +444,7 @@ void setupHTTP() {
   server.on("/signalk", HTTP_GET, httpSignalKEndpoints);
   server.on("/signalk/", HTTP_GET, httpSignalKEndpoints);
   
+  server.on("/resetConfig", HTTP_GET, httpResetConfig);
+
   server.begin();
 }
