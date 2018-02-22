@@ -24,7 +24,8 @@ enum class SensorType {
   bmp280,
   ads1115,
   analogIn,
-  SensorType_MAX = analogIn  // update this if you add items!
+  digitalOut,
+  SensorType_MAX = digitalOut  // update this if you add items!
 };
 
 // memory to save sensor info

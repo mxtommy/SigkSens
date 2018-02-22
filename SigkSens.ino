@@ -32,6 +32,9 @@
 #ifdef ENABLE_DIGITALIN
   #include "digitalIn.h"
 #endif
+#ifdef ENABLE_DIGITALOUT
+  #include "digitalOut.h"
+#endif
 #ifdef ENABLE_ANALOGIN
   #include "analogIn.h"
 #endif
@@ -68,6 +71,11 @@ void setupFromJson() {
   #ifdef ENABLE_DIGITALIN
   fromJson[(int)SensorType::digitalIn] =
     (fromJsonFunc)&(DigitalInSensorInfo::fromJson);
+  #endif
+
+  #ifdef ENABLE_DIGITALOUT
+  fromJson[(int)SensorType::digitalOut] =
+    (fromJsonFunc)&(DigitalOutSensorInfo::fromJson);
   #endif
 
   #ifdef ENABLE_ANALOGIN
@@ -176,6 +184,9 @@ void setup() {
   #ifdef ENABLE_DIGITALIN
   setupDigitalIn(need_save);
   #endif
+  #ifdef ENABLE_DIGITALOUT
+  setupDigitalOut(need_save);
+  #endif
   #ifdef ENABLE_ANALOGIN
   setupAnalogIn(need_save);
   #endif
@@ -227,6 +238,9 @@ void loop() {
       #ifdef ENABLE_DIGITALIN
       handleDigitalIn(sendDelta);
       #endif
+      #ifdef ENABLE_DIGITALOUT
+      handleDigitalIn(sendDelta);
+      #endif      
       #ifdef ENABLE_ANALOGIN
       handleAnalogIn(sendDelta);
       #endif
