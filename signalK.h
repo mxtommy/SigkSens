@@ -5,6 +5,7 @@
 
 void setupSignalK();
 void handleSignalK();
+void receiveDelta(uint8_t * payload);
 void sendDelta();
 
 #endif

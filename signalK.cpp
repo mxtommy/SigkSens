@@ -26,6 +26,19 @@ void handleSignalK() {
   }
 }
 
+
+void receiveDelta(uint8_t * payload) {
+  DynamicJsonBuffer jsonBuffer;
+  JsonObject& root = jsonBuffer.parseObject(payload);
+  if (!root.success()) {
+    Serial.println("parseObject() failed");
+    return;
+  }
+  root.prettyPrintTo(Serial);
+
+}
+
+
 void sendDelta() {
 
   String deltaText;
