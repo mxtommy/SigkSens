@@ -29,6 +29,9 @@ void handleSignalK() {
 
 void receiveDelta(uint8_t * payload) {
   DynamicJsonBuffer jsonBuffer;
+  SensorInfo *si;
+
+
   JsonObject& root = jsonBuffer.parseObject(payload);
   if (!root.success()) {
     Serial.println("parseObject() failed");
@@ -36,13 +39,17 @@ void receiveDelta(uint8_t * payload) {
   }
   root.prettyPrintTo(Serial);
 
+  sensorStorageForEach([&](SensorInfo* si) {
+
+
+  });
+
 }
 
 
 void sendDelta() {
 
   String deltaText;
-  SensorInfo *thisSensorInfo;
 
   DynamicJsonBuffer jsonBuffer; 
 

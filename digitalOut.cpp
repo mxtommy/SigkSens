@@ -35,7 +35,7 @@ DigitalOutSensorInfo *DigitalOutSensorInfo::fromJson(JsonObject &jsonSens) {
 
 void DigitalOutSensorInfo::toJson(JsonObject &jsonSens) {
   jsonSens["address"] = address;
-  jsonSens["type"] = (int)SensorType::digitalIn;
+  jsonSens["type"] = (int)SensorType::digitalOut;
   JsonArray& jsonPaths = jsonSens.createNestedArray("signalKPaths");
   for (int x=0 ; x < MAX_SENSOR_ATTRIBUTES ; x++) {
     if (strcmp(attrName[x].c_str(), "") == 0 ) {
@@ -45,8 +45,8 @@ void DigitalOutSensorInfo::toJson(JsonObject &jsonSens) {
   }
 }
 
-int   digitalOutPins[NUMBER_DIGITAL_OUTPUT] = DIGITAL_INPUT_PINS;
-char  digitalOutPinNames[NUMBER_DIGITAL_OUTPUT][10] = DIGITAL_INPUT_NAME;
+int   digitalOutPins[NUMBER_DIGITAL_OUTPUT] = DIGITAL_OUTPUT_PINS;
+char  digitalOutPinNames[NUMBER_DIGITAL_OUTPUT][10] = DIGITAL_OUTPUT_NAME;
 
 
 void setupDigitalOut(bool &need_save) {
