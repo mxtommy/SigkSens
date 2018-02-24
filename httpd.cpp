@@ -74,7 +74,24 @@ HTTP
 ----------------------------------------------------------------------------*/
 
 AsyncWebServer server(80);
+bool setNeedSave = false;
+bool restartWebSocketClientFlag = false;
+bool resetConfigFlag = false;
 
+void handleHttp(bool &need_save) {
+  if (setNeedSave) {
+    setNeedSave = false;
+    need_save = true;
+  }
+  if (restartWebSocketClientFlag) {
+    restartWebSocketClientFlag = false;
+    restartWebSocketClient();
+  }
+  if (resetConfigFlag) {
+    resetConfigFlag = false;
+    resetConfig();
+  }
+}
 
 void createStaticFiles() {
   if (!SPIFFS.exists("/web/index.html")) {
@@ -139,10 +156,8 @@ void httpNewHostname(AsyncWebServerRequest *request) {
     return;
   }
   request->arg("hostname").toCharArray(myHostname, 16);
-  saveConfig();
+  setNeedSave = true;
   request->send(200, "application/json", "{ \"success\": true }");
-  delay(1000);
-  ESP.reset();
 }
 
 
@@ -152,9 +167,9 @@ void httpSetSignalKHost(AsyncWebServerRequest *request) {
     return;
   }
   signalKClientInfo.host = request->arg("host");
-  saveConfig();
+  setNeedSave = true;
+  restartWebSocketClientFlag = true;
   request->send(200, "application/json", "{ \"success\": true }");
-  restartWebSocketClient();
 }
 
 
@@ -164,18 +179,18 @@ void httpSetSignalKPort(AsyncWebServerRequest *request) {
     return;
   }
   signalKClientInfo.port = request->arg("port").toInt();
-  saveConfig();
+  setNeedSave = true;
+  restartWebSocketClientFlag = true;
   request->send(200, "application/json", "{ \"success\": true }");
-  restartWebSocketClient();
 }
 
 
 void httpSetSignalKPath(AsyncWebServerRequest *request) {
   if(!request->hasArg("path")) {request->send(500, "text/plain", "missing arg 'path'"); return;}
   signalKClientInfo.path = request->arg("path");
-  saveConfig();
+  setNeedSave = true;
+  restartWebSocketClientFlag = true;
   request->send(200, "application/json", "{ \"success\": true }");
-  restartWebSocketClient();
 }
 
 #ifdef ENABLE_MPU
@@ -314,7 +329,7 @@ void httpSetSensorAttr(AsyncWebServerRequest *request) {
   });
 
   if (found) {
-    saveConfig();
+    setNeedSave = true;
     request->send(200, "application/json", "{ \"success\": true }");
   } else {
     request->send(400, "application/json", "{ \"success\": false }");
@@ -350,7 +365,7 @@ void httpSetTimerDelay(AsyncWebServerRequest *request) {
   }
 
   if (ok) {
-    saveConfig();
+    setNeedSave = true;
     request->send(200, "application/json", "{ \"success\": true }");
   } else {
     request->send(400, "application/json", "{ \"success\": false }");
@@ -386,7 +401,7 @@ void httpSignalKEndpoints(AsyncWebServerRequest *request) {
 
 void httpResetConfig(AsyncWebServerRequest *request) {
   request->send(200, "application/json", "{ \"success\": true }");
-  resetConfig();
+  resetConfigFlag = true;
 }
 
 

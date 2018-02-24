@@ -57,7 +57,11 @@ void setupDigitalOut(bool &need_save) {
 
 
 void handleDigitalOut(bool &sendDelta) {
-
+   if (sendDelta) {
+      sensorStorage[(int)SensorType::digitalOut].forEach([&](SensorInfo* si) {
+        si->isUpdated = true;
+      });
+   }
 
 }
 
@@ -73,7 +77,7 @@ void initializeDigitalOutPin(uint8_t index, bool &need_save) {
   bool known = sensorStorage[(int)SensorType::digitalOut].find(
     digitalOutPinNames[index]) != nullptr;
   if (!known) {
-    Serial.print("Setting up Digital Input on pin: ");
+    Serial.print("Setting up Digital Output on pin: ");
     Serial.println(digitalOutPinNames[index]);
     DigitalOutSensorInfo *newSensor = new DigitalOutSensorInfo(
       digitalOutPinNames[index]

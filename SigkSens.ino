@@ -160,7 +160,6 @@ void setup() {
   bool need_save = false;
   // put your setup code here, to run once:
   Serial.begin(115200);
-  pinMode(RESET_CONFIG_PIN, INPUT_PULLUP);
 
   setupFromJson();
 
@@ -244,6 +243,8 @@ void loop() {
       #ifdef ENABLE_ANALOGIN
       handleAnalogIn(sendDelta);
       #endif
+
+      handleHttp(need_save);
 
       if (need_save) {
         saveConfig();

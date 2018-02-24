@@ -42,7 +42,7 @@ Optional HTTP parameters: (though not setting any of these seems a bit pointless
   - Sets the offset for the attribute. The amount added to the scaled value. For substraction use a negative number (Ex: "-3.345")
 
 Example:
-http://A.B.C.D/getSensorInfo?address=0x42&attr=tempK&path=environment.outside.temp
+http://A.B.C.D/setSensorAttr?address=0x42&attrName=tempK&path=environment.outside.temp
 
 ### /setTimerDelay
 Changes the amount of time between SignalK deltas (in ms).

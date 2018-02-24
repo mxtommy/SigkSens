@@ -15,6 +15,7 @@ unsigned long buttonPressedTime = 0;
 
 
 void setupConfigReset() {
+  pinMode(RESET_CONFIG_PIN, INPUT_PULLUP);
 
 }
 
