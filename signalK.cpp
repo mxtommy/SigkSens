@@ -8,6 +8,8 @@ extern "C" {
 #include "webSocket.h"
 #include "signalK.h"
 
+#include "digitalOut.h"
+
 void setupSignalK() {
   
 }
@@ -30,19 +32,37 @@ void handleSignalK() {
 void receiveDelta(uint8_t * payload) {
   DynamicJsonBuffer jsonBuffer;
   SensorInfo *si;
-
+  char tempStr[255];
+  bool tempBool;
 
   JsonObject& root = jsonBuffer.parseObject(payload);
   if (!root.success()) {
     Serial.println("parseObject() failed");
     return;
   }
-  root.prettyPrintTo(Serial);
+  //root.prettyPrintTo(Serial);
 
-  sensorStorageForEach([&](SensorInfo* si) {
+  if (root.containsKey("put")) {
+    for (uint8_t i=0; i < root["put"].size(); i++) {
+      strcpy(tempStr, root["put"][i]["path"]);
+      sensorStorage[(int)SensorType::digitalOut].forEach([&](SensorInfo* si) {
+        if (strcmp(si->signalKPath[0].c_str(), tempStr) == 0) {
+           //Serial.println(si->address);
+           //Serial.println(si->signalKPath[0]);
+
+          if (root["put"][i]["value"].is<bool>()) {
+            tempBool = root["put"][i]["value"];
+            digitalOutSetBooleanValue(si->address, tempBool);
+          }
+        }
+      });
+
+      
+    }
+  }
+  
 
 
-  });
 
 }
 

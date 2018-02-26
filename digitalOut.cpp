@@ -59,7 +59,10 @@ void setupDigitalOut(bool &need_save) {
 void handleDigitalOut(bool &sendDelta) {
    if (sendDelta) {
       sensorStorage[(int)SensorType::digitalOut].forEach([&](SensorInfo* si) {
-        si->isUpdated = true;
+        if (strcmp(si->signalKPath[0].c_str(),  "") != 0) {
+          si->isUpdated = true;
+        }
+        
       });
    }
 
@@ -89,6 +92,45 @@ void initializeDigitalOutPin(uint8_t index, bool &need_save) {
 }
 
 
+void digitalOutSetBooleanValue(char * address, bool value) {
+  SensorInfo *si;
+  uint8_t index;
+  si = sensorStorage[(int)SensorType::digitalOut].find(
+    address
+  );
+
+  if (si != nullptr) {
+
+    index = digitalOutGetIndex(address);
+    if (index >= 0) {
+      //We have both Sensorinfo and pin index
+      //current state
+      if (value) {
+        si->valueJson[0] = "true";
+        digitalWrite(digitalOutPins[index], HIGH);
+      } else {
+        si->valueJson[0] = "false";
+        digitalWrite(digitalOutPins[index], LOW);
+      }
+      si->isUpdated = true; 
+
+    }
+
+  
+  }
+
+}
+
+
+uint8_t digitalOutGetIndex(char * address) {
+  for (int index=0;index<(sizeof(digitalOutPins)/sizeof(digitalOutPins[0])); index++) {
+    if (strcmp(address, digitalOutPinNames[index]) == 0) {
+      return index;
+    }
+  }
+  //not found 
+  return -1;
+}
 
 
 

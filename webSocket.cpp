@@ -103,7 +103,7 @@ void connectWebSocketClient() {
       return;
   }
 
-  skci->client.begin(host, port, skci->path + "?subscribe=all");
+  skci->client.begin(host, port, skci->path + "?subscribe=none");
   skci->connected = true;
 }
 

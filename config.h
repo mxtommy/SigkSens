@@ -48,7 +48,7 @@ Defines
 
 // Digital output Pins
 #define NUMBER_DIGITAL_OUTPUT 2  // set to number of elements in next two arrays...s
-#define DIGITAL_OUTPUT_PINS { 16, 15 } 
+#define DIGITAL_OUTPUT_PINS { 16, 15 }  // D0, D8 of Wemos)
 #define DIGITAL_OUTPUT_NAME {"OUT1", "OUT2"}
 
 // One-Wire settings

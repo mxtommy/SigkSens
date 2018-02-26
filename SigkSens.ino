@@ -238,7 +238,7 @@ void loop() {
       handleDigitalIn(sendDelta);
       #endif
       #ifdef ENABLE_DIGITALOUT
-      handleDigitalIn(sendDelta);
+      handleDigitalOut(sendDelta);
       #endif      
       #ifdef ENABLE_ANALOGIN
       handleAnalogIn(sendDelta);
