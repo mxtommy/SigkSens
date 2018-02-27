@@ -15,6 +15,7 @@ unsigned long buttonPressedTime = 0;
 
 
 void setupConfigReset() {
+  pinMode(RESET_CONFIG_PIN, INPUT_PULLUP);
 
 }
 
@@ -22,6 +23,7 @@ void setupConfigReset() {
 void resetConfig() {
   WiFiManager wifiManager;
   Serial.println("Resetting Config!");
+  delay(200);
   wifiManager.resetSettings();
   SPIFFS.remove("/config.json");
   for (uint8_t x=0; x<50; x++) { // need delay as resetting right away 

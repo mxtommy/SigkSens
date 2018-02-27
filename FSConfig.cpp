@@ -83,18 +83,22 @@ void saveConfig() {
   json["signalKPort"] = signalKClientInfo.port;
   json["signalKPath"] = signalKClientInfo.path;
 
-  //sensors
-  JsonArray& jsonSensors = json.createNestedArray("sensors");
-  //for (uint8_t i=0; i < sensorStorage.size(); i++) 
-  sensorStorageForEach([&](SensorInfo* si){
-    si->toJson(jsonSensors.createNestedObject());
-  });
-
   //Timers
   json["deltaTimer"] = getDeltaDelay();
   #ifdef ENABLE_ADS1115
   json["readADSDelay"] = getReadADSDelay();
   #endif
+
+  //sensors
+  JsonArray& jsonSensors = json.createNestedArray("sensors");
+  //for (uint8_t i=0; i < sensorStorage.size(); i++) 
+  sensorStorageForEach([&](SensorInfo* si){
+    Serial.print("Saving sensor ");
+    Serial.println(si->address);
+    si->toJson(jsonSensors.createNestedObject());
+  });
+
+
   
   File configFile = SPIFFS.open("/config.json", "w");
   if (!configFile) {

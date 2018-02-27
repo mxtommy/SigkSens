@@ -4,5 +4,5 @@
 #include "config.h"
 
 void setupHTTP();
-
+void handleHttp(bool &need_save);
 #endif

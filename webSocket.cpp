@@ -12,6 +12,7 @@ extern "C" {
 #include <WebSocketsClient.h>
 
 #include "webSocket.h"
+#include "signalK.h"
 
 #ifdef ENABLE_WEBSOCKET_SERVER
 WebSocketsServer webSocketServer = WebSocketsServer(81);
@@ -127,8 +128,8 @@ void webSocketClientEvent(WStype_t type, uint8_t * payload, size_t length) {
     }
       break;
     case WStype_TEXT:
-      Serial.printf("[WSc] get text: %s\n", payload);
-
+      //Serial.printf("[WSc] get text: %s\n", payload);
+      receiveDelta(payload);
       // send message to server
       // webSocket.sendTXT("message here");
       break;

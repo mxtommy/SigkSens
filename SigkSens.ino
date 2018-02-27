@@ -32,6 +32,9 @@
 #ifdef ENABLE_DIGITALIN
   #include "digitalIn.h"
 #endif
+#ifdef ENABLE_DIGITALOUT
+  #include "digitalOut.h"
+#endif
 #ifdef ENABLE_ANALOGIN
   #include "analogIn.h"
 #endif
@@ -68,6 +71,11 @@ void setupFromJson() {
   #ifdef ENABLE_DIGITALIN
   fromJson[(int)SensorType::digitalIn] =
     (fromJsonFunc)&(DigitalInSensorInfo::fromJson);
+  #endif
+
+  #ifdef ENABLE_DIGITALOUT
+  fromJson[(int)SensorType::digitalOut] =
+    (fromJsonFunc)&(DigitalOutSensorInfo::fromJson);
   #endif
 
   #ifdef ENABLE_ANALOGIN
@@ -152,7 +160,6 @@ void setup() {
   bool need_save = false;
   // put your setup code here, to run once:
   Serial.begin(115200);
-  pinMode(RESET_CONFIG_PIN, INPUT_PULLUP);
 
   setupFromJson();
 
@@ -175,6 +182,9 @@ void setup() {
   #endif
   #ifdef ENABLE_DIGITALIN
   setupDigitalIn(need_save);
+  #endif
+  #ifdef ENABLE_DIGITALOUT
+  setupDigitalOut(need_save);
   #endif
   #ifdef ENABLE_ANALOGIN
   setupAnalogIn(need_save);
@@ -227,9 +237,14 @@ void loop() {
       #ifdef ENABLE_DIGITALIN
       handleDigitalIn(sendDelta);
       #endif
+      #ifdef ENABLE_DIGITALOUT
+      handleDigitalOut(sendDelta);
+      #endif      
       #ifdef ENABLE_ANALOGIN
       handleAnalogIn(sendDelta);
       #endif
+
+      handleHttp(need_save);
 
       if (need_save) {
         saveConfig();

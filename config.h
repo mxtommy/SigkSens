@@ -14,6 +14,7 @@ Feature selection
 // Sensors
 
 #define ENABLE_DIGITALIN
+#define ENABLE_DIGITALOUT
 #define ENABLE_ANALOGIN
 #define ENABLE_ONEWIRE
 
@@ -44,6 +45,11 @@ Defines
                                 // Note if more than 6, update DigitalIn to have more interrupt routines.
 #define DIGITAL_INPUT_PINS { 14, 12 } 
 #define DIGITAL_INPUT_NAME {"D1", "D2"}
+
+// Digital output Pins
+#define NUMBER_DIGITAL_OUTPUT 2  // set to number of elements in next two arrays...s
+#define DIGITAL_OUTPUT_PINS { 16, 15 }  // D0, D8 of Wemos)
+#define DIGITAL_OUTPUT_NAME {"OUT1", "OUT2"}
 
 // One-Wire settings
 

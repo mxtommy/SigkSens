@@ -11,8 +11,120 @@ The firmware will scan i2c for any recognized sensors, as well as the oneWire bu
 
 # SensorInfo
 
-Each sensor discovered will have an Address. This is usually the oneWire sensor address, or i2c address.
+Each sensor discovered will have a type and Address. The type is a numeric value that identifies what type of sensor it is. (see the table after). The address is used to differenciate different sensors of the same type. This is usually the oneWire sensor address, or i2c address, etc
+
 Each sensor will have one or more "attributes". An attribute is a data value that the sensor can send. For example a SHT30 sensor has two attributes: "tempK" and "humidity". Each attribute has 3 parameters, "path", "scale", and "offset". Path is the SignalK path that the value will be sent to. Scale and offset can be used to callibrate the data. (raw value is multiplied by scale, then offset is added). Data will only be sent to the SignalKServer if the path is set. Scale defaults to "1", offset to "0".
+
+By default there is no path set to any attribute. That means that no deltas will be sent to the server. Setting the path for an attribute will "activate" it, and cause deltas to be sent to the server for that attribute. For testing purposes, there is a "Local" sensor that does not need any additional circuitry to use.
+
+The following is a list of supported Sensor typess and their attributes. You can see in the hardware folder for some example circuit diagrams.
+
+## Sensor Types
+| Id  | SensorType | Description |
+| --- | --- | --- |
+| 0 | local | Local ESP info |
+| 1 | digitalIn | Digital Inputs (state/hz) |
+| 2 | oneWire | OneWire Tempurature probes |
+| 3 | sht30 | Tempurature and Humidity |
+| 4 | mpu925x | 9-Axis IMU |
+| 5 | bmp280 | Barometric presure sensor |
+| 6 | ads1115 | 16 bit 4 channel ADC |
+| 7 | analogIn | ESP's 10 bit built-in ADC |
+| 8 | digitalOut | Digital Output pins |
+
+## Sensor Details
+
+### Local
+
+This sensor is useful for debugging, It gives some information on the state/performance of the ESP.
+
+| AttributeName |  Description |
+| --- | --- |
+| systemHz | Number of times the main loop executed in 1 second |
+| freeMem | Number of free Bytes on ESP |
+
+### Digital In
+
+This "sensor" is useful to see the status of digital pins. You can either see State (On/Off) or the frequency of state change. (for example for counting RPM). 
+Note State sends 1 update per deltaTimer period, and also a delta immediately on state change. Setting State attribute on something like an rpm input would cause a delta to be sent on every pulse, probably not the best idea :) Frequency sends only 1 delta every deltaTimer period.
+
+Input Pins can be defined in config.h  Defaults to "D5" and "D6" pins on Wemos D1 Mini (pins 14 and 12 of ESP)
+
+| AttributeName |  Description |
+| --- | --- |
+| state | Reports whether pin is high/low.  |
+| freq | Reports the number of pulses counted over a second |
+| count | raw pulse counter. |
+
+### One Wire Temp
+
+Multiple One Wire sensors are supported, including MAX31850 thermocouple boards.
+
+| AttributeName |  Description |
+| --- | --- |
+| tempK | Tempurature reported from the probe (in Kelvin) |
+
+
+### sht30 Temp/Humid
+
+Keep in mind that the ESP generates a bit of heat, enough to add a few degrees of heat to the reading of the sensor if it is too close to the board. It is best to put a bit of distance between the SHT30 and the ESP.
+
+| AttributeName |  Description |
+| --- | --- |
+| tempK | Tempurature in kelvin |
+| humidity | Humidity in percent (0-100) |
+
+### Mpu925x 9-Axis IMU
+This sketch will run a sensor fusing algorithm to try and get usable output out of the MPU925x chips. The onboard DSP is only a 6-axis fusion algorithm, so in order to fuse the magnometer data as well we use our own fusion. Note: Sensor MUST be calibrated in order to be useful!
+
+| AttributeName |  Description |
+| --- | --- |
+| tempK | Tempurature in kelvin of the MPU chip |
+| yaw | yaw referenced to magnetic north in radians |
+| pitch | pitch referenced to "level" in radians |
+| roll | roll referenced to "level" in radians |
+| filterRate | number of time the sensor integration filter ran in one second. (useful for troublehooting) |
+
+### bmp280 Barometric sensor
+
+| AttributeName |  Description |
+| --- | --- |
+| tempK | Tempurature in kelvin |
+| Pa | Air presure in Pascals |
+
+
+### ads1115 4x16 bit ADC
+
+In order to smooth data, many read a second are taken, and are smoothed with a simple exponent filter. (readings are only taken if path is set) Updates are sent on deltaTimer interval. Use scale/offset to convert millivolts to final value if needed.
+
+| AttributeName |  Description |
+| --- | --- |
+| diff0_1 | Differential voltage between inputs 0 and 1, in Millivolts. (1000mV = 1V) |
+| diff2_3 | Differential voltage between inputs 2 and 3, in Millivolts. (1000mV = 1V) |
+| chan0 | Voltage (referenced to GND) on input 0, in Millivolts |
+| chan1 | Voltage (referenced to GND) on input 1, in Millivolts |
+| chan2 | Voltage (referenced to GND) on input 2, in Millivolts |
+| chan3 | Voltage (referenced to GND) on input 3, in Millivolts |
+
+### Analog 10Bit ADC
+
+Similat to ADS1115 with an exponential filter to smooth data a bit. Reads from the build-in 10bit ADC in the ESP8266 (a0). Use scale/offset to change to get proper range.
+
+| AttributeName |  Description |
+| --- | --- |
+| a0 | Value of the A0 10bit ADC (between 0 and 1024) |
+
+### Digital Output 
+
+Use to control the world! Connect to relay etc to power more than a LED.
+Note this is a WIP. It also requires PUT support in the signalK server to work, which has not been released into NPM at this time. The ESP will report the current state of the output to the path set. It will also listen for PUT requests to that signalk path. 
+
+Output Pins can be defined in config.h  Defaults to "D0" and "D8" pins on Wemos D1 Mini (pins 16 and 15 of ESP)
+
+| AttributeName |  Description |
+| --- | --- |
+| state | Current state (on=true, off=false) of the output. Defaults to off on startup |
+ 
 
 # API
 
@@ -42,7 +154,7 @@ Optional HTTP parameters: (though not setting any of these seems a bit pointless
   - Sets the offset for the attribute. The amount added to the scaled value. For substraction use a negative number (Ex: "-3.345")
 
 Example:
-http://A.B.C.D/getSensorInfo?address=0x42&attr=tempK&path=environment.outside.temp
+http://A.B.C.D/setSensorAttr?address=0x42&attrName=tempK&path=environment.outside.temp
 
 ### /setTimerDelay
 Changes the amount of time between SignalK deltas (in ms).
@@ -105,60 +217,9 @@ Required HTTP parameters:
 - path
   - URL (path) of SignalK Server
 
-http://A.B.C.D/setSignalKPort?path=/signalk/v1/stream
+http://A.B.C.D/setSignalKPath?path=/signalk/v1/stream
 
 
-# Supported Sensors and their attributes
-
-- oneWire
-  - tempK
-    - Tempurature in kelvin
-- mpu925x
-  - tempK
-    - Tempurature in kelvin of the MPU chip.
-  - yaw
-    - yaw referenced to magnetic north in radians.
-  - pitch
-    - pitch referenced to "level" in radians.
-  - roll
-    - roll referenced to "level" in radians.
-  - filterRate
-    - number of time the sensor integration filter ran in one second. (useful for troublehooting)
-- sht30
-  - tempK
-    - Tempurature in kelvin
-  - humidity
-    - Humidity in percent (0-100)
-- digitalIn
-  - state
-    - Boolean state of the input. True = High, False = low.
-  - freq
-    - Number of pulses/second
-  - count
-    - Number of pulses (will wrap around after 32bit).
-- ads1115
-  - diff0_1
-    - Differential voltage between inputs 0 and 1, in Millivolts. (1000mV = 1V)
-  - diff2_3
-    - Differential voltage between inputs 2 and 3, in Millivolts. (1000mV = 1V)
-  - chan0
-    - Voltage (referenced to GND) on input 0, in Millivolts.
-  - chan1
-    - Voltage (referenced to GND) on input 1, in Millivolts.    
-  - chan2
-    - Voltage (referenced to GND) on input 2, in Millivolts.    
-  - chan3
-    - Voltage (referenced to GND) on input 3, in Millivolts.    
-- bmp280
-  - tempK
-    - Tempurature in kelvin
-  - Pa
-    - Air presure in Pascals.
-- local (useful in debuging, information obout the ESP itself )
-  - systemHz
-    - number of times the main loop ran in 1 second.
-  - freeMem
-    - number of free bytes of ram.
 
 
 
