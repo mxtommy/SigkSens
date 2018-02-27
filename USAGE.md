@@ -48,6 +48,8 @@ This sensor is useful for debugging, It gives some information on the state/perf
 This "sensor" is useful to see the status of digital pins. You can either see State (On/Off) or the frequency of state change. (for example for counting RPM). 
 Note State sends 1 update per deltaTimer period, and also a delta immediately on state change. Setting State attribute on something like an rpm input would cause a delta to be sent on every pulse, probably not the best idea :) Frequency sends only 1 delta every deltaTimer period.
 
+Input Pins can be defined in config.h  Defaults to "D5" and "D6" pins on Wemos D1 Mini (pins 14 and 12 of ESP)
+
 | AttributeName |  Description |
 | --- | --- |
 | state | Reports whether pin is high/low.  |
@@ -116,6 +118,8 @@ Similat to ADS1115 with an exponential filter to smooth data a bit. Reads from t
 
 Use to control the world! Connect to relay etc to power more than a LED.
 Note this is a WIP. It also requires PUT support in the signalK server to work, which has not been released into NPM at this time. The ESP will report the current state of the output to the path set. It will also listen for PUT requests to that signalk path. 
+
+Output Pins can be defined in config.h  Defaults to "D0" and "D8" pins on Wemos D1 Mini (pins 16 and 15 of ESP)
 
 | AttributeName |  Description |
 | --- | --- |
@@ -215,12 +219,6 @@ Required HTTP parameters:
 
 http://A.B.C.D/setSignalKPath?path=/signalk/v1/stream
 
-
-# Supported Sensors and their attributes
-
-- oneWire
-  - tempK
-    - Tempurature in kelvin
 
 
 
