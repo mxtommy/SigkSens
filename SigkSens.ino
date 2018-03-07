@@ -1,3 +1,4 @@
+#include <Reactduino.h>
 #include <ESP8266WiFi.h>          //ESP8266 Core WiFi Library (you most likely already have this in your sketch)
 #include <ESP8266mDNS.h>        // Include the mDNS library
 #include <ESP8266SSDP.h>
@@ -155,9 +156,12 @@ void setupDiscovery() {
     SSDP.begin();
 }
 
+// forward declaration of the original loop function
+void loop_();
+void slow_loop();
 
-void setup() {
-  bool need_save = false;
+Reactduino app([] () {
+    bool need_save = false;
   // put your setup code here, to run once:
   Serial.begin(115200);
 
@@ -198,7 +202,10 @@ void setup() {
   }
   
   Serial.printf("Ready!\n");
-}
+
+  app.repeat(1000, &slow_loop);
+  app.onTick(&loop_);
+});
 
 /*---------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------
@@ -206,12 +213,41 @@ Main Loop!
 -----------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------*/
 
-
-void loop() {
+void slow_loop() {
   bool need_save = false;
+  bool sendDelta = true;
+  
+  #ifdef ENABLE_I2C
+  handleI2C_slow(sendDelta);
+  #endif
+  #ifdef ENABLE_ONEWIRE
+  handle1Wire(need_save, sendDelta);
+  #endif
+  #ifdef ENABLE_DIGITALIN
+  handleDigitalIn(sendDelta);
+  #endif
+  #ifdef ENABLE_DIGITALOUT
+  handleDigitalOut(sendDelta);
+  #endif      
+  #ifdef ENABLE_ANALOGIN
+  handleAnalogIn(sendDelta);
+  #endif
+
+  handleHttp(need_save);
+
+  if (need_save) {
+    saveConfig();
+  }
+
+  handleWebSocket();
+  handleSignalK();
+  
+  handleConfigReset(); 
+  mainLoopCount = 0;
+}
+
+void loop_() {
   bool sendDelta = false;
-  //device mgmt
-  yield();           
   
   // see if we're ready to send deltas
   handleTimers(sendDelta);
@@ -225,36 +261,4 @@ void loop() {
   #endif
 
   mainLoopCount++;
-
-  //Stuff that runs  once every 1000 loops. (still many many times/sec)
-  if ((mainLoopCount > 1000) || sendDelta) {
-      #ifdef ENABLE_I2C
-      handleI2C_slow(sendDelta);
-      #endif
-      #ifdef ENABLE_ONEWIRE
-        handle1Wire(need_save, sendDelta);
-      #endif
-      #ifdef ENABLE_DIGITALIN
-      handleDigitalIn(sendDelta);
-      #endif
-      #ifdef ENABLE_DIGITALOUT
-      handleDigitalOut(sendDelta);
-      #endif      
-      #ifdef ENABLE_ANALOGIN
-      handleAnalogIn(sendDelta);
-      #endif
-
-      handleHttp(need_save);
-
-      if (need_save) {
-        saveConfig();
-      }
-  
-      handleWebSocket();
-      handleSignalK();
-
-      
-      handleConfigReset(); 
-      mainLoopCount = 0;
-  }
 }
