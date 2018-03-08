@@ -4,6 +4,7 @@ One Wire
 -----------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------*/
 
+#include <Reactduino.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
 
@@ -11,6 +12,7 @@ extern "C" {
 #include "user_interface.h"
 }
 
+#include "FSConfig.h"
 #include "sigksens.h"
 #include "oneWire.h"
 
@@ -63,17 +65,12 @@ bool getSensorOneWirePresent() { return sensorOneWirePresent; }
 // some timers
 uint32_t oneWireScanDelay = 30000; //ms between scan
 
-os_timer_t  oneWireReadyTimer; // once request cycle starts, this timer set so we can send when ready
-os_timer_t  oneWireScanTimer; // timer to scan for new devices
-bool readyToRead1Wire = false;
-bool readyToScan1Wire = false;
-
 // forward declarations
 void oneWireScanBus(bool&);
-void interruptReady1WSensors(void *pArg);
-void interruptScan1WSensors(void *pArg);
 void request1WSensors();
 void read1WSensors();
+void onewire_loop();
+void onewire_scan_loop();
 
 void setup1Wire(bool &need_save) {
   sensors.begin();
@@ -99,29 +96,16 @@ void setup1Wire(bool &need_save) {
 
   oneWireScanBus(need_save);
 
-  os_timer_setfn(&oneWireReadyTimer, interruptReady1WSensors, NULL);
-  os_timer_setfn(&oneWireScanTimer, interruptScan1WSensors, NULL);
-
-  os_timer_arm(&oneWireScanTimer, oneWireScanDelay, true);
+  app.repeat(1000, &request1WSensors);
+  app.repeat(oneWireScanDelay, &onewire_scan_loop);
 }
 
-//called once every loop()
-void handle1Wire(bool &need_save, bool &sendDelta) {
-
-  // If it's time to request temps, well request it...
-  if (sendDelta) {
-    request1WSensors();
+void onewire_scan_loop() {
+  bool need_save = false;
+  oneWireScanBus(need_save);
+  if (need_save) {
+    saveConfig();
   }
-
-  //ready to send temps! 
-  if (readyToRead1Wire) {
-    read1WSensors();
-  }
-
-  if (readyToScan1Wire) {
-    oneWireScanBus(need_save);
-  }
-
 }
 
 // debug function to print a device address
@@ -137,27 +121,15 @@ void printAddress(DeviceAddress deviceAddress) {
   }
 }
 
-void interruptReady1WSensors(void *pArg) {
-  readyToRead1Wire = true;
-} 
-
-void interruptScan1WSensors(void *pArg) {
-  readyToScan1Wire = true;
-} 
-
 void request1WSensors() {
   if (sensorOneWirePresent) {
-      sensors.requestTemperatures();
+    sensors.requestTemperatures();
 
-    // start ready timer
-    os_timer_arm(&oneWireReadyTimer, ONEWIRE_READ_DELAY, false); // false = no loop
+    app.delay(ONEWIRE_READ_DELAY, &read1WSensors);  
   }
-  
 }
 
 void read1WSensors() {
-  readyToRead1Wire = false; // reset interupt
-
   sensorStorage[(int)SensorType::oneWire].forEach([&](SensorInfo* si) {
     DeviceAddress address;
     float tempK;
@@ -192,8 +164,6 @@ void addrToString(char *strAddress, uint8_t *deviceAddress) {
 
 
 void oneWireScanBus(bool &need_save) {
-  readyToScan1Wire = false; // reset Interrupt
-
   uint8_t tempDeviceAddress[8];
   char strAddress[32];
 

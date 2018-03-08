@@ -1,6 +1,7 @@
 #ifndef _sigksens_H_
 #define _sigksens_H_
 
+#include <Reactduino.h>
 #include <Arduino.h>
 #include <WString.h>
 #include<map>
@@ -65,6 +66,8 @@ void SensorStorage::forEach(F&& lambda) {
     lambda(x.second);
   }
 }
+
+extern Reactduino app;
 
 // memory to save sensor info
 extern SensorStorage sensorStorage[];

@@ -1,6 +1,8 @@
 #ifndef _oneWire_H_
 #define _oneWire_H_
 
+#include <Reactduino.h>
+
 #include "sigksens.h"
 #include "config.h"
 
@@ -14,7 +16,6 @@ class OneWireSensorInfo : public SensorInfo {
 };
 
 void setup1Wire(bool&);
-void handle1Wire(bool&, bool&);
 bool getSensorOneWirePresent();
 
 #endif

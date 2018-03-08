@@ -156,7 +156,7 @@ void setupDiscovery() {
     SSDP.begin();
 }
 
-// forward declaration of the original loop function
+// forward declarations
 void loop_();
 void slow_loop();
 
@@ -204,6 +204,7 @@ Reactduino app([] () {
   Serial.printf("Ready!\n");
 
   app.repeat(1000, &slow_loop);
+
   app.onTick(&loop_);
 });
 
@@ -219,9 +220,6 @@ void slow_loop() {
   
   #ifdef ENABLE_I2C
   handleI2C_slow(sendDelta);
-  #endif
-  #ifdef ENABLE_ONEWIRE
-  handle1Wire(need_save, sendDelta);
   #endif
   #ifdef ENABLE_DIGITALIN
   handleDigitalIn(sendDelta);
