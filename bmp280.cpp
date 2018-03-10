@@ -83,19 +83,17 @@ float valueTempK = 0;
 float valuePa = 0;
 
 uint16_t readBMPDelay = 25;
-os_timer_t  bmpReadTimer; // repeating timer that fires to read ADS
-bool bmpReadyRead = false;
+
+// forward declarations
+void readBMP280();
+void updateBMP280();
+
 
 void setupBMP280() {
    // this calls Wire.begin() again, but that shouldn't
   // do any harm. Hopefully.
   bmp.begin();
-  os_timer_setfn(&bmpReadTimer, interruptReadBMP, NULL);
-  os_timer_arm(&bmpReadTimer, readBMPDelay, true);  
-}
-
-void interruptReadBMP(void *pArg) {
-  bmpReadyRead = true;
+  app.repeat(1000, &readBMP280);
 }
 
 void readBMP280() {
@@ -110,19 +108,8 @@ void readBMP280() {
 
   valueTempK = ((0.2*tempK) + (0.8*valueTempK));
   valuePa = ((0.05*Pa) + (0.95*valuePa));
-}
 
-
-void handleBMP280(bool &sendDelta) {
-  if (sendDelta){
-    updateBMP280();
-  }
-
-  if (bmpReadyRead) {
-    bmpReadyRead = false;
-    readBMP280();
-  }
-
+  updateBMP280();
 }
 
 void updateBMP280() {
@@ -131,5 +118,4 @@ void updateBMP280() {
     si->valueJson[1] = (valuePa * si->scale[1] ) + si->offset[1];
     si->isUpdated = true;
   });
-
 }

@@ -218,9 +218,6 @@ void slow_loop() {
   bool need_save = false;
   bool sendDelta = true;
   
-  #ifdef ENABLE_I2C
-  handleI2C_slow(sendDelta);
-  #endif
   #ifdef ENABLE_DIGITALIN
   handleDigitalIn(sendDelta);
   #endif

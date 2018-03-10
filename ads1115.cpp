@@ -1,3 +1,5 @@
+#include <Reactduino.h>
+
 extern "C" {
 #include "user_interface.h"
 }
@@ -141,12 +143,9 @@ type="ads1115"
 */
 
 
-
-
 uint32_t updateReadADSDelay = 50;
-bool adsReadyRead = false;
-os_timer_t  adsReadTimer; // repeating timer that fires to read ADS
 
+reaction reactADS1115Read;
 
 //Running values. (we need to keep running value to reduce noise with exponential filter)
 
@@ -159,12 +158,6 @@ float valueChan3 = 0;
 float gainMultiplier = 1; //default multiplier;
 
 void setupADS1115() {
-
-  //Read ADS
-  os_timer_setfn(&adsReadTimer, interruptReadADSS, NULL);
-  os_timer_arm(&adsReadTimer, updateReadADSDelay, true);
-
-
   // The ADC input range (or gain) can be changed via the following
   // functions, but be careful never to exceed VDD +0.3V max, or to
   // exceed the upper and lower limits if you adjust the input range!
@@ -182,38 +175,22 @@ void setupADS1115() {
   gainMultiplier = 0.125F; /* ADS1115  @ +/- 4.096V gain (16-bit results) */
   
   ads.begin();
-  
+  reactADS1115Read = app.repeat(updateReadADSDelay, &readADS1115);
+  app.repeat(1000, &updateADS1115);
 }
 
-
-void handleADS1115(bool &sendDelta) {
-
-  if (adsReadyRead) {
-    adsReadyRead = false;
-    readADS1115();
-  }
-
-  if (sendDelta) {
-    updateADS1115();
-  }
-  
-
-}
-void interruptReadADSS(void *pArg) {
-  adsReadyRead = true;
-}
 
 uint32_t getReadADSDelay() { 
   return updateReadADSDelay; 
 }
 
 void setADSReadDelay(uint32_t newDelay) {
-  os_timer_disarm(&adsReadTimer);
+  app.free(reactADS1115Read);
   Serial.print("Restarting ADS Read timer at: ");
   Serial.print(newDelay);  
   Serial.println("ms");
   updateReadADSDelay = newDelay;
-  os_timer_arm(&adsReadTimer, updateReadADSDelay, true);
+  reactADS1115Read = app.repeat(updateReadADSDelay, &readADS1115);
 }
 
 
@@ -295,5 +272,3 @@ void readADS1115() {
     }
   });
 }
-
-
