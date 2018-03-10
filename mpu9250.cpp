@@ -243,10 +243,11 @@ void setupMPU9250() {
       mpuRunMode = MpuRunMode::mpuRun;
     }
   }
-
+  app.onTick(&handleMPU9250);
+  app.repeat(1000, &updateMPUSensorInfo);
 }
 
-void handleMPU9250(bool &sendDelta) {
+void handleMPU9250() {
   switch(mpuRunMode) {
     case MpuRunMode::mpuRun:
       if(newData) { //newData is from pin Interrupt
@@ -255,10 +256,6 @@ void handleMPU9250(bool &sendDelta) {
       }
 
       updateQuaternion();
-
-      if (sendDelta) {
-        updateMPUSensorInfo();
-      }
       break;
 
     case MpuRunMode::calAccelGyro:
@@ -284,12 +281,7 @@ void handleMPU9250(bool &sendDelta) {
       saveMPUCalibrationFS();
       mpuRunMode = MpuRunMode::mpuRun;
       break;
-
   }
-
-
-  
-  
 }
 
 void saveMPUCalibrationFS(){
@@ -501,7 +493,11 @@ void updateQuaternion() {
 void updateMPUSensorInfo() {
   SensorInfo *thisSensorInfo;
   uint8_t address;
-               
+  
+  if (mpuRunMode != MpuRunMode::mpuRun) {
+    return;
+  }
+
   tempCount = readTempData();  // Read the gyro adc values
   temperature = ((float) tempCount) / 333.87 + 21.0; // Gyro chip temperature in degrees Centigrade
   // Print temperature in degrees Centigrade      

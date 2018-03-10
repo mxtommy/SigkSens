@@ -23,7 +23,7 @@ enum class MpuRunMode { mpuOff, mpuRun, calAccelGyro, calMagStart, calMagRun, ca
 
 
 void setupMPU9250();
-void handleMPU9250(bool&);
+void handleMPU9250();
 
 void processMPU9250();
 void updateQuaternion();

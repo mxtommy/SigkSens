@@ -167,12 +167,3 @@ void setupI2C(bool &need_save) {
   }
   #endif
 }
-
-
-void handleI2C(bool &sendDelta) {
-  #ifdef ENABLE_MPU
-  if (sensorMPU925XPresent) {
-    handleMPU9250(sendDelta);
-  }
-  #endif
-}

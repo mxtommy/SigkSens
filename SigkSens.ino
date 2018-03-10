@@ -247,13 +247,8 @@ void loop_() {
   // see if we're ready to send deltas
   handleTimers(sendDelta);
 
-
-
-  //Stuff here run's all the time
+  //Stuff here runs all the time
   handleSystemHz(sendDelta);
-  #ifdef ENABLE_I2C
-  handleI2C(sendDelta);
-  #endif
-
+  
   mainLoopCount++;
 }
