@@ -166,8 +166,6 @@ void setupI2C(bool &need_save) {
     setupADS1115();
   }
   #endif
-  
-  app.repeat(1000, &handleI2C_slow);
 }
 
 
@@ -177,13 +175,4 @@ void handleI2C(bool &sendDelta) {
     handleMPU9250(sendDelta);
   }
   #endif
-}
-
-
-void handleI2C_slow() {
-#ifdef ENABLE_SHT30
-  if (sensorSHT30Present) {
-    handleSHT30(true);  
-  }
-#endif
 }

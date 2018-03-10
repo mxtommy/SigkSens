@@ -5,7 +5,6 @@
 
 void setupI2C(bool&);
 void handleI2C(bool&);
-void handleI2C_slow();
 
 #ifdef ENABLE_SHT30
 bool getSensorSHT30Present();
