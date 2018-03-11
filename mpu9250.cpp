@@ -248,7 +248,7 @@ void setupMPU9250() {
     }
   }
   app.onTick(&handleMPU9250);
-  app.repeat(1000, &updateMPUSensorInfo);
+  app.repeat(SLOW_LOOP_DELAY, &updateMPUSensorInfo);
 }
 
 void handleMPU9250() {

@@ -4,6 +4,8 @@ extern "C" {
 #include "user_interface.h"
 }
 
+#include "config.h"
+
 #include <Adafruit_ADS1015.h>
 Adafruit_ADS1115 ads;
 
@@ -180,7 +182,7 @@ void setupADS1115() {
   
   ads.begin();
   reactADS1115Read = app.repeat(updateReadADSDelay, &readADS1115);
-  app.repeat(1000, &updateADS1115);
+  app.repeat(SLOW_LOOP_DELAY, &updateADS1115);
 }
 
 

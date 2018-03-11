@@ -195,8 +195,6 @@ Reactduino app([] () {
   #endif
   setupSystemHz(need_save);
   
-  setupTimers();
-
   if (need_save) {
     saveConfig();
   }
@@ -218,13 +216,6 @@ void slow_loop() {
   bool need_save = false;
   bool sendDelta = true;
   
-  #ifdef ENABLE_DIGITALOUT
-  handleDigitalOut(sendDelta);
-  #endif      
-  #ifdef ENABLE_ANALOGIN
-  handleAnalogIn(sendDelta);
-  #endif
-
   handleHttp(need_save);
 
   if (need_save) {
@@ -239,13 +230,5 @@ void slow_loop() {
 }
 
 void loop_() {
-  bool sendDelta = false;
-  
-  // see if we're ready to send deltas
-  handleTimers(sendDelta);
-
-  //Stuff here runs all the time
-  handleSystemHz(sendDelta);
-  
   mainLoopCount++;
 }

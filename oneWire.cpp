@@ -100,7 +100,7 @@ void setup1Wire(bool &need_save) {
 
   oneWireScanBus(need_save);
 
-  app.repeat(1000, &request1WSensors);
+  app.repeat(SLOW_LOOP_DELAY, &request1WSensors);
   app.repeat(oneWireScanDelay, &onewire_scan_loop);
 }
 

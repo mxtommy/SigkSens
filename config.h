@@ -35,6 +35,9 @@ Defines
 ------------------------------------------------------------------------------
 ----------------------------------------------------------------------------*/
 
+// Slow loop duration (SK updates, slow sensor reads etc)
+#define SLOW_LOOP_DELAY 200
+
 // Signal K maximum path length
 
 #define MAX_SIGNALK_PATH_LEN 150

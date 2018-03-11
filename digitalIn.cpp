@@ -151,7 +151,7 @@ void setupDigitalIn(bool &need_save) {
   if (NUMBER_DIGITAL_INPUT >= 6) { attachInterrupt(digitalPins[5], interruptDigitalPin5, CHANGE); }
 
   app.repeat(20, &updateDigitalInStates);
-  app.repeat(200, &updateDigitalInSensorInfo);
+  app.repeat(SLOW_LOOP_DELAY, &updateDigitalInSensorInfo);
 }
 
 

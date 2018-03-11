@@ -2,6 +2,8 @@ extern "C" {
 #include "user_interface.h"
 }
 
+#include "config.h"
+
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BMP280.h>
@@ -97,7 +99,7 @@ void setupBMP280() {
    // this calls Wire.begin() again, but that shouldn't
   // do any harm. Hopefully.
   bmp.begin();
-  app.repeat(1000, &readBMP280);
+  app.repeat(SLOW_LOOP_DELAY, &readBMP280);
 }
 
 void readBMP280() {
