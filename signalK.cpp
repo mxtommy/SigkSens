@@ -10,8 +10,12 @@ extern "C" {
 
 #include "digitalOut.h"
 
+// forward declarations
+void handleSignalK();
+
+
 void setupSignalK() {
-  
+  app.repeat(SLOW_LOOP_DELAY, &handleSignalK);
 }
 
 

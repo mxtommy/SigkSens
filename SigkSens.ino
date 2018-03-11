@@ -219,7 +219,6 @@ Main Loop!
 
 void slow_loop() {
   handleWebSocket();
-  handleSignalK();
   
   handleConfigReset(); 
   mainLoopCount = 0;
