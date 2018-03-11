@@ -37,24 +37,25 @@ SHT30SensorInfo::SHT30SensorInfo(String addr, String path1, String path2) {
 SHT30SensorInfo *SHT30SensorInfo::fromJson(JsonObject &jsonSens) {
   return new SHT30SensorInfo(
     jsonSens["address"],
-    jsonSens["signalKPaths"][0],
-    jsonSens["signalKPaths"][1]
+    jsonSens["attrs"][0]["signalKPath"],
+    jsonSens["attrs"][1]["signalKPath"]
   );
 }
 
 void SHT30SensorInfo::toJson(JsonObject &jsonSens) {
   jsonSens["address"] = address;
   jsonSens["type"] = (int)SensorType::sht30;
-  JsonArray& jsonAttrNames = jsonSens.createNestedArray("attrNames");
-  JsonArray& jsonPaths = jsonSens.createNestedArray("signalKPaths");
-  JsonArray& jsonValues = jsonSens.createNestedArray("values");
+  JsonArray& jsonAttrs = jsonSens.createNestedArray("attrs");
   for (int x=0 ; x < MAX_SENSOR_ATTRIBUTES ; x++) {
     if (strcmp(attrName[x].c_str(), "") == 0 ) {
       break; //no more attributes
     }
-    jsonAttrNames.add(attrName[x]);
-    jsonPaths.add(signalKPath[x]);
-    jsonValues.add(valueJson[x]);
+    JsonObject& attr = jsonAttrs.createNestedObject();
+    attr["name"] = attrName[x];
+    attr["signalKPath"] = signalKPath[x];
+    attr["offset"] = offset[x];
+    attr["scale"] = scale[x];
+    attr["value"] = valueJson[x];
   }
 }
 
