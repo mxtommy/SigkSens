@@ -213,8 +213,6 @@ void httpMpuCalMagStop(AsyncWebServerRequest *request) {
 
 void httpGetSensorInfo(AsyncWebServerRequest *request) {
   AsyncJsonResponse * response = new AsyncJsonResponse();
-  response->addHeader("Server","ESP Async Web Server");
- 
   JsonObject& json = response->getRoot();
 
   SensorInfo *tmpSensorInfo;
@@ -232,7 +230,7 @@ void httpGetSensorInfo(AsyncWebServerRequest *request) {
 
   //Sensor types present
   #ifdef ENABLE_ONEWIRE
-    json["sensorOneWire"] = getSensorOneWirePresent();
+  json["sensorOneWire"] = getSensorOneWirePresent();
   #endif
   #ifdef ENABLE_SHT30
   json["sensorSHT30"] = getSensorSHT30Present();
@@ -259,27 +257,9 @@ void httpGetSensorInfo(AsyncWebServerRequest *request) {
   //Sensors
   JsonArray& sensorArr = json.createNestedArray("sensors");
   
-  
-  //for (uint8_t i=0; i < sensorStorage.size(); i++) {
   sensorStorageForEach([&](SensorInfo* si) {
     JsonObject& tmpSens = sensorArr.createNestedObject();
-    
-    tmpSens.set("address", si->address);
-    tmpSens.set("type", (int)si->type);
-
-    JsonArray& jsonAttr = tmpSens.createNestedArray("attr");
-    for (int x=0;x<MAX_SENSOR_ATTRIBUTES; x++) {
-      if (strcmp(si->attrName[x].c_str(), "") == 0) {
-        break; // no more attrs
-      }
-      JsonObject& tmpAttr = jsonAttr.createNestedObject();
-      tmpAttr.set("attrName", si->attrName[x]);
-      tmpAttr.set("signalKPath", si->signalKPath[x] );
-      tmpAttr.set("scale", si->scale[x] );
-      tmpAttr.set("offset", si->offset[x] );
-      tmpAttr["value"] = RawJson(si->valueJson[x].c_str());
-    }
-    //tmpSensorInfo->toJson(tmpSens);
+    si->toJson(tmpSens);
   });
 
   response->setLength();
