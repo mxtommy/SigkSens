@@ -35,7 +35,6 @@ extern "C" {
 #include "FSConfig.h"
 #include "webSocket.h"
 #include "sigksens.h"
-#include "timer.h"
 #include "configReset.h"
 
 // SSDP related stuff
@@ -230,7 +229,6 @@ void httpGetSensorInfo(AsyncWebServerRequest *request) {
 
   //Timers
   JsonObject& timers = json.createNestedObject("timers");
-  timers["deltaDelay"] = getDeltaDelay();
   #ifdef ENABLE_ADS1115
   timers["ads1115Read"] = getReadADSDelay();
   #endif
@@ -315,7 +313,6 @@ void httpSetTimerDelay(AsyncWebServerRequest *request) {
   if (newDelay > 5) { //ostimer min delay is 5ms
     if (strcmp(timer, "deltaDelay") == 0) {
       ok = true;
-      setDeltaDelay(newDelay);
     }
     #ifdef ENABLE_ADS1115
     else if (strcmp(timer, "ads1115Read") == 0) {
