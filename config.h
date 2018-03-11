@@ -13,6 +13,7 @@ Feature selection
 
 // Sensors
 
+#define ENABLE_SYSTEMHZ
 #define ENABLE_DIGITALIN
 #define ENABLE_DIGITALOUT
 #define ENABLE_ANALOGIN

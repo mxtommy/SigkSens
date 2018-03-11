@@ -39,9 +39,10 @@
 #ifdef ENABLE_ANALOGIN
   #include "analogIn.h"
 #endif
+#ifdef ENABLE_SYSTEMHZ
+  #include "systemHz.h"
+#endif
 
-
-#include "systemHz.h"
 #include "configReset.h"
 #include "webSocket.h"
 #include "signalK.h"
@@ -66,8 +67,10 @@ General Setup
 ---------------------------------------------------------------------------------------------------*/
 
 void setupFromJson() {
+  #ifdef ENABLE_SYSTEMHZ
   fromJson[(int)SensorType::local] =
     (fromJsonFunc)&(SystemHzSensorInfo::fromJson);
+  #endif
 
   #ifdef ENABLE_DIGITALIN
   fromJson[(int)SensorType::digitalIn] =
@@ -193,7 +196,9 @@ Reactduino app([] () {
   #ifdef ENABLE_ANALOGIN
   setupAnalogIn(need_save);
   #endif
+  #ifdef ENABLE_SYSTEMHZ
   setupSystemHz(need_save);
+  #endif
   
   if (need_save) {
     saveConfig();
