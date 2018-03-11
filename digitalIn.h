@@ -17,7 +17,6 @@ class DigitalInSensorInfo : public SensorInfo {
 };
 
 void setupDigitalIn(bool &need_save);
-void handleDigitalIn(bool &sendDelta);
 void initializeDigitalPin(uint8_t index, bool &need_save);
 
 void updateDigitalInState(uint8_t index);

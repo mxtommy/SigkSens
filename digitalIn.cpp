@@ -89,7 +89,6 @@ char              digitalPinNames[NUMBER_DIGITAL_INPUT][10] = DIGITAL_INPUT_NAME
 uint32_t          digitPinLastUpdateState[NUMBER_DIGITAL_INPUT] = { 0 };
 uint32_t          digitPinLastUpdatePeriodic[NUMBER_DIGITAL_INPUT] = { 0 };
 uint32_t          digitalPinCountLast[NUMBER_DIGITAL_INPUT] = { 0 };
-bool              digitalUpdateReady[NUMBER_DIGITAL_INPUT] = { false };
 volatile bool     digitalPinStateChange[NUMBER_DIGITAL_INPUT] = { false };
 volatile uint32_t digitalPinCount[NUMBER_DIGITAL_INPUT] = { 0 };
 
@@ -129,6 +128,11 @@ void ICACHE_RAM_ATTR interruptDigitalPin5() {
   digitalPinCount[5]++;
 }
 
+// forward declarations
+
+void updateDigitalInStates();
+void updateDigitalInSensorInfo();
+
 void setupDigitalIn(bool &need_save) {
   for (int index=0;index<(sizeof(digitalPins)/sizeof(digitalPins[0])); index++) {
     initializeDigitalPin(index, need_save); 
@@ -142,30 +146,24 @@ void setupDigitalIn(bool &need_save) {
   if (NUMBER_DIGITAL_INPUT >= 5) { attachInterrupt(digitalPins[4], interruptDigitalPin4, CHANGE); }
   if (NUMBER_DIGITAL_INPUT >= 6) { attachInterrupt(digitalPins[5], interruptDigitalPin5, CHANGE); }
 
+  app.repeat(20, &updateDigitalInStates);
+  app.repeat(200, &updateDigitalInSensorInfo);
 }
 
 
-void handleDigitalIn(bool &sendDelta) {
-  //Check if periodic update ready
-  if (sendDelta) {
-    for (int index=0;index<(sizeof(digitalPins)/sizeof(digitalPins[0])); index++) {
-      digitalUpdateReady[index] = true; //set them all to true  
-    }
-  }
-
+void updateDigitalInStates() {
   for (int index=0;index<(sizeof(digitalPins)/sizeof(digitalPins[0])); index++) {
     if (digitalPinStateChange[index]) {
       updateDigitalInState(index);
     }
   }
+}
 
+
+void updateDigitalInSensorInfo() {
   //Update Sensorinfo
   for (int index=0;index<(sizeof(digitalPins)/sizeof(digitalPins[0])); index++) {
-    if (digitalUpdateReady[index]) {
-      digitalUpdateReady[index] = false; // reset update ready
-      updateDigitalInPeriodic(index);
-      
-    }
+    updateDigitalInPeriodic(index);   
   }
 }
 
@@ -195,7 +193,6 @@ void updateDigitalInState(uint8_t index) {
   uint32_t timeNow = micros();
   uint32_t delta;
 
-
   if (timeNow < digitPinLastUpdateState[index]) { //protection against wrap around
     digitPinLastUpdateState[index] = timeNow;
     return; //skip this update...
@@ -214,13 +211,10 @@ void updateDigitalInState(uint8_t index) {
 
   if (si != nullptr) {
     //current state
-    if (strcmp(si->signalKPath[0].c_str(), "") != 0) {
-      if (digitalRead(digitalPins[index]) == LOW) {
-        si->valueJson[0] = "true";
-      } else {
-        si->valueJson[0] = "false";
-      }
-      si->isUpdated = true; 
+    if (digitalRead(digitalPins[index]) == LOW) {
+      si->valueJson[0] = "true";
+    } else {
+      si->valueJson[0] = "false";
     }
   }
 }
@@ -238,36 +232,28 @@ void updateDigitalInPeriodic(uint8_t index) {
 
   if (si != nullptr) {
     //current state
-    if (strcmp(si->signalKPath[0].c_str(), "") != 0) {
-      if (digitalRead(digitalPins[index]) == LOW) {
-        si->valueJson[0] = "true";
-      } else {
-        si->valueJson[0] = "false";
-      }
-      si->isUpdated = true; 
+    if (digitalRead(digitalPins[index]) == LOW) {
+      si->valueJson[0] = "true";
+    } else {
+      si->valueJson[0] = "false";
     }
+    si->isUpdated = true; 
     //Hz (pulse/time)
-    if (strcmp(si->signalKPath[1].c_str(), "") != 0) {
-      if (timeNow < digitPinLastUpdatePeriodic[index]) { //protection against wrap around
-        digitPinLastUpdatePeriodic[index] = timeNow;
-        return; //skip this update...
-      }
-
-      delta = timeNow - digitPinLastUpdatePeriodic[index];
-      rawHz = (float)(((digitalPinCount[index]-digitalPinCountLast[index])*1000000)/delta)/2;  // divide by 2 because interupt is on change (both rise and fall)
-
-      si->valueJson[1] = (rawHz * si->scale[1]) + si->offset[1];
-      si->isUpdated = true; 
-      digitalPinCountLast[index] = digitalPinCount[index];
+    if (timeNow < digitPinLastUpdatePeriodic[index]) { //protection against wrap around
       digitPinLastUpdatePeriodic[index] = timeNow;
-    }       
-    //count
-    if (strcmp(si->signalKPath[2].c_str(), "") != 0) {
-
-      si->valueJson[2] = ((digitalPinCount[index]/2) * si->scale[2]) + si->offset[2];
-      si->isUpdated = true;       
-
+      return; //skip this update...
     }
+
+    delta = timeNow - digitPinLastUpdatePeriodic[index];
+    rawHz = (float)(((digitalPinCount[index]-digitalPinCountLast[index])*1000000)/delta)/2;  // divide by 2 because interupt is on change (both rise and fall)
+
+    si->valueJson[1] = (rawHz * si->scale[1]) + si->offset[1];
+    si->isUpdated = true; 
+    digitalPinCountLast[index] = digitalPinCount[index];
+    digitPinLastUpdatePeriodic[index] = timeNow;
+    //count
+    si->valueJson[2] = ((digitalPinCount[index]/2) * si->scale[2]) + si->offset[2];
+    si->isUpdated = true;       
   }
 }
 

@@ -218,9 +218,6 @@ void slow_loop() {
   bool need_save = false;
   bool sendDelta = true;
   
-  #ifdef ENABLE_DIGITALIN
-  handleDigitalIn(sendDelta);
-  #endif
   #ifdef ENABLE_DIGITALOUT
   handleDigitalOut(sendDelta);
   #endif      
