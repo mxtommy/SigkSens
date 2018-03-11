@@ -201,7 +201,7 @@ Reactduino app([] () {
   
   Serial.printf("Ready!\n");
 
-  app.repeat(1000, &slow_loop);
+  app.repeat(SLOW_LOOP_DELAY, &slow_loop);
 
   app.onTick(&loop_);
 });
@@ -213,15 +213,6 @@ Main Loop!
 ---------------------------------------------------------------------------------------------------*/
 
 void slow_loop() {
-  bool need_save = false;
-  bool sendDelta = true;
-  
-  handleHttp(need_save);
-
-  if (need_save) {
-    saveConfig();
-  }
-
   handleWebSocket();
   handleSignalK();
   
