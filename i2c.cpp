@@ -59,7 +59,7 @@ bool scanI2CAddress(uint8_t address) {
 }
 
 void scanAllI2C() {
-  for (int i=0; i < 255; i++) {
+  for (int i=0; i < 0x7f; i++) {
     if (scanI2CAddress(i)) {
       Serial.printf("Found I2C device at address %x\n", i);
     }

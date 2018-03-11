@@ -45,12 +45,16 @@ SystemHzSensorInfo *SystemHzSensorInfo::fromJson(JsonObject &jsonSens) {
 void SystemHzSensorInfo::toJson(JsonObject &jsonSens) {
   jsonSens["address"] = address;
   jsonSens["type"] = (int)SensorType::local;
+  JsonArray& jsonAttrNames = jsonSens.createNestedArray("attrNames");
   JsonArray& jsonPaths = jsonSens.createNestedArray("signalKPaths");
+  JsonArray& jsonValues = jsonSens.createNestedArray("values");
   for (int x=0 ; x < MAX_SENSOR_ATTRIBUTES ; x++) {
     if (strcmp(attrName[x].c_str(), "") == 0 ) {
       break; //no more attributes
     }
+    jsonAttrNames.add(attrName[x]);
     jsonPaths.add(signalKPath[x]);
+    jsonValues.add(valueJson[x]);
   }
 }
 
