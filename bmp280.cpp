@@ -50,35 +50,31 @@ BMP280SensorInfo::BMP280SensorInfo(
 BMP280SensorInfo *BMP280SensorInfo::fromJson(JsonObject &jsonSens) {
   return new BMP280SensorInfo(
     jsonSens["address"],
-    jsonSens["signalKPaths"][0],
-    jsonSens["signalKPaths"][1],
-    jsonSens["offsets"][0],
-    jsonSens["offsets"][1],
-    jsonSens["scales"][0],
-    jsonSens["scales"][1]
+    jsonSens["attrs"][0]["signalKPath"],
+    jsonSens["attrs"][1]["signalKPath"],
+    jsonSens["attrs"][0]["offset"],
+    jsonSens["attrs"][1]["offset"],
+    jsonSens["attrs"][0]["scale"],
+    jsonSens["attrs"][1]["scale"]
   );
 }
 
 void BMP280SensorInfo::toJson(JsonObject &jsonSens) {
   jsonSens["address"] = address;
   jsonSens["type"] = (int)SensorType::bmp280;
-  JsonArray& jsonAttrNames = jsonSens.createNestedArray("attrNames");
-  JsonArray& jsonPaths = jsonSens.createNestedArray("signalKPaths");
-  JsonArray& jsonOffsets = jsonSens.createNestedArray("offsets");
-  JsonArray& jsonScales = jsonSens.createNestedArray("scales");
-  JsonArray& jsonValues = jsonSens.createNestedArray("values");
+  JsonArray& jsonAttrs = jsonSens.createNestedArray("attrs");
   for (int x=0 ; x < MAX_SENSOR_ATTRIBUTES ; x++) {
     if (strcmp(attrName[x].c_str(), "") == 0 ) {
       break; //no more attributes
     }
-    jsonAttrNames.add(attrName[x]);
-    jsonPaths.add(signalKPath[x]);
-    jsonOffsets.add(offset[x]);
-    jsonScales.add(scale[x]);
-    jsonValues.add(valueJson[x]);
+    JsonObject& attr = jsonAttrs.createNestedObject();
+    attr["name"] = attrName[x];
+    attr["signalKPath"] = signalKPath[x];
+    attr["offset"] = offset[x];
+    attr["scale"] = scale[x];
+    attr["value"] = valueJson[x];
   }
 }
-
 
 
 // sensor object
