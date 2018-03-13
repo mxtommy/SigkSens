@@ -37,24 +37,25 @@ SystemHzSensorInfo::SystemHzSensorInfo(String addr,
 SystemHzSensorInfo *SystemHzSensorInfo::fromJson(JsonObject &jsonSens) {
   return new SystemHzSensorInfo(
     jsonSens["address"],
-    jsonSens["signalKPaths"][0],
-    jsonSens["signalKPaths"][1]
+    jsonSens["attrs"][0]["signalKPath"],
+    jsonSens["attrs"][1]["signalKPath"]
   );
 }
 
 void SystemHzSensorInfo::toJson(JsonObject &jsonSens) {
   jsonSens["address"] = address;
   jsonSens["type"] = (int)SensorType::local;
-  JsonArray& jsonAttrNames = jsonSens.createNestedArray("attrNames");
-  JsonArray& jsonPaths = jsonSens.createNestedArray("signalKPaths");
-  JsonArray& jsonValues = jsonSens.createNestedArray("values");
+  JsonArray& jsonAttrs = jsonSens.createNestedArray("attrs");
   for (int x=0 ; x < MAX_SENSOR_ATTRIBUTES ; x++) {
     if (strcmp(attrName[x].c_str(), "") == 0 ) {
       break; //no more attributes
     }
-    jsonAttrNames.add(attrName[x]);
-    jsonPaths.add(signalKPath[x]);
-    jsonValues.add(valueJson[x]);
+    JsonObject& attr = jsonAttrs.createNestedObject();
+    attr["name"] = attrName[x];
+    attr["signalKPath"] = signalKPath[x];
+    attr["offset"] = offset[x];
+    attr["scale"] = scale[x];
+    attr["value"] = valueJson[x];
   }
 }
 

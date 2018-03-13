@@ -55,35 +55,32 @@ DigitalInSensorInfo::DigitalInSensorInfo(String addr, String path1, String path2
 DigitalInSensorInfo *DigitalInSensorInfo::fromJson(JsonObject &jsonSens) {
   return new DigitalInSensorInfo(
     jsonSens["address"],
-    jsonSens["signalKPaths"][0],
-    jsonSens["signalKPaths"][1],
-    jsonSens["signalKPaths"][2],
-    jsonSens["offsets"][0],
-    jsonSens["offsets"][1],
-    jsonSens["offsets"][2],
-    jsonSens["scales"][0],
-    jsonSens["scales"][1],
-    jsonSens["scales"][2]
+    jsonSens["attrs"][0]["signalKPath"],
+    jsonSens["attrs"][1]["signalKPath"],
+    jsonSens["attrs"][2]["signalKPath"],
+    jsonSens["attrs"][0]["offset"],
+    jsonSens["attrs"][1]["offset"],
+    jsonSens["attrs"][2]["offset"],
+    jsonSens["attrs"][0]["scale"],
+    jsonSens["attrs"][1]["scale"],
+    jsonSens["attrs"][2]["scale"]
   );
 }
 
 void DigitalInSensorInfo::toJson(JsonObject &jsonSens) {
   jsonSens["address"] = address;
   jsonSens["type"] = (int)SensorType::digitalIn;
-  JsonArray& jsonAttrNames = jsonSens.createNestedArray("attrNames");
-  JsonArray& jsonPaths = jsonSens.createNestedArray("signalKPaths");
-  JsonArray& jsonOffsets = jsonSens.createNestedArray("offsets");
-  JsonArray& jsonScales = jsonSens.createNestedArray("scales");
-  JsonArray& jsonValues = jsonSens.createNestedArray("values");
+  JsonArray& jsonAttrs = jsonSens.createNestedArray("attrs");
   for (int x=0 ; x < MAX_SENSOR_ATTRIBUTES ; x++) {
     if (strcmp(attrName[x].c_str(), "") == 0 ) {
       break; //no more attributes
     }
-    jsonAttrNames.add(attrName[x]);
-    jsonPaths.add(signalKPath[x]);
-    jsonOffsets.add(offset[x]);
-    jsonScales.add(scale[x]);
-    jsonValues.add(valueJson[x]);
+    JsonObject& attr = jsonAttrs.createNestedObject();
+    attr["name"] = attrName[x];
+    attr["signalKPath"] = signalKPath[x];
+    attr["offset"] = offset[x];
+    attr["scale"] = scale[x];
+    attr["value"] = valueJson[x];
   }
 }
 

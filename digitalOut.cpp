@@ -29,19 +29,22 @@ DigitalOutSensorInfo::DigitalOutSensorInfo(String addr, String path) {
 DigitalOutSensorInfo *DigitalOutSensorInfo::fromJson(JsonObject &jsonSens) {
   return new DigitalOutSensorInfo(
     jsonSens["address"],
-    jsonSens["signalKPaths"][0]
+    jsonSens["attrs"][0]["signalKPath"]
   );
 }
 
 void DigitalOutSensorInfo::toJson(JsonObject &jsonSens) {
   jsonSens["address"] = address;
   jsonSens["type"] = (int)SensorType::digitalOut;
-  JsonArray& jsonPaths = jsonSens.createNestedArray("signalKPaths");
+  JsonArray& jsonAttrs = jsonSens.createNestedArray("attrs");
   for (int x=0 ; x < MAX_SENSOR_ATTRIBUTES ; x++) {
     if (strcmp(attrName[x].c_str(), "") == 0 ) {
       break; //no more attributes
     }
-    jsonPaths.add(signalKPath[x]);
+    JsonObject& attr = jsonAttrs.createNestedObject();
+    attr["name"] = attrName[x];
+    attr["signalKPath"] = signalKPath[x];
+    attr["value"] = valueJson[x];
   }
 }
 
