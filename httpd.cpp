@@ -35,7 +35,6 @@ extern "C" {
 #include "FSConfig.h"
 #include "webSocket.h"
 #include "sigksens.h"
-#include "timer.h"
 #include "configReset.h"
 
 // SSDP related stuff
@@ -74,24 +73,6 @@ HTTP
 ----------------------------------------------------------------------------*/
 
 AsyncWebServer server(80);
-bool setNeedSave = false;
-bool restartWebSocketClientFlag = false;
-bool resetConfigFlag = false;
-
-void handleHttp(bool &need_save) {
-  if (setNeedSave) {
-    setNeedSave = false;
-    need_save = true;
-  }
-  if (restartWebSocketClientFlag) {
-    restartWebSocketClientFlag = false;
-    restartWebSocketClient();
-  }
-  if (resetConfigFlag) {
-    resetConfigFlag = false;
-    resetConfig();
-  }
-}
 
 void createStaticFiles() {
   if (!SPIFFS.exists("/web/index.html")) {
@@ -156,7 +137,7 @@ void httpNewHostname(AsyncWebServerRequest *request) {
     return;
   }
   request->arg("hostname").toCharArray(myHostname, 16);
-  setNeedSave = true;
+  app.delay(0, &saveConfig);
   request->send(200, "application/json", "{ \"success\": true }");
 }
 
@@ -167,8 +148,8 @@ void httpSetSignalKHost(AsyncWebServerRequest *request) {
     return;
   }
   signalKClientInfo.host = request->arg("host");
-  setNeedSave = true;
-  restartWebSocketClientFlag = true;
+  app.delay(0, &saveConfig);
+  app.delay(0, &restartWebSocketClient);
   request->send(200, "application/json", "{ \"success\": true }");
 }
 
@@ -179,8 +160,8 @@ void httpSetSignalKPort(AsyncWebServerRequest *request) {
     return;
   }
   signalKClientInfo.port = request->arg("port").toInt();
-  setNeedSave = true;
-  restartWebSocketClientFlag = true;
+  app.delay(0, &saveConfig);
+  app.delay(0, &restartWebSocketClient);
   request->send(200, "application/json", "{ \"success\": true }");
 }
 
@@ -188,8 +169,8 @@ void httpSetSignalKPort(AsyncWebServerRequest *request) {
 void httpSetSignalKPath(AsyncWebServerRequest *request) {
   if(!request->hasArg("path")) {request->send(500, "text/plain", "missing arg 'path'"); return;}
   signalKClientInfo.path = request->arg("path");
-  setNeedSave = true;
-  restartWebSocketClientFlag = true;
+  app.delay(0, &saveConfig);
+  app.delay(0, &restartWebSocketClient);
   request->send(200, "application/json", "{ \"success\": true }");
 }
 
@@ -213,8 +194,6 @@ void httpMpuCalMagStop(AsyncWebServerRequest *request) {
 
 void httpGetSensorInfo(AsyncWebServerRequest *request) {
   AsyncJsonResponse * response = new AsyncJsonResponse();
-  response->addHeader("Server","ESP Async Web Server");
- 
   JsonObject& json = response->getRoot();
 
   SensorInfo *tmpSensorInfo;
@@ -232,7 +211,7 @@ void httpGetSensorInfo(AsyncWebServerRequest *request) {
 
   //Sensor types present
   #ifdef ENABLE_ONEWIRE
-    json["sensorOneWire"] = getSensorOneWirePresent();
+  json["sensorOneWire"] = getSensorOneWirePresent();
   #endif
   #ifdef ENABLE_SHT30
   json["sensorSHT30"] = getSensorSHT30Present();
@@ -250,7 +229,6 @@ void httpGetSensorInfo(AsyncWebServerRequest *request) {
 
   //Timers
   JsonObject& timers = json.createNestedObject("timers");
-  timers["deltaDelay"] = getDeltaDelay();
   #ifdef ENABLE_ADS1115
   timers["ads1115Read"] = getReadADSDelay();
   #endif
@@ -259,27 +237,9 @@ void httpGetSensorInfo(AsyncWebServerRequest *request) {
   //Sensors
   JsonArray& sensorArr = json.createNestedArray("sensors");
   
-  
-  //for (uint8_t i=0; i < sensorStorage.size(); i++) {
   sensorStorageForEach([&](SensorInfo* si) {
     JsonObject& tmpSens = sensorArr.createNestedObject();
-    
-    tmpSens.set("address", si->address);
-    tmpSens.set("type", (int)si->type);
-
-    JsonArray& jsonAttr = tmpSens.createNestedArray("attr");
-    for (int x=0;x<MAX_SENSOR_ATTRIBUTES; x++) {
-      if (strcmp(si->attrName[x].c_str(), "") == 0) {
-        break; // no more attrs
-      }
-      JsonObject& tmpAttr = jsonAttr.createNestedObject();
-      tmpAttr.set("attrName", si->attrName[x]);
-      tmpAttr.set("signalKPath", si->signalKPath[x] );
-      tmpAttr.set("scale", si->scale[x] );
-      tmpAttr.set("offset", si->offset[x] );
-      tmpAttr["value"] = RawJson(si->valueJson[x].c_str());
-    }
-    //tmpSensorInfo->toJson(tmpSens);
+    si->toJson(tmpSens);
   });
 
   response->setLength();
@@ -329,7 +289,7 @@ void httpSetSensorAttr(AsyncWebServerRequest *request) {
   });
 
   if (found) {
-    setNeedSave = true;
+    app.delay(0, &saveConfig);
     request->send(200, "application/json", "{ \"success\": true }");
   } else {
     request->send(400, "application/json", "{ \"success\": false }");
@@ -353,7 +313,6 @@ void httpSetTimerDelay(AsyncWebServerRequest *request) {
   if (newDelay > 5) { //ostimer min delay is 5ms
     if (strcmp(timer, "deltaDelay") == 0) {
       ok = true;
-      setDeltaDelay(newDelay);
     }
     #ifdef ENABLE_ADS1115
     else if (strcmp(timer, "ads1115Read") == 0) {
@@ -365,7 +324,7 @@ void httpSetTimerDelay(AsyncWebServerRequest *request) {
   }
 
   if (ok) {
-    setNeedSave = true;
+    app.delay(0, &saveConfig);
     request->send(200, "application/json", "{ \"success\": true }");
   } else {
     request->send(400, "application/json", "{ \"success\": false }");
@@ -401,7 +360,7 @@ void httpSignalKEndpoints(AsyncWebServerRequest *request) {
 
 void httpResetConfig(AsyncWebServerRequest *request) {
   request->send(200, "application/json", "{ \"success\": true }");
-  resetConfigFlag = true;
+  app.delay(0, &resetConfig);
 }
 
 

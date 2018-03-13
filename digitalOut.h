@@ -16,7 +16,6 @@ class DigitalOutSensorInfo : public SensorInfo {
 };
 
 void setupDigitalOut(bool &need_save);
-void handleDigitalOut(bool &sendDelta);
 
 void initializeDigitalOutPin(uint8_t index, bool &need_save);
 void digitalOutSetBooleanValue(char * address, bool value);

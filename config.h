@@ -13,6 +13,7 @@ Feature selection
 
 // Sensors
 
+#define ENABLE_SYSTEMHZ
 #define ENABLE_DIGITALIN
 #define ENABLE_DIGITALOUT
 #define ENABLE_ANALOGIN
@@ -34,6 +35,9 @@ Feature selection
 Defines
 ------------------------------------------------------------------------------
 ----------------------------------------------------------------------------*/
+
+// Slow loop duration (SK updates, slow sensor reads etc)
+#define SLOW_LOOP_DELAY 200
 
 // Signal K maximum path length
 

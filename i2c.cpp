@@ -58,11 +58,20 @@ bool scanI2CAddress(uint8_t address) {
   return false;
 }
 
+void scanAllI2C() {
+  for (int i=0; i < 0x7f; i++) {
+    if (scanI2CAddress(i)) {
+      Serial.printf("Found I2C device at address %x\n", i);
+    }
+  }
+}
 
 void scanI2C(bool &need_save) {
   SensorInfo *tmpSensorInfo;
 
   Serial.println("Scanning for i2c Sensors...");
+
+  scanAllI2C();
 
   #ifdef ENABLE_SHT30
   //SHT30
@@ -126,7 +135,6 @@ void scanI2C(bool &need_save) {
 }
 
 
-
 void setupI2C(bool &need_save) {
   //Wire.setClock(0000L);
 
@@ -158,33 +166,4 @@ void setupI2C(bool &need_save) {
     setupADS1115();
   }
   #endif
-  
-}
-
-
-void handleI2C(bool &sendDelta) {
-  #ifdef ENABLE_MPU
-  if (sensorMPU925XPresent) {
-    handleMPU9250(sendDelta);
-  }
-  #endif
-}
-
-
-void handleI2C_slow(bool &sendDelta) {
-#ifdef ENABLE_SHT30
-  if (sensorSHT30Present) {
-    handleSHT30(sendDelta);  
-  }
-#endif
-#ifdef ENABLE_BMP280
-  if (sensorBMP280Present) {
-    handleBMP280(sendDelta);  
-  }
-#endif
-#ifdef ENABLE_ADS1115
-  if (sensorADS1115Present) {
-    handleADS1115(sendDelta);
-  }
-#endif
 }

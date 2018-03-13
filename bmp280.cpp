@@ -2,6 +2,8 @@ extern "C" {
 #include "user_interface.h"
 }
 
+#include "config.h"
+
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BMP280.h>
@@ -60,16 +62,20 @@ BMP280SensorInfo *BMP280SensorInfo::fromJson(JsonObject &jsonSens) {
 void BMP280SensorInfo::toJson(JsonObject &jsonSens) {
   jsonSens["address"] = address;
   jsonSens["type"] = (int)SensorType::bmp280;
+  JsonArray& jsonAttrNames = jsonSens.createNestedArray("attrNames");
   JsonArray& jsonPaths = jsonSens.createNestedArray("signalKPaths");
   JsonArray& jsonOffsets = jsonSens.createNestedArray("offsets");
   JsonArray& jsonScales = jsonSens.createNestedArray("scales");
+  JsonArray& jsonValues = jsonSens.createNestedArray("values");
   for (int x=0 ; x < MAX_SENSOR_ATTRIBUTES ; x++) {
     if (strcmp(attrName[x].c_str(), "") == 0 ) {
       break; //no more attributes
     }
+    jsonAttrNames.add(attrName[x]);
     jsonPaths.add(signalKPath[x]);
     jsonOffsets.add(offset[x]);
-    jsonScales.add(scale[x]);    
+    jsonScales.add(scale[x]);
+    jsonValues.add(valueJson[x]);
   }
 }
 
@@ -83,19 +89,17 @@ float valueTempK = 0;
 float valuePa = 0;
 
 uint16_t readBMPDelay = 25;
-os_timer_t  bmpReadTimer; // repeating timer that fires to read ADS
-bool bmpReadyRead = false;
+
+// forward declarations
+void readBMP280();
+void updateBMP280();
+
 
 void setupBMP280() {
    // this calls Wire.begin() again, but that shouldn't
   // do any harm. Hopefully.
   bmp.begin();
-  os_timer_setfn(&bmpReadTimer, interruptReadBMP, NULL);
-  os_timer_arm(&bmpReadTimer, readBMPDelay, true);  
-}
-
-void interruptReadBMP(void *pArg) {
-  bmpReadyRead = true;
+  app.repeat(SLOW_LOOP_DELAY, &readBMP280);
 }
 
 void readBMP280() {
@@ -110,19 +114,8 @@ void readBMP280() {
 
   valueTempK = ((0.2*tempK) + (0.8*valueTempK));
   valuePa = ((0.05*Pa) + (0.95*valuePa));
-}
 
-
-void handleBMP280(bool &sendDelta) {
-  if (sendDelta){
-    updateBMP280();
-  }
-
-  if (bmpReadyRead) {
-    bmpReadyRead = false;
-    readBMP280();
-  }
-
+  updateBMP280();
 }
 
 void updateBMP280() {
@@ -131,5 +124,4 @@ void updateBMP280() {
     si->valueJson[1] = (valuePa * si->scale[1] ) + si->offset[1];
     si->isUpdated = true;
   });
-
 }

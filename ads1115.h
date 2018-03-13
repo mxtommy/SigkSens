@@ -5,6 +5,8 @@ extern "C" {
 #include "user_interface.h"
 }
 
+#include "sigksens.h"
+
 class ADSSensorInfo : public SensorInfo {
   public:
     ADSSensorInfo(String addr);
@@ -18,15 +20,11 @@ class ADSSensorInfo : public SensorInfo {
 };
 
 void setupADS1115();
-void handleADS1115(bool&);
 
 uint32_t getUpdateADSDelay();
 uint32_t getReadADSDelay();
 void setADSUpdateDelay(uint32_t newDelay);
 void setADSReadDelay(uint32_t newDelay);
-
-void interruptUpdateADSSensorInfo(void *pArg);
-void interruptReadADSS(void *pArg);
 
 void updateADS1115();
 void readADS1115();

@@ -112,16 +112,20 @@ MPU9250SensorInfo *MPU9250SensorInfo::fromJson(JsonObject &jsonSens) {
 void MPU9250SensorInfo::toJson(JsonObject &jsonSens) {
   jsonSens["address"] = address;
   jsonSens["type"] = (int)SensorType::mpu925x;
+  JsonArray& jsonAttrNames = jsonSens.createNestedArray("attrNames");
   JsonArray& jsonPaths = jsonSens.createNestedArray("signalKPaths");
   JsonArray& jsonOffsets = jsonSens.createNestedArray("offsets");
   JsonArray& jsonScales = jsonSens.createNestedArray("scales");  
+  JsonArray& jsonValues = jsonSens.createNestedArray("values");
   for (int x=0 ; x < MAX_SENSOR_ATTRIBUTES ; x++) {
     if (strcmp(attrName[x].c_str(), "") == 0 ) {
       break; //no more attributes
     }
+    jsonAttrNames.add(attrName[x]);
     jsonPaths.add(signalKPath[x]);
     jsonOffsets.add(offset[x]);
     jsonScales.add(scale[x]);
+    jsonValues.add(valueJson[x]);
   }
   
 }
@@ -243,10 +247,11 @@ void setupMPU9250() {
       mpuRunMode = MpuRunMode::mpuRun;
     }
   }
-
+  app.onTick(&handleMPU9250);
+  app.repeat(SLOW_LOOP_DELAY, &updateMPUSensorInfo);
 }
 
-void handleMPU9250(bool &sendDelta) {
+void handleMPU9250() {
   switch(mpuRunMode) {
     case MpuRunMode::mpuRun:
       if(newData) { //newData is from pin Interrupt
@@ -255,10 +260,6 @@ void handleMPU9250(bool &sendDelta) {
       }
 
       updateQuaternion();
-
-      if (sendDelta) {
-        updateMPUSensorInfo();
-      }
       break;
 
     case MpuRunMode::calAccelGyro:
@@ -284,12 +285,7 @@ void handleMPU9250(bool &sendDelta) {
       saveMPUCalibrationFS();
       mpuRunMode = MpuRunMode::mpuRun;
       break;
-
   }
-
-
-  
-  
 }
 
 void saveMPUCalibrationFS(){
@@ -501,7 +497,11 @@ void updateQuaternion() {
 void updateMPUSensorInfo() {
   SensorInfo *thisSensorInfo;
   uint8_t address;
-               
+  
+  if (mpuRunMode != MpuRunMode::mpuRun) {
+    return;
+  }
+
   tempCount = readTempData();  // Read the gyro adc values
   temperature = ((float) tempCount) / 333.87 + 21.0; // Gyro chip temperature in degrees Centigrade
   // Print temperature in degrees Centigrade      

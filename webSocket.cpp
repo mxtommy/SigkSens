@@ -14,6 +14,8 @@ extern "C" {
 #include "webSocket.h"
 #include "signalK.h"
 
+#include "sigksens.h"
+
 #ifdef ENABLE_WEBSOCKET_SERVER
 WebSocketsServer webSocketServer = WebSocketsServer(81);
 #endif
@@ -25,9 +27,6 @@ SignalKClientInfo signalKClientInfo = {
   .connected = false
 };
 
-os_timer_t  wsClientReconnectTimer; // once request cycle starts, this timer set so we can send when ready
-bool  readyToReconnectWs = false;
-
 // forward declarations
 
 void webSocketServerEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length);
@@ -36,8 +35,6 @@ void connectWebSocketClient();
 void webSocketClientEvent(WStype_t type, uint8_t * payload, size_t length);
 
 void setupWebSocket() {
-  os_timer_setfn(&wsClientReconnectTimer, interruptWsReconnect, NULL);
-
   #ifdef ENABLE_WEBSOCKET_SERVER
   webSocketServer.begin();
   webSocketServer.onEvent(webSocketServerEvent);
@@ -52,10 +49,6 @@ void handleWebSocket() {
   #ifdef ENABLE_WEBSOCKET_SERVER
   webSocketServer.loop();
   #endif
-  if (readyToReconnectWs) {
-    readyToReconnectWs = false;
-    connectWebSocketClient();
-  }
   
   if (signalKClientInfo.connected) {
     signalKClientInfo.client.loop();    
@@ -99,7 +92,7 @@ void connectWebSocketClient() {
        (skci->path.length() > 0) ) {
     Serial.println("Websocket client starting!");
   } else {
-      os_timer_arm(&wsClientReconnectTimer, 10000, false);
+      app.delay(10000, &connectWebSocketClient);
       return;
   }
 
@@ -108,16 +101,11 @@ void connectWebSocketClient() {
 }
 
 
-void interruptWsReconnect(void *pArg) {
-  readyToReconnectWs = true;
-}
-
-
 void webSocketClientEvent(WStype_t type, uint8_t * payload, size_t length) {
   switch(type) {
     case WStype_DISCONNECTED:
       signalKClientInfo.connected = false;
-      os_timer_arm(&wsClientReconnectTimer, 10000, false);
+      app.delay(10000, &connectWebSocketClient);
       Serial.printf("[WSc] Disconnected!\n");
       break;
     case WStype_CONNECTED: {

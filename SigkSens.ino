@@ -1,3 +1,4 @@
+#include <Reactduino.h>
 #include <ESP8266WiFi.h>          //ESP8266 Core WiFi Library (you most likely already have this in your sketch)
 #include <ESP8266mDNS.h>        // Include the mDNS library
 #include <ESP8266SSDP.h>
@@ -38,15 +39,15 @@
 #ifdef ENABLE_ANALOGIN
   #include "analogIn.h"
 #endif
+#ifdef ENABLE_SYSTEMHZ
+  #include "systemHz.h"
+#endif
 
-
-#include "systemHz.h"
 #include "configReset.h"
 #include "webSocket.h"
 #include "signalK.h"
 #include "httpd.h"
 #include "sigksens.h"
-#include "timer.h"
 
 /*---------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------
@@ -65,8 +66,10 @@ General Setup
 ---------------------------------------------------------------------------------------------------*/
 
 void setupFromJson() {
+  #ifdef ENABLE_SYSTEMHZ
   fromJson[(int)SensorType::local] =
     (fromJsonFunc)&(SystemHzSensorInfo::fromJson);
+  #endif
 
   #ifdef ENABLE_DIGITALIN
   fromJson[(int)SensorType::digitalIn] =
@@ -155,9 +158,12 @@ void setupDiscovery() {
     SSDP.begin();
 }
 
+// forward declarations
+void loop_();
+void slow_loop();
 
-void setup() {
-  bool need_save = false;
+Reactduino app([] () {
+    bool need_save = false;
   // put your setup code here, to run once:
   Serial.begin(115200);
 
@@ -189,16 +195,20 @@ void setup() {
   #ifdef ENABLE_ANALOGIN
   setupAnalogIn(need_save);
   #endif
+  #ifdef ENABLE_SYSTEMHZ
   setupSystemHz(need_save);
+  #endif
   
-  setupTimers();
-
   if (need_save) {
     saveConfig();
   }
   
   Serial.printf("Ready!\n");
-}
+
+  app.repeat(SLOW_LOOP_DELAY, &slow_loop);
+
+  app.onTick(&loop_);
+});
 
 /*---------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------
@@ -206,55 +216,13 @@ Main Loop!
 -----------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------*/
 
-
-void loop() {
-  bool need_save = false;
-  bool sendDelta = false;
-  //device mgmt
-  yield();           
+void slow_loop() {
+  handleWebSocket();
   
-  // see if we're ready to send deltas
-  handleTimers(sendDelta);
+  handleConfigReset(); 
+  mainLoopCount = 0;
+}
 
-
-
-  //Stuff here run's all the time
-  handleSystemHz(sendDelta);
-  #ifdef ENABLE_I2C
-  handleI2C(sendDelta);
-  #endif
-
+void loop_() {
   mainLoopCount++;
-
-  //Stuff that runs  once every 1000 loops. (still many many times/sec)
-  if ((mainLoopCount > 1000) || sendDelta) {
-      #ifdef ENABLE_I2C
-      handleI2C_slow(sendDelta);
-      #endif
-      #ifdef ENABLE_ONEWIRE
-        handle1Wire(need_save, sendDelta);
-      #endif
-      #ifdef ENABLE_DIGITALIN
-      handleDigitalIn(sendDelta);
-      #endif
-      #ifdef ENABLE_DIGITALOUT
-      handleDigitalOut(sendDelta);
-      #endif      
-      #ifdef ENABLE_ANALOGIN
-      handleAnalogIn(sendDelta);
-      #endif
-
-      handleHttp(need_save);
-
-      if (need_save) {
-        saveConfig();
-      }
-  
-      handleWebSocket();
-      handleSignalK();
-
-      
-      handleConfigReset(); 
-      mainLoopCount = 0;
-  }
 }

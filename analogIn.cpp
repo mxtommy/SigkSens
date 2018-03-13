@@ -2,6 +2,7 @@ extern "C" {
 #include "user_interface.h"
 }
 
+#include "config.h"
 
 #include "sigksens.h"
 #include "analogIn.h"
@@ -68,8 +69,6 @@ bool analogInEnabled = false;
 uint16_t valueA0 = 0;
 
 uint16_t readADCDelay = 25;
-os_timer_t  adcReadTimer; // repeating timer that fires to read ADS
-bool adcReadyRead = false;
 
 
 void setupAnalogIn(bool &need_save) {
@@ -80,29 +79,17 @@ void setupAnalogIn(bool &need_save) {
       SensorInfo *newSensor = new AinSensorInfo("A0");
       sensorStorage[(int)newSensor->type].add(newSensor);
       need_save = true;
-    }    
-  os_timer_setfn(&adcReadTimer, interruptReadADC, NULL);
-  os_timer_arm(&adcReadTimer, readADCDelay, true);
+    }
+  
+  app.repeat(readADCDelay, &readADC);
+  app.repeat(SLOW_LOOP_DELAY, &updateAnalogIn);
 }
 
-
-void handleAnalogIn(bool &sendDelta) {
-  if (adcReadyRead && analogInEnabled) {
-    adcReadyRead = false;
-    readADC();
-  }
-
-  if (sendDelta) {
-    updateAnalogIn();
-  }
-
-}
-
-void interruptReadADC(void *pArg) {
-  adcReadyRead = true;
-}
 
 void readADC() {
+  if (!analogInEnabled) {
+    return;
+  }
   sensorStorage[(int)SensorType::analogIn].forEach([&](SensorInfo* si){
     int16_t rawResult;
   

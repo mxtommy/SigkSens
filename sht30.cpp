@@ -45,12 +45,16 @@ SHT30SensorInfo *SHT30SensorInfo::fromJson(JsonObject &jsonSens) {
 void SHT30SensorInfo::toJson(JsonObject &jsonSens) {
   jsonSens["address"] = address;
   jsonSens["type"] = (int)SensorType::sht30;
+  JsonArray& jsonAttrNames = jsonSens.createNestedArray("attrNames");
   JsonArray& jsonPaths = jsonSens.createNestedArray("signalKPaths");
+  JsonArray& jsonValues = jsonSens.createNestedArray("values");
   for (int x=0 ; x < MAX_SENSOR_ATTRIBUTES ; x++) {
     if (strcmp(attrName[x].c_str(), "") == 0 ) {
       break; //no more attributes
     }
+    jsonAttrNames.add(attrName[x]);
     jsonPaths.add(signalKPath[x]);
+    jsonValues.add(valueJson[x]);
   }
 }
 
@@ -63,20 +67,14 @@ type="sht30"
 
 */
 
-
-os_timer_t  sensorSHTReadTimer; // once request cycle starts, this timer set so we can send when ready
-
-bool readytoReadSHT = false;
-
-
-void interruptSHTRead(void *pArg) {
-  readytoReadSHT = true;
-}
+// forward declarations
+void pollSHT();
+void readSHT();
 
 
 void setupSHT30() {
   // prepare SHT Timers 
-  os_timer_setfn(&sensorSHTReadTimer, interruptSHTRead, NULL);
+  app.repeat(1000, &pollSHT);
 }
 
 
@@ -99,13 +97,11 @@ void pollSHT() {
     }
   });
 
-  os_timer_arm(&sensorSHTReadTimer, 100, false); // prepare to read after 100ms
+  app.delay(100, &readSHT);
 }
 
 
 void readSHT() {
-  readytoReadSHT = false; //reset interupt
-
   sensorStorage[(int)SensorType::sht30].forEach([&](SensorInfo* si) {
     uint8_t errorCode;
     uint8_t data[6];
@@ -148,17 +144,4 @@ void readSHT() {
     si->valueJson[1] = humidity;
     si->isUpdated = true;
   });
-}
-
-
-void handleSHT30(bool &sendDelta) {
-  
-  if (sendDelta){
-    pollSHT();
-  }
-  
-  if (readytoReadSHT){
-    readSHT();
-  }
-  
 }

@@ -32,7 +32,6 @@ extern "C" {
 #endif
 #include "systemHz.h"
 #include "sigksens.h"
-#include "timer.h"
 
 /*----------------------------------------------------------------------------
 ------------------------------------------------------------------------------
@@ -83,8 +82,6 @@ void saveConfig() {
   json["signalKPort"] = signalKClientInfo.port;
   json["signalKPath"] = signalKClientInfo.path;
 
-  //Timers
-  json["deltaTimer"] = getDeltaDelay();
   #ifdef ENABLE_ADS1115
   json["readADSDelay"] = getReadADSDelay();
   #endif
@@ -151,8 +148,6 @@ void loadConfig() {
           }
         }
 
-        //Timers
-        setDeltaDelay(json["deltaTimer"]);
         #ifdef ENABLE_ADS1115
         setADSReadDelay(json["readADSDelay"]);
         #endif
