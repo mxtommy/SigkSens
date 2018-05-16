@@ -115,14 +115,25 @@ void setupFromJson() {
 
 void setupWifi() {
   WiFiManager wifiManager;
+  bool wifiConnected = false;
  
   //set config save notify callback
   wifiManager.setSaveConfigCallback(saveConfigCallback);
-  WiFiManagerParameter custom_hostname("myHostname", "Set Hostname", myHostname, 16);
+  
+  wifiManager.setConfigPortalTimeout(180);
 
+  WiFiManagerParameter custom_hostname("myHostname", "Set Hostname", myHostname, 16);
   wifiManager.addParameter(&custom_hostname);
   
-  wifiManager.autoConnect("Unconfigured Sensor");
+  while (wifiConnected == false) {
+    if (wifiManager.autoConnect("Unconfigured Sensor")) {
+      wifiConnected = true;
+    } else {
+      Serial.println("Failed to connect to wifi and config timed out");
+    }
+  }
+
+
   Serial.println("Connected to Wifi!");
 
   // Save config if needed
