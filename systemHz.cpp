@@ -104,9 +104,14 @@ void updateSystemHz() {
  // Serial.println (systemHz);
 
   sensorStorage[(int)SensorType::local].forEach([&](SensorInfo* si) {
-    si->valueJson[0] = systemHz;
-    si->valueJson[1] = ESP.getFreeHeap();
-    si->isUpdated = true;
+    if (strcmp(si->signalKPath[0].c_str(),  "") != 0) {
+      si->valueJson[0] = systemHz;
+      si->isUpdated = true;
+    }
+    if (strcmp(si->signalKPath[1].c_str(),  "") != 0) {
+      si->valueJson[1] = ESP.getFreeHeap();
+      si->isUpdated = true;
+    } 
   });
 
   systemHzCount = 0;

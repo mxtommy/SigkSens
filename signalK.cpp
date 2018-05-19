@@ -24,7 +24,15 @@ void handleSignalK() {
   
   sensorStorageForEach([&](SensorInfo* si) {
     if (si->isUpdated) {
-      needToSend = true;
+      for (int x=0;x<MAX_SENSOR_ATTRIBUTES; x++) { // check if any paths are set.
+        if (strcmp(si->attrName[x].c_str(), "") == 0) {
+          break; // if attr is empty, no more attr's for this sensor
+        } 
+        if (strcmp(si->signalKPath[x].c_str(),  "") != 0) {
+           needToSend = true;
+        }      
+      }
+      
     }
   });
   if (needToSend) {
@@ -89,7 +97,7 @@ void sendDelta() {
 
       JsonObject& source = thisUpdate.createNestedObject("source");
       source["label"] = myHostname;
-      source["src"] = (int)si->type;
+      source["src"] = si->address;
       // values array
      
       JsonArray& values = thisUpdate.createNestedArray("values");
@@ -112,7 +120,7 @@ void sendDelta() {
   });
 
   delta.printTo(deltaText);
-  //Serial.println(deltaText);
+  Serial.println(deltaText);
   #ifdef ENABLE_WEBSOCKET_SERVER
   webSocketServer.broadcastTXT(deltaText);
   #endif

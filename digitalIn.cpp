@@ -212,10 +212,12 @@ void updateDigitalInState(uint8_t index) {
 
   if (si != nullptr) {
     //current state
-    if (digitalRead(digitalPins[index]) == LOW) {
-      si->valueJson[0] = "true";
-    } else {
-      si->valueJson[0] = "false";
+    if (strcmp(si->signalKPath[0].c_str(), "") != 0) {    
+      if (digitalRead(digitalPins[index]) == LOW) {
+        si->valueJson[0] = "true";
+      } else {
+        si->valueJson[0] = "false";
+      }
     }
   }
 }
@@ -233,28 +235,34 @@ void updateDigitalInPeriodic(uint8_t index) {
 
   if (si != nullptr) {
     //current state
-    if (digitalRead(digitalPins[index]) == LOW) {
-      si->valueJson[0] = "true";
-    } else {
-      si->valueJson[0] = "false";
+    if (strcmp(si->signalKPath[0].c_str(), "") != 0) {    
+      if (digitalRead(digitalPins[index]) == LOW) {
+        si->valueJson[0] = "true";
+      } else {
+        si->valueJson[0] = "false";
+      }
+      si->isUpdated = true; 
     }
-    si->isUpdated = true; 
     //Hz (pulse/time)
-    if (timeNow < digitPinLastUpdatePeriodic[index]) { //protection against wrap around
+    if (strcmp(si->signalKPath[1].c_str(), "") != 0) {    
+      if (timeNow < digitPinLastUpdatePeriodic[index]) { //protection against wrap around
+        digitPinLastUpdatePeriodic[index] = timeNow;
+        return; //skip this update...
+      }
+    
+      delta = timeNow - digitPinLastUpdatePeriodic[index];
+      rawHz = (float)(((digitalPinCount[index]-digitalPinCountLast[index])*1000000)/delta)/2;  // divide by 2 because interupt is on change (both rise and fall)
+
+      si->valueJson[1] = (rawHz * si->scale[1]) + si->offset[1];
+      si->isUpdated = true; 
+      digitalPinCountLast[index] = digitalPinCount[index];
       digitPinLastUpdatePeriodic[index] = timeNow;
-      return; //skip this update...
     }
-
-    delta = timeNow - digitPinLastUpdatePeriodic[index];
-    rawHz = (float)(((digitalPinCount[index]-digitalPinCountLast[index])*1000000)/delta)/2;  // divide by 2 because interupt is on change (both rise and fall)
-
-    si->valueJson[1] = (rawHz * si->scale[1]) + si->offset[1];
-    si->isUpdated = true; 
-    digitalPinCountLast[index] = digitalPinCount[index];
-    digitPinLastUpdatePeriodic[index] = timeNow;
     //count
-    si->valueJson[2] = ((digitalPinCount[index]/2) * si->scale[2]) + si->offset[2];
-    si->isUpdated = true;       
+    if (strcmp(si->signalKPath[2].c_str(), "") != 0) {    
+      si->valueJson[2] = ((digitalPinCount[index]/2) * si->scale[2]) + si->offset[2];
+      si->isUpdated = true;       
+    }
   }
 }
 

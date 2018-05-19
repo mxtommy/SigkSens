@@ -233,14 +233,14 @@ void httpGetSensorInfo(AsyncWebServerRequest *request) {
   timers["ads1115Read"] = getReadADSDelay();
   #endif
 
-
+/*
   //Sensors
   JsonArray& sensorArr = json.createNestedArray("sensors");
   
   sensorStorageForEach([&](SensorInfo* si) {
     JsonObject& tmpSens = sensorArr.createNestedObject();
     si->toJson(tmpSens);
-  });
+  }); */
 
   response->setLength();
   request->send(response);

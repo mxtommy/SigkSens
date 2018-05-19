@@ -99,7 +99,7 @@ void setup1Wire(bool &need_save) {
 
   oneWireScanBus(need_save);
 
-  app.repeat(SLOW_LOOP_DELAY, &request1WSensors);
+  app.repeat(1000, &request1WSensors);
   app.repeat(oneWireScanDelay, &onewire_scan_loop);
 }
 
@@ -147,7 +147,9 @@ void read1WSensors() {
       tempK = tempC + 273.15;
       si->valueJson[0] = tempK;
     } 
-    si->isUpdated = true;    
+    if (strcmp(si->signalKPath[0].c_str(), "") != 0) {
+      si->isUpdated = true;    
+    }
   });
 }
 
