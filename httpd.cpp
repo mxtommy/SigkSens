@@ -261,7 +261,7 @@ void httpSetSensorAttr(AsyncWebServerRequest *request) {
   char attrName[32];
   bool found = false;
 
-  Serial.print("Setting attributes for Sensor");
+  Serial.println("Setting attributes for Sensor");
   if(!request->hasArg("address")) {request->send(400, "text/plain", "missing arg 'address'"); return;}
   if(!request->hasArg("attrName")) {request->send(400, "text/plain", "missing arg 'attrName'"); return;}
   
