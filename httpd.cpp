@@ -31,6 +31,9 @@ extern "C" {
 #ifdef ENABLE_DIGITALIN
   #include "digitalIn.h"
 #endif
+#ifdef ENABLE_ANALOGIN
+  #include "analogIn.h"
+#endif
 #include "httpd.h"
 #include "FSConfig.h"
 #include "webSocket.h"
@@ -224,6 +227,9 @@ void httpGetSensorInfo(AsyncWebServerRequest *request) {
   #endif
   #ifdef ENABLE_ADS1115
   json["sensorADS1115"] = getSensorADS1115Present();
+  #endif
+  #ifdef ENABLE_ANALOGIN
+  json["analogIn"] = getSensorAnalogInPresent();
   #endif
 
 
