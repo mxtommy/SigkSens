@@ -24,6 +24,7 @@ SignalKClientInfo signalKClientInfo = {
   .host = "", 
   .port = 80, 
   .path = "/signalk/v1/stream",
+  .authToken = "",
   .connected = false
 };
 
@@ -79,6 +80,7 @@ void connectWebSocketClient() {
   SignalKClientInfo *skci = &signalKClientInfo;  // save some typing
   String host = "";
   uint16_t port = 80;
+  String urlArgs = "?subscribe=none";
 
   if (skci->host.length() == 0) {
     getMDNSService(host, port);
@@ -96,7 +98,11 @@ void connectWebSocketClient() {
       return;
   }
 
-  skci->client.begin(host, port, skci->path + "?subscribe=none");
+  if (skci->authToken != "") {
+    urlArgs = urlArgs + "&token=" + skci->authToken;
+  }
+
+  skci->client.begin(host, port, skci->path + urlArgs);
   skci->connected = true;
 }
 

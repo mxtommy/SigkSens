@@ -221,7 +221,15 @@ Required HTTP parameters:
 
 http://A.B.C.D/setSignalKPath?path=/signalk/v1/stream
 
+### /setSignalKToken
 
+Used to set a security token to be used when connecting to the signalk server. Default: None 
+
+Required HTTP parameters:
+- token
+  - Token to use with SignalK Server
+
+http://A.B.C.D/setSignalKToken?token=ABCDEFG....
 
 
 

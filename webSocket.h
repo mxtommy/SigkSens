@@ -15,6 +15,7 @@ class SignalKClientInfo {
     String host;
     uint16_t port;
     String path;
+    String authToken;
     bool connected;
     WebSocketsClient client;
 };

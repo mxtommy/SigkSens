@@ -177,6 +177,15 @@ void httpSetSignalKPath(AsyncWebServerRequest *request) {
   request->send(200, "application/json", "{ \"success\": true }");
 }
 
+void httpSetSignalKToken(AsyncWebServerRequest *request) {
+  if(!request->hasArg("token")) {request->send(500, "text/plain", "missing arg 'token'"); return;}
+  signalKClientInfo.authToken = request->arg("token");
+  app.delay(0, &saveConfig);
+  app.delay(0, &restartWebSocketClient);
+  request->send(200, "application/json", "{ \"success\": true }");
+}
+
+
 #ifdef ENABLE_MPU
 void httpMpuCalAccelGyro(AsyncWebServerRequest *request) {
   runAccelGyroCal();
@@ -211,6 +220,7 @@ void httpGetSensorInfo(AsyncWebServerRequest *request) {
   json["signalKHost"] = signalKClientInfo.host;
   json["signalKPort"] = signalKClientInfo.port;
   json["signalKPath"] = signalKClientInfo.path;
+  json["signalKToken"] = signalKClientInfo.authToken;
 
   //Sensor types present
   #ifdef ENABLE_ONEWIRE
@@ -399,6 +409,7 @@ void setupHTTP() {
   server.on("/setSignalKHost", HTTP_GET, httpSetSignalKHost);
   server.on("/setSignalKPort", HTTP_GET, httpSetSignalKPort);
   server.on("/setSignalKPath", HTTP_GET, httpSetSignalKPath);
+  server.on("/setSignalKToken", HTTP_GET, httpSetSignalKToken);
 
   server.on("/description.xml", HTTP_GET, [](AsyncWebServerRequest *request){
       StreamString output;

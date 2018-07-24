@@ -81,6 +81,7 @@ void saveConfig() {
   json["signalKHost"] = signalKClientInfo.host;
   json["signalKPort"] = signalKClientInfo.port;
   json["signalKPath"] = signalKClientInfo.path;
+  json["signalKToken"] = signalKClientInfo.authToken;
 
   #ifdef ENABLE_ADS1115
   json["readADSDelay"] = getReadADSDelay();
@@ -136,6 +137,7 @@ void loadConfig() {
         //signalk
         strcpy(tempStr, json["signalKHost"]); signalKClientInfo.host = tempStr;
         strcpy(tempStr, json["signalKPath"]); signalKClientInfo.path = tempStr;
+        strcpy(tempStr, json["signalKToken"]); signalKClientInfo.authToken = tempStr;
         signalKClientInfo.port = json["signalKPort"];
 
         // load known sensors
