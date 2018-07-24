@@ -114,6 +114,8 @@ Similat to ADS1115 with an exponential filter to smooth data a bit. Reads from t
 | --- | --- |
 | a0 | Value of the A0 10bit ADC (between 0 and 1024) |
 
+Usage: /setSensorAttr?address=A0&attrName=a0&path=<enter path>
+
 ### Digital Output 
 
 Use to control the world! Connect to relay etc to power more than a LED.

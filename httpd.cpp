@@ -31,6 +31,9 @@ extern "C" {
 #ifdef ENABLE_DIGITALIN
   #include "digitalIn.h"
 #endif
+#ifdef ENABLE_ANALOGIN
+  #include "analogIn.h"
+#endif
 #include "httpd.h"
 #include "FSConfig.h"
 #include "webSocket.h"
@@ -225,6 +228,9 @@ void httpGetSensorInfo(AsyncWebServerRequest *request) {
   #ifdef ENABLE_ADS1115
   json["sensorADS1115"] = getSensorADS1115Present();
   #endif
+  #ifdef ENABLE_ANALOGIN
+  json["analogIn"] = getSensorAnalogInPresent();
+  #endif
 
 
   //Timers
@@ -255,7 +261,7 @@ void httpSetSensorAttr(AsyncWebServerRequest *request) {
   char attrName[32];
   bool found = false;
 
-  Serial.print("Setting attributes for Sensor");
+  Serial.println("Setting attributes for Sensor");
   if(!request->hasArg("address")) {request->send(400, "text/plain", "missing arg 'address'"); return;}
   if(!request->hasArg("attrName")) {request->send(400, "text/plain", "missing arg 'attrName'"); return;}
   

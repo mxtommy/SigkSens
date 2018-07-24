@@ -5,6 +5,10 @@ extern "C" {
 #include "user_interface.h"
 }
 
+#ifdef ENABLE_ANALOGIN
+bool getSensorAnalogInPresent();
+#endif
+
 class AinSensorInfo : public SensorInfo {
   public:
     AinSensorInfo(String addr);
