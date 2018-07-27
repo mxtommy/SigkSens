@@ -228,6 +228,10 @@ Main Loop!
 ---------------------------------------------------------------------------------------------------*/
 
 void slow_loop() {
+  // Check Wifi...
+  if (WiFi.status() != WL_CONNECTED) {
+    setupWifi();
+  }
   handleWebSocket();
   
   handleConfigReset(); 

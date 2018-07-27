@@ -69,6 +69,46 @@ static const char* ssdpTemplate =
   "</root>\r\n"
   "\r\n";
 
+// Simple web page to view deltas
+const char * EspSigKIndexContents = R"foo(
+<html>
+<head>
+  <title>Deltas</title>
+  <meta charset="utf-8">
+  <script type="text/javascript">
+    var WebSocket = WebSocket || MozWebSocket;
+    var lastDelta = Date.now();
+    var serverUrl = "ws://" + window.location.hostname + ":81";
+
+    connection = new WebSocket(serverUrl);
+
+    connection.onopen = function(evt) {
+      console.log("Connected!");
+      document.getElementById("box").innerHTML = "Connected!";
+      document.getElementById("last").innerHTML = "Last: N/A";
+    };
+
+    connection.onmessage = function(evt) {
+      var msg = JSON.parse(evt.data);
+      document.getElementById("box").innerHTML = JSON.stringify(msg, null, 2);
+      document.getElementById("last").innerHTML = "Last: " + ((Date.now() - lastDelta)/1000).toFixed(2) + " seconds";
+      lastDelta = Date.now();
+    };
+
+    setInterval(function(){
+      document.getElementById("age").innerHTML = "Age: " + ((Date.now() - lastDelta)/1000).toFixed(1) + " seconds";
+    }, 50);
+  </script>
+</head>
+<body>
+  <h3>Last Delta</h3>
+  <pre width="100%" height="50%" id="box">Not Connected yet</pre>
+  <div id="last"></div>
+  <div id="age"></div>
+</body>
+</html>
+)foo";
+
 /*----------------------------------------------------------------------------
 ------------------------------------------------------------------------------
 HTTP
@@ -387,8 +427,14 @@ void setupHTTP() {
 
   server.onNotFound(handleNotFound);
 
-  server.serveStatic("/", SPIFFS, "/web/index.html");
-  server.serveStatic("/index.html", SPIFFS, "/web/index.html");
+  server.on("/",[](AsyncWebServerRequest *request ) {
+      request->send(200, "text/html", EspSigKIndexContents);
+    });
+  server.on("/index.html",[](AsyncWebServerRequest *request ) {
+      request->send(200, "text/html", EspSigKIndexContents);
+    });
+
+
   server.on("/getSensorInfo", HTTP_GET, httpGetSensorInfo);
 
   //server.on("/getMPUCalibration", HTTP_GET, httpGetMPUCalibration);

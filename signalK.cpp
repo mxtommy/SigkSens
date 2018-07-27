@@ -80,6 +80,7 @@ void receiveDelta(uint8_t * payload) {
 
 
 void sendDelta() {
+  bool needToSend = false;
 
   String deltaText;
 
@@ -93,26 +94,37 @@ void sendDelta() {
   
   sensorStorageForEach([&](SensorInfo* si) {
     if (si->isUpdated) {
-      JsonObject& thisUpdate = updatesArr.createNestedObject();
-
-      JsonObject& source = thisUpdate.createNestedObject("source");
-      source["label"] = myHostname;
-      source["src"] = si->address;
-      // values array
-     
-      JsonArray& values = thisUpdate.createNestedArray("values");
-
-      for (int x=0;x<MAX_SENSOR_ATTRIBUTES; x++) {
+      needToSend = false;
+      //make sure we have paths set for this sensor
+      for (int x=0;x<MAX_SENSOR_ATTRIBUTES; x++) { // check if any paths are set.
         if (strcmp(si->attrName[x].c_str(), "") == 0) {
           break; // if attr is empty, no more attr's for this sensor
         } 
-        if (strcmp(si->signalKPath[x].c_str(),  "") == 0) {
-          continue; // no path set for this...
+        if (strcmp(si->signalKPath[x].c_str(),  "") != 0) {
+           needToSend = true;
+        }      
+      }
+      if (needToSend) {
+        JsonObject& thisUpdate = updatesArr.createNestedObject();
+
+        JsonObject& source = thisUpdate.createNestedObject("source");
+        source["label"] = myHostname;
+        source["src"] = si->address;
+        // values array
+      
+        JsonArray& values = thisUpdate.createNestedArray("values");
+
+        for (int x=0;x<MAX_SENSOR_ATTRIBUTES; x++) {
+          if (strcmp(si->attrName[x].c_str(), "") == 0) {
+            break; // if attr is empty, no more attr's for this sensor
+          } 
+          if (strcmp(si->signalKPath[x].c_str(),  "") == 0) {
+            continue; // no path set for this...
+          }
+          JsonObject& thisValue = values.createNestedObject();
+          thisValue["path"] = si->signalKPath[x].c_str();
+          thisValue["value"] = RawJson(si->valueJson[x].c_str());
         }
-        JsonObject& thisValue = values.createNestedObject();
-        thisValue["path"] = si->signalKPath[x].c_str();
-        thisValue["value"] = RawJson(si->valueJson[x].c_str());
-        
       }
       //reset updated
       si->isUpdated = false;
