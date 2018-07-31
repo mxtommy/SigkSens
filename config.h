@@ -7,24 +7,25 @@ Feature selection
 ------------------------------------------------------------------------------
 ----------------------------------------------------------------------------*/
 
-// To disable any of the features below, either comment out the row
-// or add #undef <feat> to my_config.h and enable my_config.h at the
+// To enable any of the features below, either uncomment out the row
+// or add #define <feat> to my_config.h and enable my_config.h at the
 // end of this file.
 
 // Sensors
 
 #define ENABLE_SYSTEMHZ
-#define ENABLE_DIGITALIN
-#define ENABLE_DIGITALOUT
-#define ENABLE_ANALOGIN
-#define ENABLE_ONEWIRE
+//#define ENABLE_DIGITALIN
+//#define ENABLE_DIGITALOUT
+//#define ENABLE_ANALOGIN
+//#define ENABLE_ONEWIRE
 
-#define ENABLE_I2C
-// if either of these are enabled, make sure I2C above is as well.
-#define ENABLE_SHT30
-#define ENABLE_MPU
-#define ENABLE_BMP280
-#define ENABLE_ADS1115
+
+// if any of these are enabled, make sure I2C bellow is as well.
+//#define ENABLE_I2C
+//#define ENABLE_SHT30
+//#define ENABLE_MPU
+//#define ENABLE_BMP280
+//#define ENABLE_ADS1115
 
 // Services
 
