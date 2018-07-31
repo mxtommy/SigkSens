@@ -1,29 +1,7 @@
-extern "C" {
-#include "user_interface.h"
-}
-
-#include <Wire.h>
-
-#include "config.h"
-
-#include "sigksens.h"
-
 #include "i2c.h"
 
 
-#ifdef ENABLE_SHT30
-  #include "sht30.h"
-#endif
-#ifdef ENABLE_MPU
-  #include "mpu9250.h"
-#endif
-#ifdef ENABLE_BMP280
-  #include "bmp280.h"
-#endif
 
-#ifdef ENABLE_ADS1115
-  #include "ads1115.h"
-#endif
 
 
 #ifdef ENABLE_SHT30

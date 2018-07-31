@@ -15,12 +15,6 @@ extern "C" {
 #ifdef ENABLE_ONEWIRE
   #include "oneWire.h"
 #endif
-#ifdef ENABLE_SHT30
-  #include "sht30.h"
-#endif
-#ifdef ENABLE_MPU
-  #include "mpu9250.h"
-#endif
 #ifdef ENABLE_ADS1115
   #include "ads1115.h"
 #endif
@@ -71,9 +65,6 @@ void saveConfigCallback() {
 void saveConfig() {
   Serial.println("saving config");
   DynamicJsonBuffer jsonBuffer;
-  SensorInfo *tmpSensorInfo;
-  uint8_t numAttr;
-  char tmpPinStr[NUMBER_DIGITAL_INPUT][10];
 
   JsonObject& json = jsonBuffer.createObject();
   json["hostname"] = myHostname;
@@ -110,8 +101,6 @@ void saveConfig() {
 
 void loadConfig() {
   SensorInfo *newSensor;
-  SensorInfo *tmpSensorInfo;
-  uint8_t tempDeviceAddress[8];
   char tempStr[255];
 
   if (SPIFFS.exists("/config.json")) {

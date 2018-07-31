@@ -1,10 +1,3 @@
-extern "C" {
-#include "user_interface.h"
-}
-
-#include <Wire.h>
-
-#include "sigksens.h"
 #include "sht30.h"
 
 

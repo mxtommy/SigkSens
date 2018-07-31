@@ -16,10 +16,10 @@
 #include "i2c.h"
 #endif
 #ifdef ENABLE_MPU
-  #include "mpu9250.h"
+  #include "src/sensors/mpu9250/mpu9250.h"
 #endif
 #ifdef ENABLE_SHT30
-  #include "sht30.h"
+  #include "src/sensors/sht30/sht30.h"
 #endif
 #ifdef ENABLE_BMP280
   #include "bmp280.h"

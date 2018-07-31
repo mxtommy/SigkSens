@@ -17,10 +17,7 @@ extern "C" {
   #include "i2c.h"
 #endif
 #ifdef ENABLE_MPU
-  #include "mpu9250.h"
-#endif
-#ifdef ENABLE_SHT30
-  #include "sht30.h"
+  #include "src/sensors/mpu9250/mpu9250.h"
 #endif
 #ifdef ENABLE_ADS1115
   #include "ads1115.h"
