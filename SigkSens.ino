@@ -22,7 +22,7 @@
   #include "src/sensors/sht30/sht30.h"
 #endif
 #ifdef ENABLE_BMP280
-  #include "bmp280.h"
+  #include "src/sensors/bmp280/bmp280.h"
 #endif
 #ifdef ENABLE_ADS1115
 #include "ads1115.h"

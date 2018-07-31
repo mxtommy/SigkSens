@@ -1,14 +1,3 @@
-extern "C" {
-#include "user_interface.h"
-}
-
-#include "config.h"
-
-#include <Wire.h>
-#include <Adafruit_Sensor.h>
-#include <Adafruit_BMP280.h>
-
-#include "sigksens.h"
 #include "bmp280.h"
 
 

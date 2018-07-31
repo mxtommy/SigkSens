@@ -25,7 +25,7 @@ bool getSensorMPU925XPresent();
 #endif
 
 #ifdef ENABLE_BMP280
-#include "bmp280.h"
+#include "src/sensors/bmp280/bmp280.h"
 bool getSensorBMP280Present();
 #endif
 

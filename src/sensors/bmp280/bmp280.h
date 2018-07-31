@@ -5,7 +5,12 @@ extern "C" {
 #include "user_interface.h"
 }
 
-#include "sigksens.h"
+#include <Wire.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_BMP280.h>
+
+#include "../../../config.h"
+#include "../../../sigksens.h"
 
 class BMP280SensorInfo : public SensorInfo {
   public:
