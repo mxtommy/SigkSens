@@ -5,7 +5,13 @@ extern "C" {
 #include "user_interface.h"
 }
 
-#include "sigksens.h"
+#include <Reactduino.h>
+#include <Adafruit_ADS1015.h>
+
+
+#include "../../../config.h"
+#include "../../../sigksens.h"
+
 
 class ADSSensorInfo : public SensorInfo {
   public:

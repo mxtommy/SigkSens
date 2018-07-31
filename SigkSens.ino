@@ -25,7 +25,7 @@
   #include "src/sensors/bmp280/bmp280.h"
 #endif
 #ifdef ENABLE_ADS1115
-#include "ads1115.h"
+#include "src/sensors/ads1115/ads1115.h"
 #endif
 #ifdef ENABLE_ONEWIRE
   #include "src/sensors/oneWire/oneWire.h"

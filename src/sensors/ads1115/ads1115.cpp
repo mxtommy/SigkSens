@@ -1,18 +1,7 @@
-#include <Reactduino.h>
-
-extern "C" {
-#include "user_interface.h"
-}
-
-#include "config.h"
-
-#include <Adafruit_ADS1015.h>
-Adafruit_ADS1115 ads;
-
-#include "sigksens.h"
 #include "ads1115.h"
 
 #define SMOOTHING_GAIN 0.2
+Adafruit_ADS1115 ads;
 
 ADSSensorInfo::ADSSensorInfo(String addr) {
   strcpy(address, addr.c_str());

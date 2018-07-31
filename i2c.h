@@ -30,7 +30,7 @@ bool getSensorBMP280Present();
 #endif
 
 #ifdef ENABLE_ADS1115
-#include "ads1115.h"
+#include "src/sensors/ads1115/ads1115.h"
 bool getSensorADS1115Present();
 #endif
 

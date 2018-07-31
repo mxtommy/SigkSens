@@ -14,7 +14,7 @@ extern "C" {
 #include "webSocket.h"
 
 #ifdef ENABLE_ADS1115
-  #include "ads1115.h"
+  #include "src/sensors/ads1115/ads1115.h"
 #endif
 #ifdef ENABLE_DIGITALIN
   #include "digitalIn.h"
