@@ -2,9 +2,17 @@
 #define _oneWire_H_
 
 #include <Reactduino.h>
+#include <OneWire.h>
+#include <DallasTemperature.h>
 
-#include "sigksens.h"
-#include "config.h"
+extern "C" {
+#include "user_interface.h"
+}
+
+#include "../../../sigksens.h"
+#include "../../../config.h"
+#include "../../../FSConfig.h"
+
 
 class OneWireSensorInfo : public SensorInfo {
   public:

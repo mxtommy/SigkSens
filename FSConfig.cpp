@@ -12,9 +12,7 @@ extern "C" {
 
 #include "FSConfig.h"
 #include "webSocket.h"
-#ifdef ENABLE_ONEWIRE
-  #include "oneWire.h"
-#endif
+
 #ifdef ENABLE_ADS1115
   #include "ads1115.h"
 #endif

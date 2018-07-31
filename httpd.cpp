@@ -23,7 +23,7 @@ extern "C" {
   #include "ads1115.h"
 #endif
 #ifdef ENABLE_ONEWIRE
-  #include "oneWire.h"
+  #include "src/sensors/oneWire/oneWire.h"
 #endif
 #ifdef ENABLE_DIGITALIN
   #include "digitalIn.h"
