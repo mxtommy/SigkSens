@@ -37,7 +37,7 @@
   #include "src/sensors/digitalOut/digitalOut.h"
 #endif
 #ifdef ENABLE_ANALOGIN
-  #include "analogIn.h"
+  #include "src/sensors/analogIn/analogIn.h"
 #endif
 #ifdef ENABLE_SYSTEMHZ
   #include "systemHz.h"

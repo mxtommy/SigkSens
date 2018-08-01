@@ -20,7 +20,7 @@ extern "C" {
   #include "src/sensors/digitalIn/digitalIn.h"
 #endif
 #ifdef ENABLE_ANALOGIN
-  #include "analogIn.h"
+  #include "src/sensors/analogIn/analogIn.h"
 #endif
 #include "systemHz.h"
 #include "sigksens.h"

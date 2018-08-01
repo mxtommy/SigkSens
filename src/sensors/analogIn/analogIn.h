@@ -5,9 +5,11 @@ extern "C" {
 #include "user_interface.h"
 }
 
-#ifdef ENABLE_ANALOGIN
+
+#include "../../../config.h"
+#include "../../../sigksens.h"
+
 bool getSensorAnalogInPresent();
-#endif
 
 class AinSensorInfo : public SensorInfo {
   public:

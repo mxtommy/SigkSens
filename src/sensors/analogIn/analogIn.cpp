@@ -1,10 +1,3 @@
-extern "C" {
-#include "user_interface.h"
-}
-
-#include "config.h"
-
-#include "sigksens.h"
 #include "analogIn.h"
 
 
