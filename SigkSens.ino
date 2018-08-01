@@ -34,7 +34,7 @@
   #include "src/sensors/digitalIn/digitalIn.h"
 #endif
 #ifdef ENABLE_DIGITALOUT
-  #include "digitalOut.h"
+  #include "src/sensors/digitalOut/digitalOut.h"
 #endif
 #ifdef ENABLE_ANALOGIN
   #include "analogIn.h"

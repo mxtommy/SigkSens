@@ -1,9 +1,12 @@
 #ifndef _digitalOut_H_
 #define _digitalOut_H_
 
-#include "config.h"
+extern "C" {
+#include "user_interface.h"
+}
 
-#include "sigksens.h"
+#include "../../../config.h"
+#include "../../../sigksens.h"
 
 
 class DigitalOutSensorInfo : public SensorInfo {

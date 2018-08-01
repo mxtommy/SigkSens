@@ -1,14 +1,5 @@
-extern "C" {
-#include "user_interface.h"
-}
-
-#include <ArduinoJson.h>     //https://github.com/bblanchon/ArduinoJson
-
-#include "sigksens.h"
-#include "webSocket.h"
 #include "signalK.h"
 
-#include "digitalOut.h"
 
 // forward declarations
 void handleSignalK();

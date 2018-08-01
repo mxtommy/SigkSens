@@ -1,8 +1,3 @@
-extern "C" {
-#include "user_interface.h"
-}
-
-#include "sigksens.h"
 #include "digitalOut.h"
 
 
