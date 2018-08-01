@@ -11,7 +11,8 @@ extern "C" {
 #include "config.h"
 
 #include "FSConfig.h"
-#include "webSocket.h"
+
+#include "src/net/webSocket.h"
 
 #ifdef ENABLE_ADS1115
   #include "src/sensors/ads1115/ads1115.h"

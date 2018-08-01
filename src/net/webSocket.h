@@ -1,14 +1,24 @@
 #ifndef _webSocket_H_
 #define _webSocket_H_
 
-#include "config.h"
+extern "C" {
+#include "user_interface.h"
+}
+#include "../../config.h"
+#include "../../signalK.h"
+#include "../../sigksens.h"
 
+#include <ESP8266mDNS.h>        // Include the mDNS library
 #ifdef ENABLE_WEBSOCKET_SERVER
-#include <WebSocketsServer.h>
+  #include <WebSocketsServer.h>
 #endif
 #include <WebSocketsClient.h>
 
-#include "config.h"
+
+
+
+
+
 
 class SignalKClientInfo {
   public:

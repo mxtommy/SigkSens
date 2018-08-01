@@ -11,7 +11,6 @@
 #include <string>
 
 #include "config.h"
-#include "FSConfig.h"
 #ifdef ENABLE_I2C
 #include "i2c.h"
 #endif
@@ -43,10 +42,13 @@
   #include "src/sensors/systemHz/systemHz.h"
 #endif
 
+#include "FSConfig.h"
+
 #include "configReset.h"
-#include "webSocket.h"
+#include "src/net/webSocket.h"
 #include "signalK.h"
-#include "httpd.h"
+#include "src/net/httpd.h"
+
 #include "sigksens.h"
 
 /*---------------------------------------------------------------------------------------------------

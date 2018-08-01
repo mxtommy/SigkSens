@@ -7,7 +7,7 @@ extern "C" {
 
 #include "config.h"
 #include "sigksens.h"
-#include "webSocket.h"
+#include "src/net/webSocket.h"
 #include "src/sensors/digitalOut/digitalOut.h"
 
 
