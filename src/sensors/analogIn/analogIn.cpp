@@ -71,7 +71,7 @@ void setupAnalogIn(bool &need_save) {
     bool known = sensorStorage[(int)SensorType::analogIn].find(
       "A0") != nullptr;
     if (!known) {
-      Serial.println("Adding A0 input ");
+      Serial.println(F("Adding A0 input "));
       SensorInfo *newSensor = new AinSensorInfo("A0");
       sensorStorage[(int)newSensor->type].add(newSensor);
       need_save = true;

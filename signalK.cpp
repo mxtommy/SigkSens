@@ -40,7 +40,7 @@ void receiveDelta(uint8_t * payload) {
 
   JsonObject& root = jsonBuffer.parseObject(payload);
   if (!root.success()) {
-    Serial.println("parseObject() failed");
+    Serial.println(F("parseObject() failed"));
     return;
   }
   //root.prettyPrintTo(Serial);

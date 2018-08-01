@@ -84,9 +84,9 @@ void pollSHT() {
     // Stop I2C transmission
     errorCode = Wire.endTransmission();
     if (errorCode != 0) {
-      Serial.print("Error pollling SHT at address: ");
+      Serial.print(F("Error pollling SHT at address: "));
       Serial.print(address, HEX);
-      Serial.print(" ErrorCode: ");
+      Serial.print(F(" ErrorCode: "));
       Serial.println(errorCode);
     }
   });
@@ -121,9 +121,9 @@ void readSHT() {
     }
     errorCode = Wire.endTransmission();
     if (errorCode != 0) {
-      Serial.print("Error reading from SHT30 at address: ");
+      Serial.print(F("Error reading from SHT30 at address: "));
       Serial.print(address, HEX);
-      Serial.print(" ErrorCode: ");
+      Serial.print(F(" ErrorCode: "));
       Serial.println(errorCode);
       si->valueJson[0] = "null";
       si->valueJson[1] = "null";

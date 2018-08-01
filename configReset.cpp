@@ -22,7 +22,7 @@ void setupConfigReset() {
 
 void resetConfig() {
   WiFiManager wifiManager;
-  Serial.println("Resetting Config!");
+  Serial.println(F("Resetting Config!"));
   delay(200);
   wifiManager.resetSettings();
   SPIFFS.remove("/config.json");
@@ -55,9 +55,9 @@ void handleConfigReset() {
     // just released
 
     if (((millis() - buttonPressedTime) > SHORT_BUTTON_PRESS_MS) && ((millis() - buttonPressedTime) <= LONG_BUTTON_PRESS_MS)) { // short press
-      Serial.println("Short Button press!");      
+      Serial.println(F("Short Button press!"));      
     } else if ((millis() - buttonPressedTime) > LONG_BUTTON_PRESS_MS) {
-      Serial.println("Long Button press! Resetting!");
+      Serial.println(F("Long Button press! Resetting!"));
       resetConfig();
     }
   }

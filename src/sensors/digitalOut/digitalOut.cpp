@@ -79,7 +79,7 @@ void initializeDigitalOutPin(uint8_t index, bool &need_save) {
   bool known = sensorStorage[(int)SensorType::digitalOut].find(
     digitalOutPinNames[index]) != nullptr;
   if (!known) {
-    Serial.print("Setting up Digital Output on pin: ");
+    Serial.print(F("Setting up Digital Output on pin: "));
     Serial.println(digitalOutPinNames[index]);
     DigitalOutSensorInfo *newSensor = new DigitalOutSensorInfo(
       digitalOutPinNames[index]

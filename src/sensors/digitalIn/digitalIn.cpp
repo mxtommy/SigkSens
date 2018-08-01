@@ -172,7 +172,7 @@ void initializeDigitalPin(uint8_t index, bool &need_save) {
   bool known = sensorStorage[(int)SensorType::digitalIn].find(
     digitalPinNames[index]) != nullptr;
   if (!known) {
-    Serial.print("Setting up Digital Input on pin: ");
+    Serial.print(F("Setting up Digital Input on pin: "));
     Serial.println(digitalPinNames[index]);
     DigitalInSensorInfo *newSensor = new DigitalInSensorInfo(
       digitalPinNames[index]

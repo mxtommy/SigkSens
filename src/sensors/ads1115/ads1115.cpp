@@ -178,9 +178,9 @@ uint32_t getReadADSDelay() {
 
 void setADSReadDelay(uint32_t newDelay) {
   app.free(reactADS1115Read);
-  Serial.print("Restarting ADS Read timer at: ");
+  Serial.print(F("Restarting ADS Read timer at: "));
   Serial.print(newDelay);  
-  Serial.println("ms");
+  Serial.println(F("ms"));
   updateReadADSDelay = newDelay;
   reactADS1115Read = app.repeat(updateReadADSDelay, &readADS1115);
 }

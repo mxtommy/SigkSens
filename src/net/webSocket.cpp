@@ -78,7 +78,7 @@ void connectWebSocketClient() {
   if ( (host.length() > 0) && 
        (port > 0) && 
        (skci->path.length() > 0) ) {
-    Serial.println("Websocket client starting!");
+    Serial.println(F("Websocket client starting!"));
   } else {
       app.delay(10000, &connectWebSocketClient);
       return;

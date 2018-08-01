@@ -285,7 +285,7 @@ void httpSetSensorAttr(AsyncWebServerRequest *request) {
   char attrName[32];
   bool found = false;
 
-  Serial.println("Setting attributes for Sensor");
+  Serial.println(F("Setting attributes for Sensor"));
   if(!request->hasArg("address")) {request->send(400, "text/plain", "missing arg 'address'"); return;}
   if(!request->hasArg("attrName")) {request->send(400, "text/plain", "missing arg 'attrName'"); return;}
   
@@ -333,7 +333,7 @@ void httpSetTimerDelay(AsyncWebServerRequest *request) {
   char timer[15];
   bool ok = false;
 
-  Serial.print("Setting Timer delay");
+  Serial.print(F("Setting Timer delay"));
   if(!request->hasArg("timer")) {request->send(400, "text/plain", "missing arg 'timer'"); return;}
   if(!request->hasArg("delay")) {request->send(400, "text/plain", "missing arg 'delay'"); return;}
 
@@ -395,7 +395,7 @@ void httpResetConfig(AsyncWebServerRequest *request) {
 
 
 void setupHTTP() {
-  Serial.println("starting webserver");
+  Serial.println(F("starting webserver"));
 
   createStaticFiles();
 

@@ -131,12 +131,12 @@ void setupWifi() {
     if (wifiManager.autoConnect("Unconfigured Sensor")) {
       wifiConnected = true;
     } else {
-      Serial.println("Failed to connect to wifi and config timed out");
+      Serial.println(F("Failed to connect to wifi and config timed out"));
     }
   }
 
 
-  Serial.println("Connected to Wifi!");
+  Serial.println(F("Connected to Wifi!"));
 
   // Save config if needed
   if (shouldSaveConfig) {
@@ -148,15 +148,15 @@ void setupWifi() {
 
 void setupDiscovery() {
   if (!MDNS.begin(myHostname)) {             // Start the mDNS responder for esp8266.local
-    Serial.println("Error setting up MDNS responder!");
+    Serial.println(F("Error setting up MDNS responder!"));
   } else {
-    Serial.print ("mDNS responder started at ");
+    Serial.print (F("mDNS responder started at "));
     Serial.print (myHostname);
-    Serial.println("");
+    Serial.println(F(""));
   }
   MDNS.addService("http", "tcp", 80);
   
-  Serial.printf("Starting SSDP...\n");
+  Serial.println(F("Starting SSDP..."));
     SSDP.setSchemaURL("description.xml");
     SSDP.setHTTPPort(80);
     SSDP.setName(myHostname);

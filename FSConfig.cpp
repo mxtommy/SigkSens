@@ -39,8 +39,8 @@ bool shouldSaveConfig = false;
 
 void setupFS() {
   if (SPIFFS.begin()) {
-    Serial.println("mounted file system");
-    Serial.println("FS Contents:");
+    Serial.println(F("mounted file system"));
+    Serial.println(F("FS Contents:"));
     String str = "";
     Dir dir = SPIFFS.openDir("/");
     while (dir.next()) {
@@ -51,20 +51,20 @@ void setupFS() {
     }
     Serial.print(str);
   } else {
-    Serial.println("failed to mount FS");
+    Serial.println(F("failed to mount FS"));
   }
 
 }
 
 
 void saveConfigCallback() {
-  Serial.println("Should save config");
+  Serial.println(F("Should save config"));
   shouldSaveConfig = true;
 }
 
 
 void saveConfig() {
-  Serial.println("saving config");
+  Serial.println(F("saving config"));
   DynamicJsonBuffer jsonBuffer;
 
   JsonObject& json = jsonBuffer.createObject();
@@ -83,7 +83,7 @@ void saveConfig() {
   JsonArray& jsonSensors = json.createNestedArray("sensors");
   //for (uint8_t i=0; i < sensorStorage.size(); i++) 
   sensorStorageForEach([&](SensorInfo* si){
-    Serial.print("Saving sensor ");
+    Serial.print(F("Saving sensor "));
     Serial.println(si->address);
     si->toJson(jsonSensors.createNestedObject());
   });
@@ -92,7 +92,7 @@ void saveConfig() {
   
   File configFile = SPIFFS.open("/config.json", "w");
   if (!configFile) {
-    Serial.println("failed to open config file for writing");
+    Serial.println(F("failed to open config file for writing"));
   }
 
   json.prettyPrintTo(Serial);
@@ -106,10 +106,10 @@ void loadConfig() {
 
   if (SPIFFS.exists("/config.json")) {
     //file exists, reading and loading
-    Serial.println("reading config file");
+    Serial.println(F("reading config file"));
     File configFile = SPIFFS.open("/config.json", "r");
     if (configFile) {
-      Serial.println("opened config file");
+      Serial.println(F("opened config file"));
       size_t size = configFile.size();
       // Allocate a buffer to store contents of the file.
       std::unique_ptr<char[]> buf(new char[size]);
@@ -117,10 +117,10 @@ void loadConfig() {
       configFile.readBytes(buf.get(), size);
       DynamicJsonBuffer jsonBuffer;
       JsonObject& json = jsonBuffer.parseObject(buf.get());
-      Serial.println("Current Configuration:");
+      Serial.println(F("Current Configuration:"));
       json.prettyPrintTo(Serial);
       if (json.success()) {
-        Serial.println("");
+        Serial.println(F(""));
         // load hostname
         strcpy(myHostname, json["hostname"]);
 
@@ -144,7 +144,7 @@ void loadConfig() {
         setADSReadDelay(json["readADSDelay"]);
         #endif
       } else {
-        Serial.println("failed to load json config");
+        Serial.println(F("failed to load json config"));
       }
     }
   }
