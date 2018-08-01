@@ -17,7 +17,7 @@ extern "C" {
   #include "src/sensors/ads1115/ads1115.h"
 #endif
 #ifdef ENABLE_DIGITALIN
-  #include "digitalIn.h"
+  #include "src/sensors/digitalIn/digitalIn.h"
 #endif
 #ifdef ENABLE_ANALOGIN
   #include "analogIn.h"

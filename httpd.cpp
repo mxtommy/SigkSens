@@ -26,7 +26,7 @@ extern "C" {
   #include "src/sensors/oneWire/oneWire.h"
 #endif
 #ifdef ENABLE_DIGITALIN
-  #include "digitalIn.h"
+  #include "src/sensors/digitalIn/digitalIn.h"
 #endif
 #ifdef ENABLE_ANALOGIN
   #include "analogIn.h"

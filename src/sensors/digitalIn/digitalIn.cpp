@@ -1,9 +1,3 @@
-
-extern "C" {
-#include "user_interface.h"
-}
-
-#include "sigksens.h"
 #include "digitalIn.h"
 
 DigitalInSensorInfo::DigitalInSensorInfo(String addr) {
