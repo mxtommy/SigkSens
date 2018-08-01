@@ -22,9 +22,6 @@ extern "C" {
 #ifdef ENABLE_MPU
   #include "../sensors/mpu9250/mpu9250.h"
 #endif
-#ifdef ENABLE_ADS1115
-  #include "../sensors/ads1115/ads1115.h"
-#endif
 #ifdef ENABLE_ONEWIRE
   #include "../sensors/oneWire/oneWire.h"
 #endif
@@ -265,10 +262,8 @@ void httpGetSensorInfo(AsyncWebServerRequest *request) {
   //Sensor types present
 
   //Timers
-  JsonObject& timers = json.createNestedObject("timers");
-  #ifdef ENABLE_ADS1115
-  timers["ads1115Read"] = getReadADSDelay();
-  #endif
+  //JsonObject& timers = json.createNestedObject("timers");
+
 
 /*
   //Sensors
@@ -351,13 +346,6 @@ void httpSetTimerDelay(AsyncWebServerRequest *request) {
     if (strcmp(timer, "deltaDelay") == 0) {
       ok = true;
     }
-    #ifdef ENABLE_ADS1115
-    else if (strcmp(timer, "ads1115Read") == 0) {
-      ok = true;
-      setADSReadDelay(newDelay);
-    }
-    #endif
-        
   }
 
   if (ok) {

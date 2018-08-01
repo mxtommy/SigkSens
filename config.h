@@ -56,9 +56,12 @@ Defines
 #define DIGITAL_OUTPUT_PINS { 16, 15 }  // D0, D8 of Wemos)
 #define DIGITAL_OUTPUT_NAME {"OUT1", "OUT2"}
 
+// ADS1115 read interval
+#define ADS1115_READ_INTERVAL 50
+
 // One-Wire settings
 
-#define ONE_WIRE_BUS 13   // D7 pin on ESP
+#define ONE_WIRE_BUS 13   // D7 pin on Wemos D1 Mini
 
 // set these together! Precision for OneWire
 // 9  is 0.5C in 94ms
@@ -71,7 +74,7 @@ Defines
 // MPU9250 uses interrupts for performance. The interrupt
 // pin is defined below:
 
-#define MPU_INTERRUPT_PIN 12
+#define MPU_INTERRUPT_PIN 12 // D6 pin on Wemos D1 Mini
 
 // Button configuration for resetting the device
 

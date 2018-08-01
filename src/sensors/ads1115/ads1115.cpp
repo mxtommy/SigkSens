@@ -145,10 +145,6 @@ type="ads1115"
 */
 
 
-uint32_t updateReadADSDelay = 50;
-
-reaction reactADS1115Read;
-
 //Running values. (we need to keep running value to reduce noise with exponential filter)
 
 float valueDiff_0_1 = 0;
@@ -177,22 +173,8 @@ void setupADS1115() {
   gainMultiplier = 0.125F; /* ADS1115  @ +/- 4.096V gain (16-bit results) */
   
   ads.begin();
-  reactADS1115Read = app.repeat(updateReadADSDelay, &readADS1115);
+  app.repeat(ADS1115_READ_INTERVAL, &readADS1115);
   app.repeat(SLOW_LOOP_DELAY, &updateADS1115);
-}
-
-
-uint32_t getReadADSDelay() { 
-  return updateReadADSDelay; 
-}
-
-void setADSReadDelay(uint32_t newDelay) {
-  app.free(reactADS1115Read);
-  Serial.print(F("Restarting ADS Read timer at: "));
-  Serial.print(newDelay);  
-  Serial.println(F("ms"));
-  updateReadADSDelay = newDelay;
-  reactADS1115Read = app.repeat(updateReadADSDelay, &readADS1115);
 }
 
 

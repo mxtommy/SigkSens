@@ -12,9 +12,6 @@ extern "C" {
 
 #include "src/net/webSocket.h"
 
-#ifdef ENABLE_ADS1115
-  #include "src/sensors/ads1115/ads1115.h"
-#endif
 #ifdef ENABLE_DIGITALIN
   #include "src/sensors/digitalIn/digitalIn.h"
 #endif
@@ -73,9 +70,6 @@ void saveConfig() {
   json["signalKPath"] = signalKClientInfo.path;
   json["signalKToken"] = signalKClientInfo.authToken;
 
-  #ifdef ENABLE_ADS1115
-  json["readADSDelay"] = getReadADSDelay();
-  #endif
 
   //sensors
   JsonArray& jsonSensors = json.createNestedArray("sensors");
@@ -138,9 +132,6 @@ void loadConfig() {
           }
         }
 
-        #ifdef ENABLE_ADS1115
-        setADSReadDelay(json["readADSDelay"]);
-        #endif
       } else {
         Serial.println(F("failed to load json config"));
       }
