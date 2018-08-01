@@ -60,8 +60,6 @@ DallasTemperature sensors(&oneWire);
 
 bool sensorOneWirePresent = false;
 
-bool getSensorOneWirePresent() { return sensorOneWirePresent; }
-
 // some timers
 uint32_t oneWireScanDelay = 30000; //ms between scan
 

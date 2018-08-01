@@ -13,6 +13,5 @@ class OneWireSensorInfo : public SensorInfo {
 };
 
 void setup1Wire(bool&);
-bool getSensorOneWirePresent();
 
 #endif

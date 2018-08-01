@@ -9,8 +9,6 @@ extern "C" {
 #include "analogIn.h"
 
 
-bool sensorAnalogInPresent = false;
-bool getSensorAnalogInPresent() { return sensorAnalogInPresent; }
 
 AinSensorInfo::AinSensorInfo(String addr) {
   strcpy(address, addr.c_str());

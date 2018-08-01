@@ -1,5 +1,6 @@
-
-
+extern "C" {
+#include "user_interface.h"
+}
 #include <FS.h> //this needs to be first, or it all crashes and burns...
 
 
@@ -10,8 +11,33 @@
 #include <StreamString.h>
 #include <AsyncJson.h>
 
-
+#include "../../config.h"
 #include "httpd.h"
+
+#include "../../FSConfig.h"
+#include "webSocket.h"
+#include "../../sigksens.h"
+#include "../../configReset.h"
+
+#ifdef ENABLE_MPU
+  #include "../sensors/mpu9250/mpu9250.h"
+#endif
+#ifdef ENABLE_ADS1115
+  #include "../sensors/ads1115/ads1115.h"
+#endif
+#ifdef ENABLE_ONEWIRE
+  #include "../sensors/oneWire/oneWire.h"
+#endif
+#ifdef ENABLE_DIGITALIN
+  #include "../sensors/digitalIn/digitalIn.h"
+#endif
+#ifdef ENABLE_ANALOGIN
+  #include "../sensors/analogIn/analogIn.h"
+#endif
+
+
+
+
 
 
 // SSDP related stuff
@@ -237,25 +263,6 @@ void httpGetSensorInfo(AsyncWebServerRequest *request) {
   json["signalKToken"] = signalKClientInfo.authToken;
 
   //Sensor types present
-  #ifdef ENABLE_ONEWIRE
-  json["sensorOneWire"] = getSensorOneWirePresent();
-  #endif
-  #ifdef ENABLE_SHT30
-  json["sensorSHT30"] = getSensorSHT30Present();
-  #endif
-  #ifdef ENABLE_MPU
-  json["sensorMPU925X"] = getSensorMPU925XPresent();
-  #endif
-  #ifdef ENABLE_BMP280
-  json["sensorBMP280"] = getSensorBMP280Present();
-  #endif
-  #ifdef ENABLE_ADS1115
-  json["sensorADS1115"] = getSensorADS1115Present();
-  #endif
-  #ifdef ENABLE_ANALOGIN
-  json["analogIn"] = getSensorAnalogInPresent();
-  #endif
-
 
   //Timers
   JsonObject& timers = json.createNestedObject("timers");

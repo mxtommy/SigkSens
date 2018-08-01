@@ -12,7 +12,7 @@
 
 #include "config.h"
 #ifdef ENABLE_I2C
-#include "i2c.h"
+#include "src/services/i2c.h"
 #endif
 #ifdef ENABLE_MPU
   #include "src/sensors/mpu9250/mpu9250.h"
