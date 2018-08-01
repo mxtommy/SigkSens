@@ -1,5 +1,14 @@
-#include "bmp280.h"
+extern "C" {
+#include "user_interface.h"
+}
 
+#include <Wire.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_BMP280.h>
+
+#include "../../../config.h"
+
+#include "bmp280.h"
 
 BMP280SensorInfo::BMP280SensorInfo(String addr) {
   strcpy(address, addr.c_str());

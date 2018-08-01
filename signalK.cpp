@@ -1,4 +1,16 @@
+extern "C" {
+#include "user_interface.h"
+}
+#include <ArduinoJson.h>     //https://github.com/bblanchon/ArduinoJson
+
+#include "config.h"
+#include "sigksens.h"
+
 #include "signalK.h"
+
+#include "src/net/webSocket.h"
+#include "src/sensors/digitalOut/digitalOut.h"
+
 
 
 // forward declarations

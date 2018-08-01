@@ -14,18 +14,18 @@ Feature selection
 // Sensors
 
 #define ENABLE_SYSTEMHZ
-//#define ENABLE_DIGITALIN
-//#define ENABLE_DIGITALOUT
-//#define ENABLE_ANALOGIN
-//#define ENABLE_ONEWIRE
+#define ENABLE_DIGITALIN
+#define ENABLE_DIGITALOUT
+#define ENABLE_ANALOGIN
+#define ENABLE_ONEWIRE
 
 
-// if any of these are enabled, make sure I2C bellow is as well.
-//#define ENABLE_I2C
-//#define ENABLE_SHT30
-//#define ENABLE_MPU
-//#define ENABLE_BMP280
-//#define ENABLE_ADS1115
+// if any of these are enabled, make sure I2C below is as well.
+#define ENABLE_I2C
+#define ENABLE_SHT30
+#define ENABLE_MPU
+#define ENABLE_BMP280
+#define ENABLE_ADS1115
 
 // Services
 

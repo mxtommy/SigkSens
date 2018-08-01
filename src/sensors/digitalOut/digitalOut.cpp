@@ -1,3 +1,9 @@
+extern "C" {
+#include "user_interface.h"
+}
+
+#include "../../../config.h"
+
 #include "digitalOut.h"
 
 

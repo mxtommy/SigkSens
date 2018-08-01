@@ -1,13 +1,8 @@
 #ifndef _analogin_H_
 #define _analogin_H_
 
-extern "C" {
-#include "user_interface.h"
-}
-
-
-#include "../../../config.h"
 #include "../../../sigksens.h"
+
 
 bool getSensorAnalogInPresent();
 

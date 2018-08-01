@@ -3,9 +3,7 @@ extern "C" {
 }
 
 #include <FS.h> //this needs to be first, or it all crashes and burns...
-
 #include <ArduinoJson.h>     //https://github.com/bblanchon/ArduinoJson
-
 #include <string>
 
 #include "config.h"

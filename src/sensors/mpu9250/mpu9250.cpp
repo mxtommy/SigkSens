@@ -1,3 +1,15 @@
+extern "C" {
+#include "user_interface.h"
+}
+
+#include <FS.h>
+#include <Wire.h>
+#include "arduino.h"
+
+#include "quaternionFilters.h"
+
+#include "../../../config.h"
+
 #include "mpu9250.h"
 
 MPU9250SensorInfo::MPU9250SensorInfo(String addr) {

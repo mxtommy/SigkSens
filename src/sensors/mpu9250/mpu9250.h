@@ -1,17 +1,8 @@
 #ifndef _mpu9250_H_
 #define _mpu9250_H_
 
-#include "../../../config.h"
 #include "../../../sigksens.h"
-extern "C" {
-#include "user_interface.h"
-}
 
-#include <FS.h>
-#include <Wire.h>
-#include "arduino.h"
-
-#include "quaternionFilters.h"
 
 class MPU9250SensorInfo : public SensorInfo {
   public:

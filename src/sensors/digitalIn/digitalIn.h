@@ -1,13 +1,9 @@
 #ifndef _digitalIn_H_
 #define _digitalIn_H_
 
-
-extern "C" {
-#include "user_interface.h"
-}
-
-#include "../../../config.h"
 #include "../../../sigksens.h"
+
+
 
 class DigitalInSensorInfo : public SensorInfo {
   public:

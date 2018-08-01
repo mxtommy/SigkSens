@@ -1,3 +1,16 @@
+extern "C" {
+#include "user_interface.h"
+}
+
+#include <Reactduino.h>
+#include <OneWire.h>
+#include <DallasTemperature.h>
+
+
+
+#include "../../../config.h"
+#include "../../../FSConfig.h"
+
 #include "oneWire.h"
 
 OneWireSensorInfo::OneWireSensorInfo(String addr) {

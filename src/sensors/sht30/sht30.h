@@ -1,12 +1,6 @@
 #ifndef _sht30_H_
 #define _sht30_H_
 
-#include <Wire.h>
-
-extern "C" {
-#include "user_interface.h"
-}
-
 #include "../../../sigksens.h"
 
 

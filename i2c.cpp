@@ -1,25 +1,42 @@
+extern "C" {
+#include "user_interface.h"
+}
+
+#include <Wire.h>
+
+
+#include "config.h"
+
 #include "i2c.h"
 
 
 
+#ifdef ENABLE_ADS1115
+bool getSensorADS1115Present();
+#endif
+
 
 
 #ifdef ENABLE_SHT30
+#include "src/sensors/sht30/sht30.h"
 bool sensorSHT30Present = false;
 bool getSensorSHT30Present() { return sensorSHT30Present; }
 #endif
 
 #ifdef ENABLE_MPU
+#include "src/sensors/mpu9250/mpu9250.h"
 bool sensorMPU925XPresent = false;
 bool getSensorMPU925XPresent() { return sensorMPU925XPresent; }
 #endif
 
 #ifdef ENABLE_BMP280
+#include "src/sensors/bmp280/bmp280.h"
 bool sensorBMP280Present = false;
 bool getSensorBMP280Present() { return sensorBMP280Present; }
 #endif
 
 #ifdef ENABLE_ADS1115
+#include "src/sensors/ads1115/ads1115.h"
 bool sensorADS1115Present = false;
 bool getSensorADS1115Present() { return sensorADS1115Present; }
 #endif

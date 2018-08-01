@@ -2,10 +2,9 @@
 #define _sigksens_H_
 
 #include <Reactduino.h>
-#include <Arduino.h>
-#include <WString.h>
-#include<map>
 #include <ArduinoJson.h>
+#include <map>
+
 
 #define MAX_SENSOR_ATTRIBUTES 10
 

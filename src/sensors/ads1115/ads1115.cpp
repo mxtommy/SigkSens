@@ -1,3 +1,13 @@
+extern "C" {
+#include "user_interface.h"
+}
+
+#include <Reactduino.h>
+#include <Adafruit_ADS1015.h>
+
+
+#include "../../../config.h"
+
 #include "ads1115.h"
 
 #define SMOOTHING_GAIN 0.2

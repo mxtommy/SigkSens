@@ -1,3 +1,6 @@
+#include <Arduino.h>
+#include <WString.h>
+
 #include "sigksens.h"
 
 fromJsonFunc fromJson[(int)SensorType::SensorType_MAX];

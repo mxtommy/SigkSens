@@ -1,11 +1,7 @@
 #ifndef _digitalOut_H_
 #define _digitalOut_H_
 
-extern "C" {
-#include "user_interface.h"
-}
 
-#include "../../../config.h"
 #include "../../../sigksens.h"
 
 

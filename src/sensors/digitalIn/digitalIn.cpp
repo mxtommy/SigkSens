@@ -1,3 +1,9 @@
+extern "C" {
+#include "user_interface.h"
+}
+
+#include "../../../config.h"
+
 #include "digitalIn.h"
 
 DigitalInSensorInfo::DigitalInSensorInfo(String addr) {

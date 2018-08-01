@@ -1,16 +1,8 @@
 #ifndef _ads1115_H_
 #define _ads1115_H_
 
-extern "C" {
-#include "user_interface.h"
-}
-
-#include <Reactduino.h>
-#include <Adafruit_ADS1015.h>
-
-
-#include "../../../config.h"
 #include "../../../sigksens.h"
+
 
 
 class ADSSensorInfo : public SensorInfo {

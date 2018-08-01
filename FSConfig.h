@@ -1,8 +1,6 @@
 #ifndef _FSConfig_H_
 #define _FSConfig_H_
 
-#include "config.h"
-
 extern bool shouldSaveConfig;
 
 void setupFS();

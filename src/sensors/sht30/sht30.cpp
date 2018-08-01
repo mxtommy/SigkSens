@@ -1,3 +1,9 @@
+extern "C" {
+#include "user_interface.h"
+}
+#include <Wire.h>
+
+#include "../../../config.h"
 #include "sht30.h"
 
 
