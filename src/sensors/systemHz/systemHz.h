@@ -1,9 +1,12 @@
 #ifndef _systemHz_H_
 #define _systemHz_H_
 
-#include "config.h"
+extern "C" {
+#include "user_interface.h"
+}
 
-#include "sigksens.h"
+#include "../../../config.h"
+#include "../../../sigksens.h"
 
 class SystemHzSensorInfo : public SensorInfo {
   public:

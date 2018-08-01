@@ -22,7 +22,9 @@ extern "C" {
 #ifdef ENABLE_ANALOGIN
   #include "src/sensors/analogIn/analogIn.h"
 #endif
-#include "systemHz.h"
+#ifdef ENABLE_SYSTEMHZ
+  #include "src/sensors/systemHz/systemHz.h"
+#endif
 #include "sigksens.h"
 
 /*----------------------------------------------------------------------------

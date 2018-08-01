@@ -40,7 +40,7 @@
   #include "src/sensors/analogIn/analogIn.h"
 #endif
 #ifdef ENABLE_SYSTEMHZ
-  #include "systemHz.h"
+  #include "src/sensors/systemHz/systemHz.h"
 #endif
 
 #include "configReset.h"
