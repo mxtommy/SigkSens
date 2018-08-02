@@ -53,8 +53,6 @@ void SystemHzSensorInfo::toJson(JsonObject &jsonSens) {
     JsonObject& attr = jsonAttrs.createNestedObject();
     attr["name"] = attrName[x];
     attr["signalKPath"] = signalKPath[x];
-    attr["offset"] = offset[x];
-    attr["scale"] = scale[x];
     attr["value"] = valueJson[x];
   }
 }

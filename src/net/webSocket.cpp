@@ -20,6 +20,7 @@ void webSocketServerEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t 
 void interruptWsReconnect(void *pArg);
 void connectWebSocketClient();
 void webSocketClientEvent(WStype_t type, uint8_t * payload, size_t length);
+bool getWebsocketClientStatus();
 
 void setupWebSocket() {
   #ifdef ENABLE_WEBSOCKET_SERVER
@@ -47,6 +48,11 @@ void restartWebSocketClient() {
   if (signalKClientInfo.connected) {
     signalKClientInfo.client.disconnect(); // disconnect will set timer to reconnect. if not connected it was already running
   }
+}
+
+bool getWebsocketClientStatus() {
+  SignalKClientInfo *skci = &signalKClientInfo;  // save some typing
+  return skci->connected;
 }
 
 bool getMDNSService(String &host, uint16_t &port) {

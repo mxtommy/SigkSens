@@ -15,11 +15,6 @@ extern "C" {
 #include <WebSocketsClient.h>
 
 
-
-
-
-
-
 class SignalKClientInfo {
   public:
     String host;
@@ -38,7 +33,7 @@ extern WebSocketsServer webSocketServer;
 
 void setupWebSocket();
 void handleWebSocket();
-
+bool getWebsocketClientStatus();
 void restartWebSocketClient();
 
 #endif

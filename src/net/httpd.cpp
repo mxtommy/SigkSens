@@ -67,7 +67,7 @@ static const char* ssdpTemplate =
   "\r\n";
 
 // Simple web page to view deltas
-const char * EspSigKIndexContents = R"foo(
+const char INDEX_PAGE[] PROGMEM = R"foo(
 <html>
 <head>
   <title>Deltas</title>
@@ -259,13 +259,13 @@ void httpGetSensorInfo(AsyncWebServerRequest *request) {
   json["signalKPath"] = signalKClientInfo.path;
   json["signalKToken"] = signalKClientInfo.authToken;
 
+  json["websocketClientConnected"] = getWebsocketClientStatus();
   //Sensor types present
 
   //Timers
   //JsonObject& timers = json.createNestedObject("timers");
 
-
-/*
+  /*
   //Sensors
   JsonArray& sensorArr = json.createNestedArray("sensors");
   
@@ -397,10 +397,10 @@ void setupHTTP() {
   server.onNotFound(handleNotFound);
 
   server.on("/",[](AsyncWebServerRequest *request ) {
-      request->send(200, "text/html", EspSigKIndexContents);
+      request->send(200, "text/html", INDEX_PAGE);
     });
   server.on("/index.html",[](AsyncWebServerRequest *request ) {
-      request->send(200, "text/html", EspSigKIndexContents);
+      request->send(200, "text/html", INDEX_PAGE);
     });
 
 

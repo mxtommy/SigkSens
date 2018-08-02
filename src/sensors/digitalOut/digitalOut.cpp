@@ -59,6 +59,8 @@ void updateSensorInfo();
 
 void setupDigitalOut(bool &need_save) {
   for (int index=0;index<(sizeof(digitalOutPins)/sizeof(digitalOutPins[0])); index++) {
+    Serial.print(F("Initializing digitalOut pin: "));
+    Serial.println(digitalOutPins[index]);
     initializeDigitalOutPin(index, need_save); 
   }
 
