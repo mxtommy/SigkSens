@@ -3,7 +3,7 @@
 
 #include "sigksens.h"
 
-fromJsonFunc fromJson[(int)SensorType::SensorType_MAX];
+fromJsonFunc fromJson[(int)SensorType::SensorType_MAX+1];
 /*---------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------
 Helper functions

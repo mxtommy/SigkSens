@@ -79,7 +79,7 @@ void sensorStorageForEach(F&& lambda) {
 }
 
 typedef SensorInfo *(*fromJsonFunc)(JsonObject &);
-extern fromJsonFunc fromJson[(int)SensorType::SensorType_MAX];
+extern fromJsonFunc fromJson[(int)SensorType::SensorType_MAX+1];
 
 void parseBytes(const char* str, char sep, byte* bytes, int maxBytes, int base);
 
