@@ -30,6 +30,10 @@ void setupWebSocket() {
   signalKClientInfo.client.onEvent(webSocketClientEvent);
 
   connectWebSocketClient();
+
+  //app.onTick(&handleWebSocket);
+  app.repeat(20, &handleWebSocket); // calling websocket loop every 20ms instead of every tick doubles systemHz :)
+
 }
 
 

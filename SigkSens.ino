@@ -59,8 +59,6 @@ Global Variables
 
 char myHostname[16];
 
-uint16_t mainLoopCount = 0; //some stuff needs to run constantly, others not. so run some stuff only every X loops.
-
 /*---------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------
 General Setup
@@ -220,7 +218,7 @@ Reactduino app([] () {
 
   app.repeat(SLOW_LOOP_DELAY, &slow_loop);
 
-  app.onTick(&loop_);
+  
 });
 
 /*---------------------------------------------------------------------------------------------------
@@ -234,12 +232,7 @@ void slow_loop() {
   if (WiFi.status() != WL_CONNECTED) {
     setupWifi();
   }
-  handleWebSocket();
   
   handleConfigReset(); 
-  mainLoopCount = 0;
 }
 
-void loop_() {
-  mainLoopCount++;
-}
