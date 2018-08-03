@@ -4,7 +4,7 @@ extern "C" {
 
 #include <FS.h>
 #include <Wire.h>
-#include "arduino.h"
+#include "Arduino.h"
 
 #include "quaternionFilters.h"
 

@@ -1,5 +1,5 @@
 
-#include "arduino.h"
+#include "Arduino.h"
 
 float q[4] = {1.0f, 0.0f, 0.0f, 0.0f};    // vector to hold quaternion
 float eInt[3] = {0.0f, 0.0f, 0.0f};       // vector to hold integral error for Mahony method
