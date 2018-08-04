@@ -13,6 +13,10 @@ extern "C" {
 
 #include "oneWire.h"
 
+#ifndef DEVICE_DISCONNECTED_C
+# define DEVICE_DISCONNECTED_C DEVICE_DISCONNECTED
+#endif
+
 OneWireSensorInfo::OneWireSensorInfo(String addr) {
   strcpy(address, addr.c_str());
   signalKPath[0] = "";
@@ -136,7 +140,7 @@ void read1WSensors() {
     parseBytes(si->address, ':', address,  8, 16); // convert string address to uint_8 array
   
     tempC = sensors.getTempC(address);
-    if (tempC == DEVICE_DISCONNECTED) {
+    if (tempC == DEVICE_DISCONNECTED_C) {
       si->valueJson[0] = "null";
     } else {
       tempK = tempC + 273.15;
