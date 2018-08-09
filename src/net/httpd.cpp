@@ -17,7 +17,7 @@ extern "C" {
 #include "../../FSConfig.h"
 #include "webSocket.h"
 #include "../../sigksens.h"
-#include "../../configReset.h"
+#include "../services/configReset.h"
 
 #ifdef ENABLE_MPU
   #include "../sensors/mpu9250/mpu9250.h"

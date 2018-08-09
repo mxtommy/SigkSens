@@ -6,8 +6,8 @@ extern "C" {
 
 #include <WiFiManager.h>          //https://github.com/tzapu/WiFiManager WiFi Configuration Magic
 
-#include "sigksens.h"
-#include "config.h"
+#include "../../sigksens.h"
+#include "../../config.h"
 
 bool currentButtonState = false;
 bool lastButtonState = false;

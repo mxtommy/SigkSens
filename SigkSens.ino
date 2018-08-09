@@ -1,7 +1,6 @@
 #include <Reactduino.h>
 #include <ESP8266WiFi.h>          //ESP8266 Core WiFi Library (you most likely already have this in your sketch)
-#include <ESP8266mDNS.h>        // Include the mDNS library
-#include <ESP8266SSDP.h>
+
 
 #include <DNSServer.h>            //Local DNS Server used for redirecting all requests to the configuration portal
 #include <WiFiManager.h>          //https://github.com/tzapu/WiFiManager WiFi Configuration Magic
@@ -44,10 +43,13 @@
 
 #include "FSConfig.h"
 
-#include "configReset.h"
+#include "src/net/discovery.h"
 #include "src/net/webSocket.h"
-#include "signalK.h"
 #include "src/net/httpd.h"
+
+#include "src/services/configReset.h"
+#include "signalK.h"
+
 
 #include "sigksens.h"
 
@@ -144,30 +146,7 @@ void setupWifi() {
 }
 
 
-void setupDiscovery() {
-  if (!MDNS.begin(myHostname)) {             // Start the mDNS responder for esp8266.local
-    Serial.println(F("Error setting up MDNS responder!"));
-  } else {
-    Serial.print (F("mDNS responder started at "));
-    Serial.print (myHostname);
-    Serial.println(F(""));
-  }
-  MDNS.addService("http", "tcp", 80);
-  
-  Serial.println(F("Starting SSDP..."));
-    SSDP.setSchemaURL("description.xml");
-    SSDP.setHTTPPort(80);
-    SSDP.setName(myHostname);
-    SSDP.setSerialNumber("12345");
-    SSDP.setURL("index.html");
-    SSDP.setModelName("WifiSensorNode");
-    SSDP.setModelNumber("12345");
-    SSDP.setModelURL("http://www.signalk.org");
-    SSDP.setManufacturer("SigK");
-    SSDP.setManufacturerURL("http://www.signalk.org");
-    SSDP.setDeviceType("upnp:rootdevice");
-    SSDP.begin();
-}
+
 
 // forward declarations
 void loop_();
