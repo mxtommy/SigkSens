@@ -22,15 +22,6 @@ extern "C" {
 #ifdef ENABLE_MPU
   #include "../sensors/mpu9250/mpu9250.h"
 #endif
-#ifdef ENABLE_ONEWIRE
-  #include "../sensors/oneWire/oneWire.h"
-#endif
-#ifdef ENABLE_DIGITALIN
-  #include "../sensors/digitalIn/digitalIn.h"
-#endif
-#ifdef ENABLE_ANALOGIN
-  #include "../sensors/analogIn/analogIn.h"
-#endif
 
 
 
