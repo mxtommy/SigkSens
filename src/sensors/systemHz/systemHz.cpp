@@ -8,8 +8,8 @@ extern "C" {
 
 SystemHzSensorInfo::SystemHzSensorInfo(String addr) {
   strcpy(address, addr.c_str());
-  signalKPath[0] = "";
-  signalKPath[1] = "";
+  signalKPath[0] = String("sensors.") + String(myHostname) + String(".systemHz");
+  signalKPath[1] = String("sensors.") + String(myHostname) + String(".freeMem");
   attrName[0] = "systemHz";
   attrName[1] = "freeMem";
   type = SensorType::local;
@@ -83,7 +83,7 @@ void setupSystemHz(bool &need_save) {
     need_save = true;
   }
   app.onTick(&countSystemHz);
-  app.repeat(SLOW_LOOP_DELAY, &updateSystemHz);
+  app.repeat(1000, &updateSystemHz);
 }
 
 
