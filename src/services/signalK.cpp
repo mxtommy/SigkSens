@@ -3,14 +3,16 @@ extern "C" {
 }
 #include <ArduinoJson.h>     //https://github.com/bblanchon/ArduinoJson
 
-#include "config.h"
-#include "sigksens.h"
+#include "../../config.h"
+#include "../../sigksens.h"
 
 #include "signalK.h"
 
-#include "src/net/webSocket.h"
-#include "src/sensors/digitalOut/digitalOut.h"
+#include "../net/webSocket.h"
 
+#ifdef ENABLE_DIGITALOUT
+ #include "../sensors/digitalOut/digitalOut.h"
+#endif
 
 
 // forward declarations
@@ -67,7 +69,9 @@ void receiveDelta(uint8_t * payload) {
 
           if (root["put"][i]["value"].is<bool>()) {
             tempBool = root["put"][i]["value"];
+#ifdef ENABLE_DIGITALOUT
             digitalOutSetBooleanValue(si->address, tempBool);
+#endif
           }
         }
       });

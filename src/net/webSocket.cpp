@@ -1,3 +1,15 @@
+extern "C" {
+#include "user_interface.h"
+}
+
+#include <ESP8266mDNS.h>        // Include the mDNS library
+
+
+#include "../../config.h"
+#include "../../sigksens.h"
+#include "../services/signalK.h"
+
+
 
 #include "webSocket.h"
 

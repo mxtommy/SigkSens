@@ -48,7 +48,7 @@
 #include "src/net/httpd.h"
 
 #include "src/services/configReset.h"
-#include "signalK.h"
+#include "src/services/signalK.h"
 
 
 #include "sigksens.h"
