@@ -29,9 +29,6 @@ Config Save/Load/Reset
 ------------------------------------------------------------------------------
 ----------------------------------------------------------------------------*/
 
-//flag for saving data in FSConfig
-bool shouldSaveConfig = false;
-
 void setupFS() {
   if (SPIFFS.begin()) {
     Serial.println(F("mounted file system"));
@@ -50,13 +47,6 @@ void setupFS() {
   }
 
 }
-
-
-void saveConfigCallback() {
-  Serial.println(F("Should save config"));
-  shouldSaveConfig = true;
-}
-
 
 void saveConfig() {
   Serial.println(F("saving config"));

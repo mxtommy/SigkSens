@@ -1,13 +1,5 @@
 #include <Reactduino.h>
-#include <ESP8266WiFi.h>          //ESP8266 Core WiFi Library (you most likely already have this in your sketch)
 
-
-#include <DNSServer.h>            //Local DNS Server used for redirecting all requests to the configuration portal
-#include <WiFiManager.h>          //https://github.com/tzapu/WiFiManager WiFi Configuration Magic
-
-#include <ArduinoJson.h>     //https://github.com/bblanchon/ArduinoJson
-
-#include <string>
 
 #include "config.h"
 #ifdef ENABLE_I2C
@@ -46,6 +38,7 @@
 #include "src/net/discovery.h"
 #include "src/net/webSocket.h"
 #include "src/net/httpd.h"
+#include "src/net/sigKWifi.h"
 
 #include "src/services/configReset.h"
 #include "src/services/signalK.h"
@@ -113,39 +106,6 @@ void setupFromJson() {
     (fromJsonFunc)&(BMP280SensorInfo::fromJson);
   #endif
 }
-
-
-void setupWifi() {
-  WiFiManager wifiManager;
-  bool wifiConnected = false;
- 
-  //set config save notify callback
-  wifiManager.setSaveConfigCallback(saveConfigCallback);
-  
-  wifiManager.setConfigPortalTimeout(180);
-
-  WiFiManagerParameter custom_hostname("myHostname", "Set Hostname", myHostname, 16);
-  wifiManager.addParameter(&custom_hostname);
-  
-  while (wifiConnected == false) {
-    if (wifiManager.autoConnect("Unconfigured Sensor")) {
-      wifiConnected = true;
-    } else {
-      Serial.println(F("Failed to connect to wifi and config timed out"));
-    }
-  }
-
-
-  Serial.println(F("Connected to Wifi!"));
-
-  // Save config if needed
-  if (shouldSaveConfig) {
-    strcpy(myHostname, custom_hostname.getValue());
-    saveConfig();
-  }
-}
-
-
 
 
 // forward declarations
