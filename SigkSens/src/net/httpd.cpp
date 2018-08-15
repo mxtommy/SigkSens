@@ -103,7 +103,7 @@ HTTP
 ------------------------------------------------------------------------------
 ----------------------------------------------------------------------------*/
 
-AsyncWebServer server(80);
+AsyncWebServer server(HTTP_PORT);
 
 void createStaticFiles() {
   if (!SPIFFS.exists("/web/index.html")) {
