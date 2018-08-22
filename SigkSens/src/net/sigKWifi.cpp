@@ -27,7 +27,7 @@ void setupWifi() {
   //set config save notify callback
   wifiManager.setSaveConfigCallback(saveConfigCallback);
   
-  wifiManager.setConfigPortalTimeout(180);
+  wifiManager.setConfigPortalTimeout(WIFI_CONFIG_PORTAL_TIMEOUT);
 
   WiFiManagerParameter custom_hostname("myHostname", "Set Hostname", myHostname, 16);
   wifiManager.addParameter(&custom_hostname);

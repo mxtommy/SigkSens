@@ -37,6 +37,12 @@ Defines
 ------------------------------------------------------------------------------
 ----------------------------------------------------------------------------*/
 
+// Wifi config portal timeout (seconds). The smaller the value, the faster
+// the device will attempt to reconnect. If set too small, it might
+// become impossible to actually configure the Wifi settings in the captive
+// portal.
+#define WIFI_CONFIG_PORTAL_TIMEOUT 180
+
 // HTTP port for the configuration interface
 #define HTTP_PORT 80
 
