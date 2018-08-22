@@ -139,7 +139,7 @@ void sendDelta() {
   });
 
   delta.printTo(deltaText);
-  Serial.println(deltaText);
+  //Serial.println(deltaText);
   #ifdef ENABLE_WEBSOCKET_SERVER
   webSocketServer.broadcastTXT(deltaText);
   #endif
