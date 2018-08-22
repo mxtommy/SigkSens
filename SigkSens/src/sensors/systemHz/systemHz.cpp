@@ -10,26 +10,33 @@ SystemHzSensorInfo::SystemHzSensorInfo(String addr) {
   strcpy(address, addr.c_str());
   signalKPath[0] = String("sensors.") + String(myHostname) + String(".systemHz");
   signalKPath[1] = String("sensors.") + String(myHostname) + String(".freeMem");
+  signalKPath[2] = String("sensors.") + String(myHostname) + String(".uptime");
   attrName[0] = "systemHz";
   attrName[1] = "freeMem";
+  attrName[2] = "uptime";
   type = SensorType::local;
   valueJson[0] = "null";
   valueJson[1] = "null";
+  valueJson[2] = "null";
 
   isUpdated = false;
 }
 
 SystemHzSensorInfo::SystemHzSensorInfo(String addr, 
-                                         String path1, 
-                                         String path2) {
+                                       String path1, 
+                                       String path2,
+                                       String path3) {
   strcpy(address, addr.c_str());
   signalKPath[0] = path1;
   signalKPath[1] = path2;
+  signalKPath[2] = path3;
   attrName[0] = "systemHz";
   attrName[1] = "freeMem";
+  attrName[2] = "uptime";
   type = SensorType::local;
   valueJson[0] = "null";
   valueJson[1] = "null";
+  valueJson[2] = "null";
 
   isUpdated = false;
 }
@@ -38,7 +45,8 @@ SystemHzSensorInfo *SystemHzSensorInfo::fromJson(JsonObject &jsonSens) {
   return new SystemHzSensorInfo(
     jsonSens["address"],
     jsonSens["attrs"][0]["signalKPath"],
-    jsonSens["attrs"][1]["signalKPath"]
+    jsonSens["attrs"][1]["signalKPath"],
+    jsonSens["attrs"][2]["signalKPath"]
   );
 }
 
@@ -109,7 +117,11 @@ void updateSystemHz() {
     if (strcmp(si->signalKPath[1].c_str(),  "") != 0) {
       si->valueJson[1] = ESP.getFreeHeap();
       si->isUpdated = true;
-    } 
+    }
+    if (strcmp(si->signalKPath[2].c_str(),  "") != 0) {
+      si->valueJson[2] = (float)millis()/1000.0;
+      si->isUpdated = true;
+    }
   });
 
   systemHzCount = 0;
