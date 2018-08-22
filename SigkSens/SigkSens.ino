@@ -169,7 +169,8 @@ Main Loop!
 void slow_loop() {
   // Check Wifi...
   if (WiFi.status() != WL_CONNECTED) {
-    setupWifi();
+    // if connection is lost, simply restart
+    ESP.restart();
   }
   
   handleConfigReset(); 

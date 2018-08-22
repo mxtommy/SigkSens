@@ -23,7 +23,6 @@ void saveConfigCallback() {
 
 void setupWifi() {
   WiFiManager wifiManager;
-  bool wifiConnected = false;
  
   //set config save notify callback
   wifiManager.setSaveConfigCallback(saveConfigCallback);
@@ -33,14 +32,10 @@ void setupWifi() {
   WiFiManagerParameter custom_hostname("myHostname", "Set Hostname", myHostname, 16);
   wifiManager.addParameter(&custom_hostname);
   
-  while (wifiConnected == false) {
-    if (wifiManager.autoConnect("Unconfigured Sensor")) {
-      wifiConnected = true;
-    } else {
-      Serial.println(F("Failed to connect to wifi and config timed out"));
-    }
+  if (!wifiManager.autoConnect("Unconfigured Sensor")) {
+    Serial.println(F("Failed to connect to wifi and config timed out."));
+    ESP.restart();
   }
-
 
   Serial.println(F("Connected to Wifi!"));
 
@@ -48,6 +43,9 @@ void setupWifi() {
   if (shouldSaveConfig) {
     strcpy(myHostname, custom_hostname.getValue());
     saveConfig();
+    // For some reason, connection isn't properly established after exiting the
+    // captive portal. Just reset to be safe.
+    ESP.restart();
   }
 }
 
