@@ -9,7 +9,8 @@ class SystemHzSensorInfo : public SensorInfo {
     SystemHzSensorInfo(
         String addr, 
         String path1, 
-        String path2);
+        String path2,
+        String path3);
 
     static SystemHzSensorInfo *fromJson(JsonObject &jsonSens);
     void toJson(JsonObject &jsonSens);

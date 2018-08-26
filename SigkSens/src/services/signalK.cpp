@@ -139,7 +139,7 @@ void sendDelta() {
   });
 
   delta.printTo(deltaText);
-  
+
   #ifdef ENABLE_SERIAL_DELTA
   Serial.println(deltaText);
   #endif
