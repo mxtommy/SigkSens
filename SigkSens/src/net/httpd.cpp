@@ -103,7 +103,7 @@ HTTP
 ------------------------------------------------------------------------------
 ----------------------------------------------------------------------------*/
 
-AsyncWebServer server(80);
+AsyncWebServer server(HTTP_PORT);
 
 void createStaticFiles() {
   if (!SPIFFS.exists("/web/index.html")) {
@@ -388,10 +388,10 @@ void setupHTTP() {
   server.onNotFound(handleNotFound);
 
   server.on("/",[](AsyncWebServerRequest *request ) {
-      request->send(200, "text/html", INDEX_PAGE);
+      request->send_P(200, "text/html", INDEX_PAGE);
     });
   server.on("/index.html",[](AsyncWebServerRequest *request ) {
-      request->send(200, "text/html", INDEX_PAGE);
+      request->send_P(200, "text/html", INDEX_PAGE);
     });
 
 

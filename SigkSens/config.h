@@ -37,6 +37,9 @@ Defines
 ------------------------------------------------------------------------------
 ----------------------------------------------------------------------------*/
 
+// HTTP port for the configuration interface
+#define HTTP_PORT 80
+
 // Slow loop duration (SK updates, slow sensor reads etc)
 #define SLOW_LOOP_DELAY 200
 
