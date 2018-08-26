@@ -7,6 +7,11 @@ Feature selection
 ------------------------------------------------------------------------------
 ----------------------------------------------------------------------------*/
 
+// Print Deltas to Serial? when enabled deltas are also printed to Serial, to 
+// aid in debuging. If you do not want this comment this line out.
+#define ENABLE_SERIAL_DELTA
+
+
 // To enable any of the features below, either uncomment out the row
 // or add #define <feat> to my_config.h and enable my_config.h at the
 // end of this file.
