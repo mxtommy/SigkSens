@@ -139,10 +139,15 @@ void sendDelta() {
   });
 
   delta.printTo(deltaText);
-  //Serial.println(deltaText);
+
+  #ifdef ENABLE_SERIAL_DELTA
+  Serial.println(deltaText);
+  #endif
+  
   #ifdef ENABLE_WEBSOCKET_SERVER
   webSocketServer.broadcastTXT(deltaText);
   #endif
+  
   if (signalKClientInfo.connected) { // client
     signalKClientInfo.client.sendTXT(deltaText);
   }

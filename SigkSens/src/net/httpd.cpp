@@ -253,9 +253,6 @@ void httpGetSensorInfo(AsyncWebServerRequest *request) {
   json["websocketClientConnected"] = getWebsocketClientStatus();
   //Sensor types present
 
-  //Timers
-  JsonObject& timers = json.createNestedObject("timers");
-
   //Sensors
   JsonArray& sensorArr = json.createNestedArray("sensors");
   
