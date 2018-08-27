@@ -3,7 +3,7 @@
 ---------------------
 Simple low cost Wifi based IoT device. Should be simple enough to setup/use that it could be manufactured and sold to people with no microcontroller/circuit design knowledge. Support configuration via a Web application, and network discovery for ease of use.
 
-Assuming it will be installed close to the object being monitored/controlled, it should not need to support many IO by default. Aim to cover 80% of use cases with single device, assuming other 20% can be solved by adding a additional stand alone devices. If 80% of the time you only need 2 Inputs, the 20% of the time you need 4 inputs just put another device. IE prefer multiple cheap devices vs one expensive do everything one.
+Assuming it will be installed close to the object being monitored/controlled, it should not need to support many IO by default. Aim to cover 80% of use cases with single device, assuming other 20% can be solved by adding a additional stand alone devices. If 80% of the time you only need 2 Inputs, the 20% of the time you need 4 inputs just put another device. IE prefer multiple cheap devices vs. one expensive do everything one.
 
 Hardware should be easy to assemble on breadboard, as well as be able to be made into a PCB.
 
