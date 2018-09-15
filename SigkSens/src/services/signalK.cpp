@@ -150,6 +150,7 @@ void sendDelta() {
   
   if (signalKClientInfo.connected) { // client
     signalKClientInfo.client.sendTXT(deltaText);
+    ledBlinker.flip();
   }
   
 }

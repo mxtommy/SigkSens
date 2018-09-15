@@ -107,7 +107,6 @@ void setupFromJson() {
   #endif
 }
 
-
 // forward declarations
 void loop_();
 void slow_loop();
@@ -117,10 +116,11 @@ Reactduino app([] () {
   // put your setup code here, to run once:
   Serial.begin(115200);
 
+  ledBlinker.setWifiDisconnected();
+
   setupFromJson();
 
   setupFS();
-
 
   setupWifi();
   loadConfig();

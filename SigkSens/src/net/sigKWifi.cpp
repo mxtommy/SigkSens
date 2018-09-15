@@ -38,6 +38,7 @@ void setupWifi() {
   }
 
   Serial.println(F("Connected to Wifi!"));
+  ledBlinker.setWifiConnected();
 
   // Save config if needed
   if (shouldSaveConfig) {
