@@ -31,3 +31,47 @@ SensorInfo* SensorStorage::find(String addr) {
 }
 
 SensorStorage sensorStorage[(int)SensorType::SensorType_MAX+1];
+
+LedBlinker::LedBlinker() {
+  pinMode(LED_PIN, OUTPUT);
+  this->setState(0);
+}
+
+void LedBlinker::setState(int newState) {
+  this->currentState = newState;
+  #ifdef LED_ACTIVE_LOW
+  digitalWrite(LED_PIN, !newState);
+  #else
+  digitalWrite(LED_PIN, newState);
+  #endif
+}
+
+void LedBlinker::flip() {
+  this->setState(!this->currentState);
+}
+
+void LedBlinker::setWifiDisconnected() {
+  app.free(this->blinker);
+  this->blinker = app.repeat(1000, [] () {
+    ledBlinker.setState(1);
+    app.delay(100, [] () {
+      ledBlinker.setState(0);
+    });
+  });
+}
+
+void LedBlinker::setWifiConnected() {
+  app.free(this->blinker);
+  this->blinker = app.repeat(1000, [] () {
+    ledBlinker.flip();
+  });
+}
+
+void LedBlinker::setServerConnected() {
+  app.free(this->blinker);
+  this->blinker = app.repeat(200, [] () {
+    ledBlinker.flip();
+  });
+}
+
+LedBlinker ledBlinker;

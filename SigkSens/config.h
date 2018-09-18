@@ -58,6 +58,11 @@ Defines
 
 #define MAX_SIGNALK_PATH_LEN 150
 
+// LED pin
+
+#define LED_PIN LED_BUILTIN
+#define LED_ACTIVE_LOW true
+
 // Digital input pins
 
 #define NUMBER_DIGITAL_INPUT 2  // set to number of elements in next two arrays...s

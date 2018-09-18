@@ -121,10 +121,12 @@ void webSocketClientEvent(WStype_t type, uint8_t * payload, size_t length) {
       signalKClientInfo.connected = false;
       app.delay(10000, &connectWebSocketClient);
       Serial.printf("[WSc] Disconnected!\n");
+      ledBlinker.setServerDisconnected();
       break;
     case WStype_CONNECTED: {
       signalKClientInfo.connected = true;
       Serial.printf("[WSc] Connected to url: %s\n", payload);
+      ledBlinker.setServerConnected();
       // send message to server when Connected
       // webSocket.sendTXT("Connected");
     }
