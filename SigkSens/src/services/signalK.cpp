@@ -5,6 +5,7 @@ extern "C" {
 
 #include "../../config.h"
 #include "../../sigksens.h"
+#include "../sensors/sensorStorage.h"
 
 #include "signalK.h"
 

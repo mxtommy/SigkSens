@@ -2,6 +2,7 @@
 #define _digitalIn_H_
 
 #include "../../../sigksens.h"
+#include "../sensorStorage.h"
 
 
 

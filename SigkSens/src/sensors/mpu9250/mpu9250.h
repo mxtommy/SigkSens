@@ -2,6 +2,7 @@
 #define _mpu9250_H_
 
 #include "../../../sigksens.h"
+#include "../sensorStorage.h"
 
 
 class MPU9250SensorInfo : public SensorInfo {

@@ -10,6 +10,7 @@ extern "C" {
 
 #include "FSConfig.h"
 
+#include "src/sensors/sensorStorage.h"
 #include "src/net/webSocket.h"
 
 #ifdef ENABLE_DIGITALIN

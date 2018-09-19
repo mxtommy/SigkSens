@@ -2,6 +2,8 @@
 #define _oneWire_H_
 
 #include "../../../sigksens.h"
+#include "../sensorStorage.h"
+
 
 class OneWireSensorInfo : public SensorInfo {
   public:
