@@ -78,7 +78,6 @@ void updateSystemHz();
 
 void setupSystemHz(bool &need_save) {
   systemHzMs = millis();
-  SensorInfo *tmpSensorInfo;
 
   // Setup "sensor" if not already existing
   bool known = sensorStorage[(int)SensorType::local].find(
