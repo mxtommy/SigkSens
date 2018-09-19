@@ -43,7 +43,9 @@ void setupFS() {
     }
     Serial.print(str);
   } else {
-    Serial.println(F("failed to mount FS"));
+    Serial.println(F("failed to mount filesystem, It is possible that the SPIFF setting in your uploader is set to 'No SPIFFS'."));
+    delay(64000);
+    ESP.reset();
   }
 
 }
