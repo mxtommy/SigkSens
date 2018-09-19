@@ -401,7 +401,6 @@ void setupHTTP() {
 
   //setup sensor callbacks
   sensorStorageForEach([&](SensorInfo* si) {
-    Serial.print("Calling callback for"); Serial.println(si->address);
     si->setupWebServerHooks(server);
   });
 
