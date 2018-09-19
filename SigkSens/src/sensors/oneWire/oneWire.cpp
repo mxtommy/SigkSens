@@ -180,8 +180,6 @@ void oneWireScanBus(bool &need_save) {
     sensorOneWirePresent = true;
   }
 
-  SensorInfo *tmpSensorInfo;
-
   for(int i=0;i<numberOfDevices; i++) {
     if(sensors.getAddress(tempDeviceAddress, i))
     {

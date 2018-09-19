@@ -236,11 +236,6 @@ void httpGetSensorInfo(AsyncWebServerRequest *request) {
   AsyncJsonResponse * response = new AsyncJsonResponse();
   JsonObject& json = response->getRoot();
 
-  SensorInfo *tmpSensorInfo;
-  char strAddress[32];
-  char tmpPinStr[10];
-  uint8_t numAttr;
-
   //Info
   json["hostname"] = myHostname;
 
@@ -268,7 +263,6 @@ void httpGetSensorInfo(AsyncWebServerRequest *request) {
 
 void httpSetSensorAttr(AsyncWebServerRequest *request) {
   
-  SensorInfo *tmpSensorInfo;
   char pathStr[MAX_SIGNALK_PATH_LEN];
   char address[32];
   char attrName[32];

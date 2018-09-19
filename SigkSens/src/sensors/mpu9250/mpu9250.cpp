@@ -245,6 +245,8 @@ void setupMPU9250() {
 
 void handleMPU9250() {
   switch(mpuRunMode) {
+    case MpuRunMode::mpuOff:
+      break;
     case MpuRunMode::mpuRun:
       if(newData) { //newData is from pin Interrupt
         newData = false; // reset newData flag
@@ -487,8 +489,6 @@ void updateQuaternion() {
 
 
 void updateMPUSensorInfo() {
-  SensorInfo *thisSensorInfo;
-  uint8_t address;
   
   if (mpuRunMode != MpuRunMode::mpuRun) {
     return;
@@ -794,7 +794,7 @@ void accelgyrocalMPU9250() {
   writeByte(MPU9250_ADDRESS, GYRO_CONFIG, 0x00);  // Set gyro full-scale to 250 degrees per second, maximum sensitivity
   writeByte(MPU9250_ADDRESS, ACCEL_CONFIG, 0x00); // Set accelerometer full-scale to 2 g, maximum sensitivity
  
-  uint16_t  gyrosensitivity  = 131;   // = 131 LSB/degrees/sec
+  //uint16_t  gyrosensitivity  = 131;   // = 131 LSB/degrees/sec
   uint16_t  accelsensitivity = 16384;  // = 16384 LSB/g
 
   // Configure FIFO to capture accelerometer and gyro data for bias calculation

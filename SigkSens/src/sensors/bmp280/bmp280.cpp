@@ -97,9 +97,6 @@ void setupBMP280() {
 }
 
 void readBMP280() {
-  uint8_t errorCode;
-  uint8_t data[6];
-  uint8_t address;
   float Pa;
   float tempK;
   

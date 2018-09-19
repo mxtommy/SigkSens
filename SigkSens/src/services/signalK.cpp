@@ -48,7 +48,6 @@ void handleSignalK() {
 
 void receiveDelta(uint8_t * payload) {
   DynamicJsonBuffer jsonBuffer;
-  SensorInfo *si;
   char tempStr[255];
   bool tempBool;
 
