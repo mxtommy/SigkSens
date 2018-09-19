@@ -19,8 +19,10 @@ WebSocketsServer webSocketServer = WebSocketsServer(81);
 #endif
 
 SignalKClientInfo signalKClientInfo = { 
-  .host = "", 
-  .port = 80, 
+  .configuredHost = "", 
+  .configuredPort = 80, 
+  .activeHost = "",
+  .activePort = 80,
   .path = "/signalk/v1/stream",
   .authToken = "",
   .connected = false
@@ -71,6 +73,16 @@ bool getWebsocketClientStatus() {
   return skci->connected;
 }
 
+String getWebsocketClientActiveHost() {
+  SignalKClientInfo *skci = &signalKClientInfo;  // save some typing
+  return skci->activeHost;
+}
+
+uint16_t getWebsocketClientActivePort() {
+  SignalKClientInfo *skci = &signalKClientInfo;  // save some typing
+  return skci->activePort;
+}
+
 bool getMDNSService(String &host, uint16_t &port) {
   // get IP address using an mDNS query
   int n = MDNS.queryService("signalk-ws", "tcp");
@@ -80,25 +92,25 @@ bool getMDNSService(String &host, uint16_t &port) {
   } else {
     host = MDNS.IP(0).toString();
     port = MDNS.port(0);
+    Serial.print(F("Found server with IP/Port: "));
+    Serial.print(host); Serial.print(":"); Serial.println(port);
     return true;
   }
 }
 
 void connectWebSocketClient() {
   SignalKClientInfo *skci = &signalKClientInfo;  // save some typing
-  String host = "";
-  uint16_t port = 80;
   String urlArgs = "?subscribe=none";
 
-  if (skci->host.length() == 0) {
-    getMDNSService(host, port);
+  if (skci->configuredHost.length() == 0) {
+    getMDNSService(skci->activeHost, skci->activePort);
   } else {
-    host = skci->host;
-    port = skci->port;
+    skci->activeHost = skci->configuredHost;
+    skci->activePort = skci->configuredPort;
   }
 
-  if ( (host.length() > 0) && 
-       (port > 0) && 
+  if ( (skci->activeHost.length() > 0) && 
+       (skci->activePort > 0) && 
        (skci->path.length() > 0) ) {
     Serial.println(F("Websocket client starting!"));
   } else {
@@ -110,7 +122,7 @@ void connectWebSocketClient() {
     urlArgs = urlArgs + "&token=" + skci->authToken;
   }
 
-  skci->client.begin(host, port, skci->path + urlArgs);
+  skci->client.begin(skci->activeHost, skci->activePort, skci->path + urlArgs);
   skci->connected = true;
 }
 

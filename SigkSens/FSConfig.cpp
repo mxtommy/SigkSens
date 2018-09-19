@@ -57,8 +57,8 @@ void saveConfig() {
   JsonObject& json = jsonBuffer.createObject();
   json["hostname"] = myHostname;
   
-  json["signalKHost"] = signalKClientInfo.host;
-  json["signalKPort"] = signalKClientInfo.port;
+  json["signalKHost"] = signalKClientInfo.configuredHost;
+  json["signalKPort"] = signalKClientInfo.configuredPort;
   json["signalKPath"] = signalKClientInfo.path;
   json["signalKToken"] = signalKClientInfo.authToken;
 
@@ -109,10 +109,10 @@ void loadConfig() {
         strcpy(myHostname, json["hostname"]);
 
         //signalk
-        strcpy(tempStr, json["signalKHost"]); signalKClientInfo.host = tempStr;
+        strcpy(tempStr, json["signalKHost"]); signalKClientInfo.configuredHost = tempStr;
         strcpy(tempStr, json["signalKPath"]); signalKClientInfo.path = tempStr;
         strcpy(tempStr, json["signalKToken"]); signalKClientInfo.authToken = tempStr;
-        signalKClientInfo.port = json["signalKPort"];
+        signalKClientInfo.configuredPort = json["signalKPort"];
 
         // load known sensors
         for (uint8_t i=0; i < json["sensors"].size(); i++) {

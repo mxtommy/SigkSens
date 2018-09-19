@@ -178,7 +178,7 @@ void httpSetSignalKHost(AsyncWebServerRequest *request) {
     request->send(400, "text/plain", "missing arg 'host'"); 
     return;
   }
-  signalKClientInfo.host = request->arg("host");
+  signalKClientInfo.configuredHost = request->arg("host");
   app.delay(0, &saveConfig);
   app.delay(0, &restartWebSocketClient);
   request->send(200, "application/json", "{ \"success\": true }");
@@ -190,7 +190,7 @@ void httpSetSignalKPort(AsyncWebServerRequest *request) {
     request->send(500, "text/plain", "missing arg 'port'");
     return;
   }
-  signalKClientInfo.port = request->arg("port").toInt();
+  signalKClientInfo.configuredPort = request->arg("port").toInt();
   app.delay(0, &saveConfig);
   app.delay(0, &restartWebSocketClient);
   request->send(200, "application/json", "{ \"success\": true }");
@@ -240,11 +240,13 @@ void httpGetSensorInfo(AsyncWebServerRequest *request) {
   json["hostname"] = myHostname;
 
   //sigk
-  json["signalKHost"] = signalKClientInfo.host;
-  json["signalKPort"] = signalKClientInfo.port;
+  json["signalKHost"] = signalKClientInfo.configuredHost;
+  json["signalKPort"] = signalKClientInfo.configuredPort;
   json["signalKPath"] = signalKClientInfo.path;
   json["signalKToken"] = signalKClientInfo.authToken;
 
+  json["websocketClientConnectedHost"] = getWebsocketClientActiveHost();
+  json["websocketClientConnectedPort"] = getWebsocketClientActivePort();
   json["websocketClientConnected"] = getWebsocketClientStatus();
   //Sensor types present
 
