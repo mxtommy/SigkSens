@@ -5,6 +5,7 @@
 #include "sensorType.h"
 
 #include <ArduinoJson.h>
+#include <ESPAsyncWebServer.h>
 
 class SensorInfo {
   public:
@@ -20,7 +21,7 @@ class SensorInfo {
 
     static SensorInfo *fromJson(JsonObject&);
     virtual void toJson(JsonObject&) = 0;
-    //bool setupWebServerHooks(AsyncWebServer&);
+    virtual void setupWebServerHooks(AsyncWebServer&);
   private:
     String createKey(int type, String address);
 };

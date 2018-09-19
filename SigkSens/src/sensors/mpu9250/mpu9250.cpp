@@ -122,6 +122,31 @@ void MPU9250SensorInfo::toJson(JsonObject &jsonSens) {
   }  
 }
 
+MpuRunMode mpuRunMode = MpuRunMode::mpuOff;
+
+void httpMpuCalAccelGyro(AsyncWebServerRequest *request) {
+  Serial.println("Starting Accel and Gyro ");
+  mpuRunMode = MpuRunMode::calAccelGyro;
+  request->send(200, "application/json", "{ \"success\": true }");
+}
+
+void httpMpuCalMagStart(AsyncWebServerRequest *request) {
+  Serial.println("Starting Magnometer Calibration...");
+  mpuRunMode = MpuRunMode::calMagStart;
+  request->send(200, "application/json", "{ \"success\": true }");
+}
+
+void httpMpuCalMagStop(AsyncWebServerRequest *request) {
+  Serial.println("Stoping Magnometer Calibration...");
+  mpuRunMode = MpuRunMode::calMagStop;
+  request->send(200, "application/json", "{ \"success\": true }");
+}
+
+void MPU9250SensorInfo::setupWebServerHooks(AsyncWebServer &server) {
+  server.on("/mpuCalAccelGyro", HTTP_GET, httpMpuCalAccelGyro);
+  server.on("/mpuCalMagStart", HTTP_GET, httpMpuCalMagStart);
+  server.on("/mpuCalMagStop", HTTP_GET, httpMpuCalMagStop);
+}
 
 
 
@@ -198,7 +223,6 @@ bool MPUisValid = false;
 bool AK8963isValid = false;
 bool mpuUpdateReady = false;
 volatile bool newData = false;
-MpuRunMode mpuRunMode = MpuRunMode::mpuOff;
 
 //variables for Mag Calibration
 int16_t magCalMax[3] = {-32767, -32767, -32767};
@@ -364,21 +388,6 @@ void loadMPUCalibrationFS() {
 
 }
 
-void runAccelGyroCal() {
-  Serial.println("Starting Accel and Gyro ");
-  mpuRunMode = MpuRunMode::calAccelGyro;
-    
-}
-
-void runMagCalStart() {
-  Serial.println("Starting Magnometer Calibration...");
-  mpuRunMode = MpuRunMode::calMagStart;
-}
-
-void runMagCalStop() {
-  Serial.println("Stoping Magnometer Calibration...");
-  mpuRunMode = MpuRunMode::calMagStop;
-}
 
 
 /* ---------------------------------------------------------------------------------------------
