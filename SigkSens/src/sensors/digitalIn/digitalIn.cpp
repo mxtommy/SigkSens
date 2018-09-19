@@ -135,7 +135,7 @@ void updateDigitalInStates();
 void updateDigitalInSensorInfo();
 
 void setupDigitalIn(bool &need_save) {
-  for (int index=0;index<(sizeof(digitalPins)/sizeof(digitalPins[0])); index++) {
+  for (unsigned int index=0;index<(sizeof(digitalPins)/sizeof(digitalPins[0])); index++) {
     initializeDigitalPin(index, need_save); 
   }
 
@@ -153,7 +153,7 @@ void setupDigitalIn(bool &need_save) {
 
 
 void updateDigitalInStates() {
-  for (int index=0;index<(sizeof(digitalPins)/sizeof(digitalPins[0])); index++) {
+  for (unsigned int index=0;index<(sizeof(digitalPins)/sizeof(digitalPins[0])); index++) {
     if (digitalPinStateChange[index]) {
       updateDigitalInState(index);
     }
@@ -163,17 +163,14 @@ void updateDigitalInStates() {
 
 void updateDigitalInSensorInfo() {
   //Update Sensorinfo
-  for (int index=0;index<(sizeof(digitalPins)/sizeof(digitalPins[0])); index++) {
+  for (unsigned int index=0;index<(sizeof(digitalPins)/sizeof(digitalPins[0])); index++) {
     updateDigitalInPeriodic(index);   
   }
 }
 
 
 void initializeDigitalPin(uint8_t index, bool &need_save) {
-  SensorInfo *tmpSensorInfo;
-
   pinMode(digitalPins[index], INPUT);
-
   // Setup "sensors" if not already existing
   bool known = sensorStorage[(int)SensorType::digitalIn].find(
     digitalPinNames[index]) != nullptr;

@@ -104,7 +104,7 @@ void pollSHT() {
 void readSHT() {
   sensorStorage[(int)SensorType::sht30].forEach([&](SensorInfo* si) {
     uint8_t errorCode;
-    uint8_t data[6];
+    uint8_t data[6] = { 0 };
     uint8_t address;
     float tempK;
     float humidity;

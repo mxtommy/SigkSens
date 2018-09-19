@@ -104,8 +104,6 @@ void readADC() {
 void updateAnalogIn() {
   // See if there is a signalk path set.
   sensorStorage[(int)SensorType::analogIn].forEach([&](SensorInfo* si){
-    int16_t rawResult;
-  
     if (si->type != SensorType::analogIn) return;
     if (strcmp(si->signalKPath[0].c_str(),  "") != 0) {
       analogInEnabled = true;

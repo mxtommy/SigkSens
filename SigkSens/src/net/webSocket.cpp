@@ -123,13 +123,18 @@ void webSocketClientEvent(WStype_t type, uint8_t * payload, size_t length) {
       Serial.printf("[WSc] Disconnected!\n");
       ledBlinker.setServerDisconnected();
       break;
-    case WStype_CONNECTED: {
+    case WStype_ERROR:
+      signalKClientInfo.connected = false;
+      app.delay(10000, &connectWebSocketClient);
+      Serial.printf("[WSc] Error!\n");
+      ledBlinker.setServerDisconnected();
+      break;      
+    case WStype_CONNECTED:
       signalKClientInfo.connected = true;
       Serial.printf("[WSc] Connected to url: %s\n", payload);
       ledBlinker.setServerConnected();
       // send message to server when Connected
       // webSocket.sendTXT("Connected");
-    }
       break;
     case WStype_TEXT:
       //Serial.printf("[WSc] get text: %s\n", payload);
@@ -144,6 +149,17 @@ void webSocketClientEvent(WStype_t type, uint8_t * payload, size_t length) {
       // send data to server
       // webSocket.sendBIN(payload, length);
       break;
+    case WStype_FRAGMENT_TEXT_START:
+      break;
+    case WStype_FRAGMENT_BIN_START:
+      break;
+    case WStype_FRAGMENT:
+      break;
+    case WStype_FRAGMENT_FIN:
+      break;
+    
+
+
   }
 
 }
@@ -154,6 +170,9 @@ void webSocketServerEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t 
         case WStype_DISCONNECTED:
             Serial.printf("[%u] Disconnected!\n", num);
             break;
+        case WStype_ERROR:
+          Serial.printf("[%u] Unknown Error!\n", num);
+          break;      
         case WStype_CONNECTED:
             {
                 IPAddress ip = webSocketServer.remoteIP(num);
@@ -179,6 +198,15 @@ void webSocketServerEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t 
             // send message to client
             // webSocket.sendBIN(num, payload, length);
             break;
+
+        case WStype_FRAGMENT_TEXT_START:
+          break;
+        case WStype_FRAGMENT_BIN_START:
+          break;
+        case WStype_FRAGMENT:
+          break;
+        case WStype_FRAGMENT_FIN:
+          break;
     }
 
 }
