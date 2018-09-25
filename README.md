@@ -1,4 +1,6 @@
 # SignalK Wifi Controllers
+(Note: complete documentation is now available on the [Wiki page](https://github.com/mxtommy/SigkSens/wiki).)
+
 ## Design Goals
 ---------------------
 Simple low cost Wifi based IoT device. Should be simple enough to setup/use that it could be manufactured and sold to people with no microcontroller/circuit design knowledge. Support configuration via a Web application, and network discovery for ease of use.
