@@ -158,22 +158,6 @@ Optional HTTP parameters: (though not setting any of these seems a bit pointless
 Example:
 http://A.B.C.D/setSensorAttr?address=0x42&attrName=tempK&path=environment.outside.temp
 
-### /setTimerDelay
-Changes the amount of time between SignalK deltas (in ms).
-
-Required HTTP parameters:
-- timer
-  - Name of the timer to change (see below)
-- delay
-  - New value in ms (1 second = 1000ms)
-
-Timer can be one of the following:
-- deltaDelay
-- ads1115Read
-
-
-Ex:
-http://A.B.C.D/setTimerDelay?timer=deltaDelay&delay=500
 
 ### /setNewHostname
 This command sets a new hostname for the sensor. Note that is causes the sensor to reboot!

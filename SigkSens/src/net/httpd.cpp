@@ -286,7 +286,7 @@ void httpSetSensorAttr(AsyncWebServerRequest *request) {
   
 }
 
-
+/* no longer used, leaving it here as it may be useful?
 void httpSetTimerDelay(AsyncWebServerRequest *request) {
   uint32_t newDelay = 0;
   char timer[15];
@@ -312,7 +312,7 @@ void httpSetTimerDelay(AsyncWebServerRequest *request) {
     request->send(400, "application/json", "{ \"success\": false }");
   }
 }
-
+*/
 
 void httpSignalKEndpoints(AsyncWebServerRequest *request) {
   IPAddress ip;  
@@ -367,7 +367,6 @@ void setupHTTP() {
   server.on("/setSensorPath", HTTP_GET, httpSetSensorAttr); //path for legacy
   server.on("/setSensorAttr", HTTP_GET, httpSetSensorAttr);
 
-  server.on("/setTimerDelay", HTTP_GET, httpSetTimerDelay);
   server.on("/setNewHostname", HTTP_GET, httpNewHostname);
 
   server.on("/setSignalKHost", HTTP_GET, httpSetSignalKHost);
