@@ -2,6 +2,7 @@
 #define _systemHz_H_
 
 #include "../../../sigksens.h"
+#include "../sensorStorage.h"
 
 class SystemHzSensorInfo : public SensorInfo {
   public:

@@ -2,6 +2,7 @@
 
 
 #include "config.h"
+
 #ifdef ENABLE_I2C
 #include "src/services/i2c.h"
 #endif
@@ -45,6 +46,7 @@
 
 
 #include "sigksens.h"
+#include "src/sensors/sensorStorage.h"
 
 /*---------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------
@@ -125,7 +127,6 @@ Reactduino app([] () {
   setupWifi();
   loadConfig();
   setupDiscovery();
-  setupHTTP();
   setupWebSocket();
   setupSignalK();
 
@@ -153,6 +154,10 @@ Reactduino app([] () {
     saveConfig();
   }
   
+  // call http last so that we can call any needed callbacks.
+  setupHTTP();
+
+
   Serial.printf("Ready!\n");
 
   app.repeat(SLOW_LOOP_DELAY, &slow_loop);

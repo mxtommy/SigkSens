@@ -17,16 +17,8 @@ extern "C" {
 #include "../../FSConfig.h"
 #include "webSocket.h"
 #include "../../sigksens.h"
+#include "../sensors/sensorStorage.h"
 #include "../services/configReset.h"
-
-#ifdef ENABLE_MPU
-  #include "../sensors/mpu9250/mpu9250.h"
-#endif
-
-
-
-
-
 
 // SSDP related stuff
 
@@ -214,24 +206,6 @@ void httpSetSignalKToken(AsyncWebServerRequest *request) {
 }
 
 
-#ifdef ENABLE_MPU
-void httpMpuCalAccelGyro(AsyncWebServerRequest *request) {
-  runAccelGyroCal();
-  request->send(200, "application/json", "{ \"success\": true }");
-}
-
-void httpMpuCalMagStart(AsyncWebServerRequest *request) {
-  runMagCalStart();
-  request->send(200, "application/json", "{ \"success\": true }");
-}
-
-void httpMpuCalMagStop(AsyncWebServerRequest *request) {
-  runMagCalStop();
-  request->send(200, "application/json", "{ \"success\": true }");
-}
-
-#endif
-
 void httpGetSensorInfo(AsyncWebServerRequest *request) {
   AsyncJsonResponse * response = new AsyncJsonResponse();
   JsonObject& json = response->getRoot();
@@ -396,14 +370,6 @@ void setupHTTP() {
   server.on("/setTimerDelay", HTTP_GET, httpSetTimerDelay);
   server.on("/setNewHostname", HTTP_GET, httpNewHostname);
 
-
-  #ifdef ENABLE_MPU
-  server.on("/mpuCalAccelGyro", HTTP_GET, httpMpuCalAccelGyro);
-  server.on("/mpuCalMagStart", HTTP_GET, httpMpuCalMagStart);
-  server.on("/mpuCalMagStop", HTTP_GET, httpMpuCalMagStop);
-  #endif
-
-
   server.on("/setSignalKHost", HTTP_GET, httpSetSignalKHost);
   server.on("/setSignalKPort", HTTP_GET, httpSetSignalKPort);
   server.on("/setSignalKPath", HTTP_GET, httpSetSignalKPath);
@@ -434,6 +400,11 @@ void setupHTTP() {
   server.on("/signalk/", HTTP_GET, httpSignalKEndpoints);
   
   server.on("/resetConfig", HTTP_GET, httpResetConfig);
+
+  //setup sensor callbacks
+  sensorStorageForEach([&](SensorInfo* si) {
+    si->setupWebServerHooks(server);
+  });
 
   server.begin();
 }

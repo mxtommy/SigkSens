@@ -2,6 +2,7 @@
 #define _ads1115_H_
 
 #include "../../../sigksens.h"
+#include "../sensorStorage.h"
 
 
 

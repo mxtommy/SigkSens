@@ -3,6 +3,7 @@
 
 
 #include "../../../sigksens.h"
+#include "../sensorStorage.h"
 
 
 class DigitalOutSensorInfo : public SensorInfo {

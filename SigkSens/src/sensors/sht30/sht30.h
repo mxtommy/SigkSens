@@ -2,6 +2,7 @@
 #define _sht30_H_
 
 #include "../../../sigksens.h"
+#include "../sensorStorage.h"
 
 
 

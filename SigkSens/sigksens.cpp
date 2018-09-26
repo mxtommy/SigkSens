@@ -3,7 +3,6 @@
 
 #include "sigksens.h"
 
-fromJsonFunc fromJson[(int)SensorType::SensorType_MAX+1];
 /*---------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------
 Helper functions
@@ -22,15 +21,6 @@ void parseBytes(const char* str, char sep, byte* bytes, int maxBytes, int base) 
   }
 }
 
-void SensorStorage::add(SensorInfo* sens) {
-  sensorMap[sens->address] = sens;
-}
-
-SensorInfo* SensorStorage::find(String addr) {
-  return sensorMap[addr];
-}
-
-SensorStorage sensorStorage[(int)SensorType::SensorType_MAX+1];
 
 LedBlinker::LedBlinker() {
   pinMode(LED_PIN, OUTPUT);
