@@ -79,22 +79,22 @@ void setup1Wire(bool &need_save) {
   
   sensors.setWaitForConversion(false);
 
-  Serial.print("Parasite power is: "); 
+  Serial.print("1-Wire Parasite power is: "); 
   if (sensors.isParasitePowerMode()) Serial.println("ON");
   else Serial.println("OFF");
 
-  Serial.print("1Wire Device precision currently: ");
+  Serial.print("1-Wire Device precision currently: ");
   Serial.print(sensors.getResolution());
   Serial.print(" setting to ");
   Serial.print(TEMPERATURE_PRECISION);
   sensors.setResolution(TEMPERATURE_PRECISION);
   Serial.println(" Done!");
 
-  Serial.print("Starting oneWire scanning timer at: ");
+  Serial.print("Starting 1-Wire scanning timer at: ");
   Serial.print(oneWireScanDelay);
   Serial.println("ms");
 
-  Serial.println("Scanning OneWire Bus");
+  Serial.println("Scanning 1-Wire Bus");
 
   oneWireScanBus(need_save);
 
