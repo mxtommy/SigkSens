@@ -1,0 +1,3 @@
+(sym_lib_table
+  (lib (name customParts)(type Legacy)(uri C:/Users/Thomas/Documents/Arduino/SigkSens/hardware/CustomESP32/customParts.lib)(options "")(descr ""))
+)
