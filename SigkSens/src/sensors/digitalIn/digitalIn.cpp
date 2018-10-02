@@ -13,7 +13,7 @@ DigitalInSensorInfo::DigitalInSensorInfo(String addr) {
   signalKPath[2] = "";
   attrName[0] = "state";
   attrName[1] = "freq";
-  attrName[1] = "count";
+  attrName[2] = "count";
   type = SensorType::digitalIn;
   valueJson[0] = "null";
   valueJson[1] = "null";
@@ -210,7 +210,7 @@ void updateDigitalInState(uint8_t index) {
   if (si != nullptr) {
     //current state
     if (strcmp(si->signalKPath[0].c_str(), "") != 0) {    
-      if (digitalRead(digitalPins[index]) == LOW) {
+      if (digitalRead(digitalPins[index]) == LOGIC_LEVEL_TRUE) {
         si->valueJson[0] = "true";
       } else {
         si->valueJson[0] = "false";
@@ -233,7 +233,7 @@ void updateDigitalInPeriodic(uint8_t index) {
   if (si != nullptr) {
     //current state
     if (strcmp(si->signalKPath[0].c_str(), "") != 0) {    
-      if (digitalRead(digitalPins[index]) == LOW) {
+      if (digitalRead(digitalPins[index]) == LOGIC_LEVEL_TRUE) {
         si->valueJson[0] = "true";
       } else {
         si->valueJson[0] = "false";
