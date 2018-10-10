@@ -1,6 +1,5 @@
 #include <Reactduino.h>
 
-
 #include "config.h"
 
 #ifdef ENABLE_I2C
@@ -40,6 +39,7 @@
 #include "src/net/webSocket.h"
 #include "src/net/httpd.h"
 #include "src/net/sigKWifi.h"
+#include "src/net/ota.h"
 
 #include "src/services/configReset.h"
 #include "src/services/signalK.h"
@@ -129,6 +129,7 @@ Reactduino app([] () {
   setupDiscovery();
   setupWebSocket();
   setupSignalK();
+  setupOTA();
 
   setupConfigReset();
   #ifdef ENABLE_ONEWIRE
@@ -158,7 +159,7 @@ Reactduino app([] () {
   setupHTTP();
 
 
-  Serial.printf("Ready!\n");
+  Serial.printf("Ready.\n");
 
   app.repeat(SLOW_LOOP_DELAY, &slow_loop);
 

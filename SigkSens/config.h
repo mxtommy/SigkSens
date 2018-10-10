@@ -51,6 +51,9 @@ Defines
 // HTTP port for the configuration interface
 #define HTTP_PORT 80
 
+// Password for Over-the-air (OTA) updates
+//#define OTA_PASSWORD "SigkSens"
+
 // Slow loop duration (SK updates, slow sensor reads etc)
 #define SLOW_LOOP_DELAY 200
 

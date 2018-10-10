@@ -94,7 +94,8 @@ Device should accept commands from Wifi. (WIP: how?)
 - Supports discovery services (mDNS/ssdp)
 - Non blocking interupts/timer mechanisms should be used instead of delay() whenever possible.
 - Web based update of firmware.
-	- Planned, not done yet.
+	- [Over-the-air (OTA)](http://esp8266.github.io/Arduino/versions/2.0.0/doc/ota_updates/ota_updates.html)
+      updates are supported using PlatformIO or Arduino IDE.
 - Configurable user/pass for HTTP basic auth. 
 	- Planned, not done yet.
     
