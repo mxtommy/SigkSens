@@ -33,5 +33,5 @@ void setupOTA() {
   });
   ArduinoOTA.begin();
   //app.onTick(&handleOTA);
-  app.repeat(20, &handleOTA);
+  app.onRepeat(20, handleOTA);
 }

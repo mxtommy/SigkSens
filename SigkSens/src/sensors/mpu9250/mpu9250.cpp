@@ -263,8 +263,8 @@ void setupMPU9250() {
       mpuRunMode = MpuRunMode::mpuRun;
     }
   }
-  app.onTick(&handleMPU9250);
-  app.repeat(SLOW_LOOP_DELAY, &updateMPUSensorInfo);
+  app.onTick(handleMPU9250);
+  app.onRepeat(SLOW_LOOP_DELAY, updateMPUSensorInfo);
 }
 
 void handleMPU9250() {

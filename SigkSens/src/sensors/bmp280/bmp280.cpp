@@ -93,7 +93,7 @@ void setupBMP280() {
    // this calls Wire.begin() again, but that shouldn't
   // do any harm. Hopefully.
   bmp.begin();
-  app.repeat(SLOW_LOOP_DELAY, &readBMP280);
+  app.onRepeat(SLOW_LOOP_DELAY, readBMP280);
 }
 
 void readBMP280() {

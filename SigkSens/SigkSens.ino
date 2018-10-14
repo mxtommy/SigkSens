@@ -1,4 +1,4 @@
-#include <Reactduino.h>
+#include <ReactESP.h>
 
 #include "config.h"
 
@@ -113,7 +113,7 @@ void setupFromJson() {
 void loop_();
 void slow_loop();
 
-Reactduino app([] () {
+ReactESP app([] () {
     bool need_save = false;
   // put your setup code here, to run once:
   Serial.begin(115200);
@@ -161,7 +161,7 @@ Reactduino app([] () {
 
   Serial.printf("Ready.\n");
 
-  app.repeat(SLOW_LOOP_DELAY, &slow_loop);
+  app.onRepeat(SLOW_LOOP_DELAY, slow_loop);
 
   
 });

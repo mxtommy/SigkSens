@@ -89,8 +89,8 @@ void setupSystemHz(bool &need_save) {
     sensorStorage[(int)newSensor->type].add(newSensor);
     need_save = true;
   }
-  app.onTick(&countSystemHz);
-  app.repeat(1000, &updateSystemHz);
+  app.onTick(countSystemHz);
+  app.onRepeat(1000, updateSystemHz);
 }
 
 
