@@ -73,6 +73,7 @@ Defines
 #define LOGIC_LEVEL_TRUE HIGH // if HIGH the input will be true on Vcc. If LOW it will be true on gnd.
 #define DIGITAL_INPUT_PINS { 14, 12 } 
 #define DIGITAL_INPUT_NAME {"D1", "D2"}
+#define DIGITAL_INPUT_MODES {CHANGE, CHANGE}  // one of CHANGE, RISING, FALLING
 
 // Digital output Pins
 #define NUMBER_DIGITAL_OUTPUT 2  // set to number of elements in next two arrays...s
