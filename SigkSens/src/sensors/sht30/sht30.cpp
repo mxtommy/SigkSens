@@ -88,7 +88,7 @@ void readSHT();
 
 void setupSHT30() {
   // prepare SHT Timers 
-  app.repeat(1000, &pollSHT);
+  app.onRepeat(1000, pollSHT);
 }
 
 
@@ -111,7 +111,7 @@ void pollSHT() {
     }
   });
 
-  app.delay(150, &readSHT);
+  app.onDelay(150, readSHT);
 }
 
 

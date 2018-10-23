@@ -83,8 +83,8 @@ void setupAnalogIn(bool &need_save) {
       need_save = true;
     }
   
-  app.repeat(readADCDelay, &readADC);
-  app.repeat(SLOW_LOOP_DELAY, &updateAnalogIn);
+  app.onRepeat(readADCDelay, readADC);
+  app.onRepeat(SLOW_LOOP_DELAY, updateAnalogIn);
 }
 
 

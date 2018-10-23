@@ -160,7 +160,7 @@ void httpNewHostname(AsyncWebServerRequest *request) {
     return;
   }
   request->arg("hostname").toCharArray(myHostname, 16);
-  app.delay(0, &saveConfig);
+  app.onDelay(0, &saveConfig);
   request->send(200, "application/json", "{ \"success\": true }");
 }
 
@@ -171,8 +171,8 @@ void httpSetSignalKHost(AsyncWebServerRequest *request) {
     return;
   }
   signalKClientInfo.configuredHost = request->arg("host");
-  app.delay(0, &saveConfig);
-  app.delay(0, &restartWebSocketClient);
+  app.onDelay(0, &saveConfig);
+  app.onDelay(0, &restartWebSocketClient);
   request->send(200, "application/json", "{ \"success\": true }");
 }
 
@@ -183,8 +183,8 @@ void httpSetSignalKPort(AsyncWebServerRequest *request) {
     return;
   }
   signalKClientInfo.configuredPort = request->arg("port").toInt();
-  app.delay(0, &saveConfig);
-  app.delay(0, &restartWebSocketClient);
+  app.onDelay(0, &saveConfig);
+  app.onDelay(0, &restartWebSocketClient);
   request->send(200, "application/json", "{ \"success\": true }");
 }
 
@@ -192,16 +192,16 @@ void httpSetSignalKPort(AsyncWebServerRequest *request) {
 void httpSetSignalKPath(AsyncWebServerRequest *request) {
   if(!request->hasArg("path")) {request->send(500, "text/plain", "missing arg 'path'"); return;}
   signalKClientInfo.path = request->arg("path");
-  app.delay(0, &saveConfig);
-  app.delay(0, &restartWebSocketClient);
+  app.onDelay(0, &saveConfig);
+  app.onDelay(0, &restartWebSocketClient);
   request->send(200, "application/json", "{ \"success\": true }");
 }
 
 void httpSetSignalKToken(AsyncWebServerRequest *request) {
   if(!request->hasArg("token")) {request->send(500, "text/plain", "missing arg 'token'"); return;}
   signalKClientInfo.authToken = request->arg("token");
-  app.delay(0, &saveConfig);
-  app.delay(0, &restartWebSocketClient);
+  app.onDelay(0, &saveConfig);
+  app.onDelay(0, &restartWebSocketClient);
   request->send(200, "application/json", "{ \"success\": true }");
 }
 
@@ -278,7 +278,7 @@ void httpSetSensorAttr(AsyncWebServerRequest *request) {
   });
 
   if (found) {
-    app.delay(0, &saveConfig);
+    app.onDelay(0, &saveConfig);
     request->send(200, "application/json", "{ \"success\": true }");
   } else {
     request->send(400, "application/json", "{ \"success\": false }");
@@ -306,7 +306,7 @@ void httpSetTimerDelay(AsyncWebServerRequest *request) {
   }
 
   if (ok) {
-    app.delay(0, &saveConfig);
+    app.onDelay(0, &saveConfig);
     request->send(200, "application/json", "{ \"success\": true }");
   } else {
     request->send(400, "application/json", "{ \"success\": false }");
@@ -342,7 +342,7 @@ void httpSignalKEndpoints(AsyncWebServerRequest *request) {
 
 void httpResetConfig(AsyncWebServerRequest *request) {
   request->send(200, "application/json", "{ \"success\": true }");
-  app.delay(0, &resetConfig);
+  app.onDelay(0, &resetConfig);
 }
 
 

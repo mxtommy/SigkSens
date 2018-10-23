@@ -64,7 +64,7 @@ void setupDigitalOut(bool &need_save) {
     initializeDigitalOutPin(index, need_save); 
   }
 
-  app.repeat(SLOW_LOOP_DELAY, &updateSensorInfo);
+  app.onRepeat(SLOW_LOOP_DELAY, updateSensorInfo);
 }
 
 

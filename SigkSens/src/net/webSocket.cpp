@@ -46,7 +46,7 @@ void setupWebSocket() {
   connectWebSocketClient();
 
   //app.onTick(&handleWebSocket);
-  app.repeat(20, &handleWebSocket); // calling websocket loop every 20ms instead of every tick doubles systemHz :)
+  app.onRepeat(20, handleWebSocket); // calling websocket loop every 20ms instead of every tick doubles systemHz :)
 
 }
 
@@ -114,7 +114,7 @@ void connectWebSocketClient() {
        (skci->path.length() > 0) ) {
     Serial.println(F("Websocket client starting!"));
   } else {
-      app.delay(10000, &connectWebSocketClient);
+      app.onDelay(10000, connectWebSocketClient);
       return;
   }
 
@@ -131,13 +131,13 @@ void webSocketClientEvent(WStype_t type, uint8_t * payload, size_t length) {
   switch(type) {
     case WStype_DISCONNECTED:
       signalKClientInfo.connected = false;
-      app.delay(10000, &connectWebSocketClient);
+      app.onDelay(10000, connectWebSocketClient);
       Serial.printf("[WSc] Disconnected!\n");
       ledBlinker.setServerDisconnected();
       break;
     case WStype_ERROR:
       signalKClientInfo.connected = false;
-      app.delay(10000, &connectWebSocketClient);
+      app.onDelay(10000, connectWebSocketClient);
       Serial.printf("[WSc] Error!\n");
       ledBlinker.setServerDisconnected();
       break;      

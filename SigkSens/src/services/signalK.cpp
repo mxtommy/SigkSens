@@ -21,7 +21,7 @@ void handleSignalK();
 
 
 void setupSignalK() {
-  app.repeat(SLOW_LOOP_DELAY, &handleSignalK);
+  app.onRepeat(SLOW_LOOP_DELAY, handleSignalK);
 }
 
 

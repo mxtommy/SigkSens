@@ -2,7 +2,7 @@ extern "C" {
 #include "user_interface.h"
 }
 
-#include <Reactduino.h>
+#include <ReactESP.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
 
@@ -98,8 +98,8 @@ void setup1Wire(bool &need_save) {
 
   oneWireScanBus(need_save);
 
-  app.repeat(1000, &request1WSensors);
-  app.repeat(oneWireScanDelay, &onewire_scan_loop);
+  app.onRepeat(1000, request1WSensors);
+  app.onRepeat(oneWireScanDelay, onewire_scan_loop);
 }
 
 void onewire_scan_loop() {
@@ -127,7 +127,7 @@ void request1WSensors() {
   if (sensorOneWirePresent) {
     sensors.requestTemperatures();
 
-    app.delay(ONEWIRE_READ_DELAY, &read1WSensors);  
+    app.onDelay(ONEWIRE_READ_DELAY, read1WSensors);  
   }
 }
 

@@ -27,6 +27,12 @@ LedBlinker::LedBlinker() {
   this->setState(0);
 }
 
+void LedBlinker::removeBlinkerIfNotNull() {
+  if (this->blinker != nullptr) {
+    this->blinker->remove();
+  }
+}
+
 void LedBlinker::setState(int newState) {
   this->currentState = newState;
   #ifdef LED_ACTIVE_LOW
@@ -41,25 +47,25 @@ void LedBlinker::flip() {
 }
 
 void LedBlinker::setWifiDisconnected() {
-  app.free(this->blinker);
-  this->blinker = app.repeat(1000, [] () {
+  this->removeBlinkerIfNotNull();
+  this->blinker = app.onRepeat(1000, [] () {
     ledBlinker.setState(1);
-    app.delay(100, [] () {
+    app.onDelay(100, [] () {
       ledBlinker.setState(0);
     });
   });
 }
 
 void LedBlinker::setWifiConnected() {
-  app.free(this->blinker);
-  this->blinker = app.repeat(1000, [] () {
+  this->removeBlinkerIfNotNull();
+  this->blinker = app.onRepeat(1000, [] () {
     ledBlinker.flip();
   });
 }
 
 void LedBlinker::setServerConnected() {
-  app.free(this->blinker);
-  this->blinker = app.repeat(200, [] () {
+  this->removeBlinkerIfNotNull();
+  this->blinker = app.onRepeat(200, [] () {
     ledBlinker.flip();
   });
 }
