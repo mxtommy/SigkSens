@@ -6,6 +6,8 @@ extern "C" {
 
 #include "digitalIn.h"
 
+#include "FunctionalInterrupt.h"
+
 DigitalInSensorInfo::DigitalInSensorInfo(String addr) {
   strcpy(address, addr.c_str());
   signalKPath[0] = "";
@@ -87,6 +89,7 @@ void DigitalInSensorInfo::toJson(JsonObject &jsonSens) {
 
 int               digitalPins[NUMBER_DIGITAL_INPUT] = DIGITAL_INPUT_PINS;
 char              digitalPinNames[NUMBER_DIGITAL_INPUT][10] = DIGITAL_INPUT_NAME;
+int               digitalPinModes[NUMBER_DIGITAL_INPUT] = DIGITAL_INPUT_MODES;
 uint32_t          digitPinLastUpdateState[NUMBER_DIGITAL_INPUT] = { 0 };
 uint32_t          digitPinLastUpdatePeriodic[NUMBER_DIGITAL_INPUT] = { 0 };
 uint32_t          digitalPinCountLast[NUMBER_DIGITAL_INPUT] = { 0 };
@@ -98,35 +101,9 @@ void getDigitalPinName(uint8_t index, char *dstCharArr) {
   strcpy(dstCharArr, digitalPinNames[index]);
 }
 
-
-void ICACHE_RAM_ATTR interruptDigitalPin0() {
-  digitalPinStateChange[0] = true; 
-  digitalPinCount[0]++;
-}
-
-void ICACHE_RAM_ATTR interruptDigitalPin1() {
-  digitalPinStateChange[1] = true; 
-  digitalPinCount[1]++;
-}
-
-void ICACHE_RAM_ATTR interruptDigitalPin2() {
-  digitalPinStateChange[2] = true; 
-  digitalPinCount[2]++;
-}
-
-void ICACHE_RAM_ATTR interruptDigitalPin3() {
-  digitalPinStateChange[3] = true; 
-  digitalPinCount[3]++;
-}
-
-void ICACHE_RAM_ATTR interruptDigitalPin4() {
-  digitalPinStateChange[4] = true; 
-  digitalPinCount[4]++;
-}
-
-void ICACHE_RAM_ATTR interruptDigitalPin5() {
-  digitalPinStateChange[5] = true; 
-  digitalPinCount[5]++;
+void ICACHE_RAM_ATTR DigitalPinISR(int idx) {
+  digitalPinStateChange[idx] = true; 
+  digitalPinCount[idx]++;
 }
 
 // forward declarations
@@ -137,15 +114,8 @@ void updateDigitalInSensorInfo();
 void setupDigitalIn(bool &need_save) {
   for (unsigned int index=0;index<(sizeof(digitalPins)/sizeof(digitalPins[0])); index++) {
     initializeDigitalPin(index, need_save); 
+    attachInterrupt(digitalPins[index], std::bind(DigitalPinISR, index), digitalPinModes[index]);
   }
-
-  //configure interupts pins. would  be awesome to do this dynamically...
-  if (NUMBER_DIGITAL_INPUT >= 1) { attachInterrupt(digitalPins[0], interruptDigitalPin0, CHANGE); }
-  if (NUMBER_DIGITAL_INPUT >= 2) { attachInterrupt(digitalPins[1], interruptDigitalPin1, CHANGE); }
-  if (NUMBER_DIGITAL_INPUT >= 3) { attachInterrupt(digitalPins[2], interruptDigitalPin2, CHANGE); }
-  if (NUMBER_DIGITAL_INPUT >= 4) { attachInterrupt(digitalPins[3], interruptDigitalPin3, CHANGE); }
-  if (NUMBER_DIGITAL_INPUT >= 5) { attachInterrupt(digitalPins[4], interruptDigitalPin4, CHANGE); }
-  if (NUMBER_DIGITAL_INPUT >= 6) { attachInterrupt(digitalPins[5], interruptDigitalPin5, CHANGE); }
 
   app.onRepeat(20, updateDigitalInStates);
   app.onRepeat(SLOW_LOOP_DELAY, updateDigitalInSensorInfo);
