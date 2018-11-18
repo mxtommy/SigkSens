@@ -1,3 +1,4 @@
 (sym_lib_table
   (lib (name customParts)(type Legacy)(uri C:/Users/Thomas/Documents/Arduino/SigkSens/hardware/CustomESP32/customParts.lib)(options "")(descr ""))
+  (lib (name ESP32-Windlass-rescue)(type Legacy)(uri "${KIPRJMOD}/ESP32 Windlass-rescue.lib")(options "")(descr ""))
 )

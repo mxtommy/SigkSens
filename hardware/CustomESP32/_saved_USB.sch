@@ -36,7 +36,7 @@ EELAYER 26 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
-Sheet 1 3
+Sheet 4 4
 Title ""
 Date ""
 Rev ""
@@ -46,16 +46,23 @@ Comment2 ""
 Comment3 ""
 Comment4 ""
 $EndDescr
-$Sheet
-S 2200 1150 1250 1000
-U 5BAC3C4B
-F0 "Core" 50
-F1 "Core.sch" 50
-$EndSheet
-$Sheet
-S 4300 1200 1050 950 
-U 5BAD979B
-F0 "Power" 50
-F1 "Power.sch" 50
-$EndSheet
+$Comp
+L customParts:UMH3N U?
+U 1 1 5BB4307C
+P 8000 4050
+F 0 "U?" H 8000 4865 50  0000 C CNN
+F 1 "UMH3N" H 8000 4774 50  0000 C CNN
+F 2 "" H 8000 4050 50  0001 C CNN
+F 3 "" H 8000 4050 50  0001 C CNN
+	1    8000 4050
+	1    0    0    -1  
+$EndComp
+Text HLabel 9050 3550 2    50   Input ~ 0
+RESET
+Text HLabel 7200 3850 0    50   Input ~ 0
+IO0
+Wire Wire Line
+	7200 3850 7450 3850
+Wire Wire Line
+	9050 3550 8550 3550
 $EndSCHEMATC

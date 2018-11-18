@@ -281,7 +281,7 @@ F 3 "" H 3150 4850 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L pspice:CAP C7
+L Device:C_Small C7
 U 1 1 5BACC290
 P 2850 4450
 F 0 "C7" H 3028 4496 50  0000 L CNN
@@ -292,7 +292,7 @@ F 3 "" H 2850 4450 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L pspice:CAP C8
+L Device:C_Small C8
 U 1 1 5BACD141
 P 3400 4450
 F 0 "C8" H 3578 4496 50  0000 L CNN
@@ -372,18 +372,18 @@ F 3 "" H 2750 3000 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L pspice:CAP C4
+L Device:C_Small C4
 U 1 1 5BAD1954
 P 2250 2750
-F 0 "C4" H 2428 2796 50  0000 L CNN
-F 1 "100nF" H 2428 2705 50  0000 L CNN
+F 0 "C4" H 2342 2796 50  0000 L CNN
+F 1 "100nF" H 2342 2705 50  0000 L CNN
 F 2 "" H 2250 2750 50  0001 C CNN
 F 3 "" H 2250 2750 50  0001 C CNN
 	1    2250 2750
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	2250 2350 2250 2500
+	2250 2350 2250 2650
 Wire Wire Line
 	2750 2600 2750 2350
 Wire Wire Line
@@ -398,5 +398,13 @@ Wire Wire Line
 Wire Wire Line
 	2750 3000 2750 3050
 Wire Wire Line
-	2250 3000 2250 3050
+	2250 2850 2250 3050
+Wire Wire Line
+	2850 4350 2850 4200
+Wire Wire Line
+	3400 4350 3400 4200
+Wire Wire Line
+	3400 4550 3400 4700
+Wire Wire Line
+	2850 4550 2850 4700
 $EndSCHEMATC
