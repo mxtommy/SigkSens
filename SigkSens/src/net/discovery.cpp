@@ -1,15 +1,17 @@
 #ifdef ESP8266
   #include <ESP8266mDNS.h>        // Include the mDNS library
-  #include <ESP8266SSDP.h>
 #elif defined(ESP32)
   #include <ESPmDNS.h>
 #endif
+
+#include <uSSDP.h>
 
 #include "discovery.h"
 #include "../../config.h"
 #include "../../sigksens.h"
 
-
+uDevice device;
+uSSDP SSDP;
 
 void setupDiscovery() {
   if (!MDNS.begin(myHostname)) {             // Start the mDNS responder for esp8266.local
@@ -21,7 +23,24 @@ void setupDiscovery() {
   }
   MDNS.addService("http", "tcp", 80);
   
- #ifdef ESP8266 
+  
+  byte mac[6];
+  char base[UUIDBASE_SIZE];
+  WiFi.macAddress(mac); 
+  
+
+
+  device.begin((const char*)base, mac);
+  device.serialNumber((char*)"1241");
+  device.manufacturer((char*)"SigKSens");
+  device.manufacturerURL((char*)"http://www.signalk.org");
+  device.modelName((char*)"ESP-32");
+  device.modelNumber(1, 0);
+  device.friendlyName((char*)"ESP32-WROVER");
+  device.presentationURL((char*)"/");
+  SSDP.begin(&device);
+  Serial.println("SSDP Started");
+/*
   Serial.println(F("Starting SSDP..."));
   SSDP.setSchemaURL("description.xml");
   SSDP.setHTTPPort(80);
@@ -35,5 +54,6 @@ void setupDiscovery() {
   SSDP.setManufacturerURL("http://www.signalk.org");
   SSDP.setDeviceType("upnp:rootdevice");
   SSDP.begin();
-#endif
+*/
+
 }
