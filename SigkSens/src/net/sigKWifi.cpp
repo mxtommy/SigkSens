@@ -1,6 +1,3 @@
-extern "C" {
-#include "user_interface.h"
-}
 #include <ESP8266WiFi.h>          //ESP8266 Core WiFi Library (you most likely already have this in your sketch)
 
 #include <DNSServer.h>            //Local DNS Server used for redirecting all requests to the configuration portal

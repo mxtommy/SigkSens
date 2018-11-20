@@ -1,7 +1,3 @@
-extern "C" {
-#include "user_interface.h"
-}
-
 #include <ReactESP.h>
 #include <Adafruit_ADS1015.h>
 
