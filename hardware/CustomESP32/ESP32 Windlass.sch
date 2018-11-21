@@ -1763,4 +1763,8 @@ Text Notes 9800 1700 0    50   ~ 0
 Needs to be non-polarity!
 Text Notes 2300 1950 0    50   ~ 0
 INPUT Only :(
+Text Notes 2500 7100 0    50   ~ 0
+needs polarity!
+Text Notes 6600 4950 0    50   ~ 0
+need cap
 $EndSCHEMATC
