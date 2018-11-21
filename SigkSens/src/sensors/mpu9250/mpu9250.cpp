@@ -1,8 +1,13 @@
+#ifdef ESP8266
 extern "C" {
 #include "user_interface.h"
 }
+#endif
 
 #include <FS.h>
+#ifdef ESP32
+#include "SPIFFS.h"
+#endif
 #include <Wire.h>
 #include "Arduino.h"
 

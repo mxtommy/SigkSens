@@ -1,5 +1,8 @@
-#include <ESP8266mDNS.h>        // Include the mDNS library
-
+#ifdef ESP8266
+  #include <ESP8266mDNS.h>        // Include the mDNS library
+#elif defined(ESP32)
+  #include <ESPmDNS.h>
+#endif
 
 #include "../../config.h"
 #include "../../sigksens.h"

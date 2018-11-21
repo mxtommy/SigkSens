@@ -1,6 +1,8 @@
+#ifdef ESP8266
 extern "C" {
 #include "user_interface.h"
 }
+#endif
 #include <ArduinoJson.h>     //https://github.com/bblanchon/ArduinoJson
 
 #include "../../config.h"

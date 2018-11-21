@@ -1,12 +1,14 @@
+#ifdef ESP8266
 extern "C" {
 #include "user_interface.h"
 }
+#endif
 
 #include "../../../config.h"
 
 #include "digitalIn.h"
 
-#include "FunctionalInterrupt.h"
+#include <FunctionalInterrupt.h>
 
 DigitalInSensorInfo::DigitalInSensorInfo(String addr) {
   strcpy(address, addr.c_str());
