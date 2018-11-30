@@ -40,9 +40,16 @@ Config Save/Load/Reset
 
 
 void setupFS() {
-  if (SPIFFS.begin()) {
+  bool mountOk = false;
+  #ifdef ESP8266
+  mountOk = SPIFFS.begin();
+  #elif defined ESP32
+  mountOk = SPIFFS.begin(true); //true = format spiffs if it's not already done :)
+  #endif
+  if (mountOk) {
     Serial.println(F("mounted file system"));
-    /* Serial.println(F("FS Contents:"));
+    #ifdef ESP8266
+    Serial.println(F("FS Contents:"));
     String str = "";
     Dir dir = SPIFFS.openDir("/");
     while (dir.next()) {
@@ -51,7 +58,8 @@ void setupFS() {
       str += dir.fileSize();
       str += "\r\n";
     }
-    Serial.print(str); */ 
+    Serial.print(str); 
+    #endif
   } else {
     Serial.println(F("failed to mount filesystem, It is possible that the SPIFF setting in your uploader is set to 'No SPIFFS'."));
     delay(64000);
