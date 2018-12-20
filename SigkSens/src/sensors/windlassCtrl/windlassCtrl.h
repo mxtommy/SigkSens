@@ -12,7 +12,7 @@ enum WindlassStates {
 };
 
 void setupWindlassCtrl(bool&);
-
+void handleWindlassCtrl();
 
 
 #endif

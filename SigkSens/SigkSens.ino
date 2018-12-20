@@ -9,9 +9,6 @@
 #ifdef ENABLE_WINDLASS_CTRL
   #include "src/sensors/windlassCtrl/windlassCtrl.h"
 #endif
-#ifdef  ENABLE_WINDLASS_MONITOR
-
-#endif
 #ifdef ENABLE_MPU
   #include "src/sensors/mpu9250/mpu9250.h"
 #endif

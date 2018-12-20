@@ -18,7 +18,6 @@ Feature selection
 
 // Solutions
 #define ENABLE_WINDLASS_CTRL
-#define ENABLE_WINDLASS_MONITOR
 
 // Sensors
 
