@@ -18,6 +18,9 @@ bool channel2MonitorLast = false;
 uint32_t channel1ChangeTime = 0;
 uint32_t channel2ChangeTime = 0;
 
+uint32_t chainCounterCount = 0;
+
+
 void setWindlassChannel1Active() {
   switch(windlassState) {
     case idle:
