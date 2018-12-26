@@ -1,6 +1,9 @@
+#ifdef ESP8266
 extern "C" {
 #include "user_interface.h"
 }
+#endif
+
 
 #include <ReactESP.h>
 #include <OneWire.h>
