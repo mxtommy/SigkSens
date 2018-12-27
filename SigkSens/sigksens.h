@@ -6,8 +6,6 @@
 #include <ArduinoJson.h>
 
 
-extern char myHostname[16];
-
 class LedBlinker {
   private:
     int currentState = 0;

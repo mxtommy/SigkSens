@@ -3,6 +3,7 @@
 #include "../../config.h"
 #include "../../sigksens.h"
 #include "../../FSConfig.h"
+#include "src/services/configStore.h"
 #include "sigKWifi.h"
 
 
@@ -17,13 +18,13 @@ void saveConfigCallback() {
 
 void setupWifi() {
   WiFiManager wifiManager;
- 
+  
   //set config save notify callback
   wifiManager.setSaveConfigCallback(saveConfigCallback);
   
   wifiManager.setConfigPortalTimeout(WIFI_CONFIG_PORTAL_TIMEOUT);
 
-  WiFiManagerParameter custom_hostname("myHostname", "Set Hostname", myHostname, 16);
+  WiFiManagerParameter custom_hostname("myHostname", "Set Hostname", configStore.getString("myHostname", "sensor").c_str(), 16);
   wifiManager.addParameter(&custom_hostname);
   
   if (!wifiManager.autoConnect("Unconfigured Sensor")) {
@@ -36,8 +37,9 @@ void setupWifi() {
 
   // Save config if needed
   if (shouldSaveConfig) {
-    strcpy(myHostname, custom_hostname.getValue());
-    saveConfig();
+    configStore.putString("myHostname", custom_hostname.getValue());
+    configStore.saveConfig();
+    saveConfig(); // builds rest of old config? :) 
     // For some reason, connection isn't properly established after exiting the
     // captive portal. Just reset to be safe.
     ESP.restart();

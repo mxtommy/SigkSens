@@ -34,6 +34,7 @@
 #endif
 
 #include "FSConfig.h"
+#include "src/services/configStore.h";
 
 #include "src/net/discovery.h"
 #include "src/net/webSocket.h"
@@ -44,17 +45,8 @@
 #include "src/services/configReset.h"
 #include "src/services/signalK.h"
 
-
 #include "sigksens.h"
 #include "src/sensors/sensorStorage.h"
-
-/*---------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------
-Global Variables
------------------------------------------------------------------------------------------------------
----------------------------------------------------------------------------------------------------*/
-
-char myHostname[16];
 
 /*---------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------
@@ -123,6 +115,7 @@ ReactESP app([] () {
   setupFromJson();
 
   setupFS();
+  configStore.begin("/newConfig.json");
 
   setupWifi();
   loadConfig();
@@ -178,7 +171,7 @@ void slow_loop() {
     // if connection is lost, simply restart
     ESP.restart();
   }
-  
+  configStore.handle(); // will save any config changes if needed
   handleConfigReset(); 
 }
 

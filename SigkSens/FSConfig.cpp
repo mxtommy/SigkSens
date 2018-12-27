@@ -73,7 +73,6 @@ void saveConfig() {
   DynamicJsonBuffer jsonBuffer;
 
   JsonObject& json = jsonBuffer.createObject();
-  json["hostname"] = myHostname;
   
   json["signalKHost"] = signalKClientInfo.configuredHost;
   json["signalKPort"] = signalKClientInfo.configuredPort;
@@ -123,9 +122,6 @@ void loadConfig() {
       json.prettyPrintTo(Serial);
       if (json.success()) {
         Serial.println(F(""));
-        // load hostname
-        strcpy(myHostname, json["hostname"]);
-
         //signalk
         strcpy(tempStr, json["signalKHost"]); signalKClientInfo.configuredHost = tempStr;
         strcpy(tempStr, json["signalKPath"]); signalKClientInfo.path = tempStr;

@@ -7,6 +7,7 @@ extern "C" {
 
 #include "../../config.h"
 #include "../../sigksens.h"
+#include "src/services/configStore.h"
 #include "../sensors/sensorStorage.h"
 
 #include "signalK.h"
@@ -117,7 +118,7 @@ void sendDelta() {
         JsonObject& thisUpdate = updatesArr.createNestedObject();
 
         JsonObject& source = thisUpdate.createNestedObject("source");
-        source["label"] = myHostname;
+        source["label"] = configStore.getString("myHostname");
         source["src"] = si->address;
         // values array
       

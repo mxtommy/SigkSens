@@ -11,6 +11,7 @@
 #include "discovery.h"
 #include "../../config.h"
 #include "../../sigksens.h"
+#include "src/services/configStore.h"
 
 uDevice device;
 uSSDP SSDP;
@@ -48,11 +49,11 @@ void handleSSDP() {
 }
 
 void setupDiscovery() {
-  if (!MDNS.begin(myHostname)) {             // Start the mDNS responder for esp8266.local
+  if (!MDNS.begin(configStore.getString("myHostname").c_str())) {             // Start the mDNS responder for esp8266.local
     Serial.println(F("Error setting up MDNS responder!"));
   } else {
     Serial.print (F("mDNS responder started at "));
-    Serial.print (myHostname);
+    Serial.print (configStore.getString("myHostname"));
     Serial.println(F(""));
   }
   MDNS.addService("http", "tcp", 80);
@@ -74,21 +75,6 @@ void setupDiscovery() {
   device.presentationURL((char*)"/");
   SSDP.begin(&device);
   Serial.println("SSDP Started");
-/*
-  Serial.println(F("Starting SSDP..."));
-  SSDP.setSchemaURL("description.xml");
-  SSDP.setHTTPPort(80);
-  SSDP.setName(myHostname);
-  SSDP.setSerialNumber("12345");
-  SSDP.setURL("index.html");
-  SSDP.setModelName("WifiSensorNode");
-  SSDP.setModelNumber("12345");
-  SSDP.setModelURL("http://www.signalk.org");
-  SSDP.setManufacturer("SigK");
-  SSDP.setManufacturerURL("http://www.signalk.org");
-  SSDP.setDeviceType("upnp:rootdevice");
-  SSDP.begin();
-*/
 
   app.onRepeat(30, handleSSDP);
   
@@ -96,15 +82,17 @@ void setupDiscovery() {
 
 
 void setupSSDPHttpCallback(AsyncWebServer &server) {
+  
 
   server.on("/description.xml", HTTP_GET, [](AsyncWebServerRequest *request){
+      String hostname = configStore.getString("myHostname");
       StreamString output;
       if(output.reserve(1024)){
         IPAddress ip = WiFi.localIP();
         uint32_t chipId = 12345;
         output.printf(ssdpTemplate,
           ip[0], ip[1], ip[2], ip[3],
-          myHostname,
+          hostname,
           chipId,
           modelName,
           modelNumber,

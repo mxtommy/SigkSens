@@ -19,6 +19,7 @@
 #include "httpd.h"
 
 #include "../../FSConfig.h"
+#include "src/services/configStore.h"
 #include "webSocket.h"
 #include "../../sigksens.h"
 #include "../sensors/sensorStorage.h"
@@ -137,7 +138,7 @@ void httpNewHostname(AsyncWebServerRequest *request) {
     request->send(400, "text/plain", "missing arg 'hostname'");
     return;
   }
-  request->arg("hostname").toCharArray(myHostname, 16);
+  configStore.putString("myHostname", request->arg("hostname"));
   app.onDelay(0, &saveConfig);
   request->send(200, "application/json", "{ \"success\": true }");
 }
@@ -189,7 +190,7 @@ void httpGetSensorInfo(AsyncWebServerRequest *request) {
   JsonObject& json = response->getRoot();
 
   //Info
-  json["hostname"] = myHostname;
+  json["hostname"] = configStore.getString("myHostname");
 
   //sigk
   json["signalKHost"] = signalKClientInfo.configuredHost;
