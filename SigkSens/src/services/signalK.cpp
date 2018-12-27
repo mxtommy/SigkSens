@@ -8,6 +8,7 @@ extern "C" {
 #include "../../config.h"
 #include "../../sigksens.h"
 #include "src/services/configStore.h"
+#include "src/services/ledBlinker.h"
 #include "../sensors/sensorStorage.h"
 
 #include "signalK.h"

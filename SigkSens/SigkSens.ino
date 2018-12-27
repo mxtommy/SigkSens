@@ -41,6 +41,7 @@
 #include "src/net/httpd.h"
 #include "src/net/sigKWifi.h"
 #include "src/net/ota.h"
+#include "src/services/ledBlinker.h"
 
 #include "src/services/configReset.h"
 #include "src/services/signalK.h"

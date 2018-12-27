@@ -4,6 +4,7 @@
 #include "../../sigksens.h"
 #include "../../FSConfig.h"
 #include "src/services/configStore.h"
+#include "src/services/ledBlinker.h"
 #include "sigKWifi.h"
 
 

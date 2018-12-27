@@ -5,14 +5,14 @@ extern "C" {
 #endif
 
 #include "../../../config.h"
-
+#include "src/services/configStore.h"
 #include "systemHz.h"
 
 SystemHzSensorInfo::SystemHzSensorInfo(String addr) {
   strcpy(address, addr.c_str());
-  signalKPath[0] = String("sensors.") + String(myHostname) + String(".systemHz");
-  signalKPath[1] = String("sensors.") + String(myHostname) + String(".freeMem");
-  signalKPath[2] = String("sensors.") + String(myHostname) + String(".uptime");
+  signalKPath[0] = String("sensors.") + configStore.getString("myHostname") + String(".systemHz");
+  signalKPath[1] = String("sensors.") + configStore.getString("myHostname") + String(".freeMem");
+  signalKPath[2] = String("sensors.") + configStore.getString("myHostname") + String(".uptime");
   attrName[0] = "systemHz";
   attrName[1] = "freeMem";
   attrName[2] = "uptime";

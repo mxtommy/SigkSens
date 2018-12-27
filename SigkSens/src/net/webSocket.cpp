@@ -6,6 +6,7 @@
 
 #include "../../config.h"
 #include "../../sigksens.h"
+#include "src/services/ledBlinker.h"
 #include "../services/signalK.h"
 
 
