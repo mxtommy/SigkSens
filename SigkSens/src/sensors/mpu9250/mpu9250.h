@@ -2,6 +2,7 @@
 #define _mpu9250_H_
 
 #include "../../../sigksens.h"
+#include "../sensorStorage.h"
 
 
 class MPU9250SensorInfo : public SensorInfo {
@@ -14,7 +15,7 @@ class MPU9250SensorInfo : public SensorInfo {
 
     static MPU9250SensorInfo *fromJson(JsonObject &jsonSens);
     void toJson(JsonObject &jsonSens);
-
+    void setupWebServerHooks(AsyncWebServer& server);
 
 };
 
@@ -28,9 +29,6 @@ void processMPU9250();
 void updateQuaternion();
 void updateMPUSensorInfo();
 
-void runAccelGyroCal();
-void runMagCalStart();
-void runMagCalStop();
 
 // Based on https://raw.githubusercontent.com/kriswiner/MPU9250/master/MPU9250_MS5637_AHRS_t3.ino
 

@@ -2,6 +2,7 @@
 #define _analogin_H_
 
 #include "../../../sigksens.h"
+#include "../sensorStorage.h"
 
 
 bool getSensorAnalogInPresent();

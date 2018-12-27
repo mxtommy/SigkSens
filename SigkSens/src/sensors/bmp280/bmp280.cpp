@@ -1,6 +1,8 @@
+#ifdef ESP8266
 extern "C" {
 #include "user_interface.h"
 }
+#endif
 
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
@@ -93,13 +95,10 @@ void setupBMP280() {
    // this calls Wire.begin() again, but that shouldn't
   // do any harm. Hopefully.
   bmp.begin();
-  app.repeat(SLOW_LOOP_DELAY, &readBMP280);
+  app.onRepeat(SLOW_LOOP_DELAY, readBMP280);
 }
 
 void readBMP280() {
-  uint8_t errorCode;
-  uint8_t data[6];
-  uint8_t address;
   float Pa;
   float tempK;
   

@@ -1,8 +1,4 @@
-extern "C" {
-#include "user_interface.h"
-}
-
-#include <Reactduino.h>
+#include <ReactESP.h>
 #include <Adafruit_ADS1015.h>
 
 
@@ -173,8 +169,8 @@ void setupADS1115() {
   gainMultiplier = 0.125F; /* ADS1115  @ +/- 4.096V gain (16-bit results) */
   
   ads.begin();
-  app.repeat(ADS1115_READ_INTERVAL, &readADS1115);
-  app.repeat(SLOW_LOOP_DELAY, &updateADS1115);
+  app.onRepeat(ADS1115_READ_INTERVAL, readADS1115);
+  app.onRepeat(SLOW_LOOP_DELAY, updateADS1115);
 }
 
 

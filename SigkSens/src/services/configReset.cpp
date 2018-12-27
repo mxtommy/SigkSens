@@ -1,8 +1,13 @@
+#ifdef ESP8266
 extern "C" {
 #include "user_interface.h"
 }
+#endif
 
 #include <FS.h> //this needs to be first, or it all crashes and burns...
+#ifdef ESP32
+#include "SPIFFS.h"
+#endif
 
 #include <WiFiManager.h>          //https://github.com/tzapu/WiFiManager WiFi Configuration Magic
 
@@ -33,7 +38,11 @@ void resetConfig() {
     delay(20);
   }
 
-  ESP.reset();
+  #ifdef ESP8266
+    ESP.reset();
+  #elif defined(ESP32)
+    ESP.restart();
+  #endif
 }
 
 

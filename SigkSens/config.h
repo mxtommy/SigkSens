@@ -51,6 +51,9 @@ Defines
 // HTTP port for the configuration interface
 #define HTTP_PORT 80
 
+// Password for Over-the-air (OTA) updates
+#define OTA_PASSWORD "bonvoyage"
+
 // Slow loop duration (SK updates, slow sensor reads etc)
 #define SLOW_LOOP_DELAY 200
 
@@ -58,12 +61,18 @@ Defines
 
 #define MAX_SIGNALK_PATH_LEN 150
 
+// LED pin
+
+#define LED_PIN LED_BUILTIN
+#define LED_ACTIVE_LOW true
+
 // Digital input pins
 
-#define NUMBER_DIGITAL_INPUT 2  // set to number of elements in next two arrays...s
-                                // Note if more than 6, update DigitalIn to have more interrupt routines.
+#define LOGIC_LEVEL_TRUE HIGH // if HIGH the inputs will be true on Vcc. If LOW it will be true on gnd.
+#define NUMBER_DIGITAL_INPUT 2  // set to number of elements in next three arrays
 #define DIGITAL_INPUT_PINS { 14, 12 } 
 #define DIGITAL_INPUT_NAME {"D1", "D2"}
+#define DIGITAL_INPUT_MODES {CHANGE, CHANGE}  // one of CHANGE, RISING, FALLING
 
 // Digital output Pins
 #define NUMBER_DIGITAL_OUTPUT 2  // set to number of elements in next two arrays...s

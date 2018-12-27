@@ -1,6 +1,9 @@
+#ifdef ESP8266
 extern "C" {
 #include "user_interface.h"
 }
+#endif
+
 #include <Wire.h>
 
 #include "../../../config.h"
@@ -16,11 +19,16 @@ SHT30SensorInfo::SHT30SensorInfo(String addr) {
   type = SensorType::sht30;
   valueJson[0] = "null";
   valueJson[1] = "null";
-
+  offset[0] = 0;
+  offset[1] = 0;
+  scale[0] = 1;
+  scale[1] = 1;
   isUpdated = false;
 }
 
-SHT30SensorInfo::SHT30SensorInfo(String addr, String path1, String path2) {
+SHT30SensorInfo::SHT30SensorInfo( String addr, 
+                                  String path1, float offset1, float scale1,
+                                  String path2, float offset2, float scale2) {
   strcpy(address, addr.c_str());
   signalKPath[0] = path1;
   signalKPath[1] = path2;
@@ -29,6 +37,10 @@ SHT30SensorInfo::SHT30SensorInfo(String addr, String path1, String path2) {
   type = SensorType::sht30;
   valueJson[0] = "null";
   valueJson[1] = "null";
+  offset[0] = offset1;
+  offset[1] = offset2;
+  scale[0] = scale1;
+  scale[1] = scale2;
 
   isUpdated = false;
 }
@@ -37,7 +49,12 @@ SHT30SensorInfo *SHT30SensorInfo::fromJson(JsonObject &jsonSens) {
   return new SHT30SensorInfo(
     jsonSens["address"],
     jsonSens["attrs"][0]["signalKPath"],
-    jsonSens["attrs"][1]["signalKPath"]
+    jsonSens["attrs"][0]["offset"],
+    jsonSens["attrs"][0]["scale"],
+    jsonSens["attrs"][1]["signalKPath"],
+    jsonSens["attrs"][1]["offset"],
+    jsonSens["attrs"][1]["scale"]
+
   );
 }
 
@@ -74,7 +91,7 @@ void readSHT();
 
 void setupSHT30() {
   // prepare SHT Timers 
-  app.repeat(1000, &pollSHT);
+  app.onRepeat(1000, pollSHT);
 }
 
 
@@ -97,14 +114,14 @@ void pollSHT() {
     }
   });
 
-  app.delay(100, &readSHT);
+  app.onDelay(150, readSHT);
 }
 
 
 void readSHT() {
   sensorStorage[(int)SensorType::sht30].forEach([&](SensorInfo* si) {
     uint8_t errorCode;
-    uint8_t data[6];
+    uint8_t data[6] = { 0 };
     uint8_t address;
     float tempK;
     float humidity;
@@ -140,8 +157,8 @@ void readSHT() {
     tempK = (((((data[0] * 256.0) + data[1]) * 175) / 65535.0) - 45) + 273.15;
     humidity = ((((data[3] * 256.0) + data[4]) * 100) / 65535.0);
 
-    si->valueJson[0] = tempK;
-    si->valueJson[1] = humidity;
+    si->valueJson[0] = (tempK * si->scale[0]) + si->offset[0];
+    si->valueJson[1] = (humidity * si->scale[1]) + si->offset[1];
     si->isUpdated = true;
   });
 }

@@ -8,8 +8,10 @@
 
 class SignalKClientInfo {
   public:
-    String host;
-    uint16_t port;
+    String configuredHost;
+    uint16_t configuredPort;
+    String activeHost;
+    uint16_t activePort;
     String path;
     String authToken;
     bool connected;
@@ -25,6 +27,8 @@ extern WebSocketsServer webSocketServer;
 void setupWebSocket();
 void handleWebSocket();
 bool getWebsocketClientStatus();
+String getWebsocketClientActiveHost();
+uint16_t getWebsocketClientActivePort();
 void restartWebSocketClient();
 
 #endif

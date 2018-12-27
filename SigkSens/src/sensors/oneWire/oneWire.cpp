@@ -1,8 +1,11 @@
+#ifdef ESP8266
 extern "C" {
 #include "user_interface.h"
 }
+#endif
 
-#include <Reactduino.h>
+
+#include <ReactESP.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
 
@@ -79,27 +82,27 @@ void setup1Wire(bool &need_save) {
   
   sensors.setWaitForConversion(false);
 
-  Serial.print("Parasite power is: "); 
+  Serial.print("1-Wire Parasite power is: "); 
   if (sensors.isParasitePowerMode()) Serial.println("ON");
   else Serial.println("OFF");
 
-  Serial.print("1Wire Device precision currently: ");
+  Serial.print("1-Wire Device precision currently: ");
   Serial.print(sensors.getResolution());
   Serial.print(" setting to ");
   Serial.print(TEMPERATURE_PRECISION);
   sensors.setResolution(TEMPERATURE_PRECISION);
   Serial.println(" Done!");
 
-  Serial.print("Starting oneWire scanning timer at: ");
+  Serial.print("Starting 1-Wire scanning timer at: ");
   Serial.print(oneWireScanDelay);
   Serial.println("ms");
 
-  Serial.println("Scanning OneWire Bus");
+  Serial.println("Scanning 1-Wire Bus");
 
   oneWireScanBus(need_save);
 
-  app.repeat(1000, &request1WSensors);
-  app.repeat(oneWireScanDelay, &onewire_scan_loop);
+  app.onRepeat(1000, request1WSensors);
+  app.onRepeat(oneWireScanDelay, onewire_scan_loop);
 }
 
 void onewire_scan_loop() {
@@ -127,7 +130,7 @@ void request1WSensors() {
   if (sensorOneWirePresent) {
     sensors.requestTemperatures();
 
-    app.delay(ONEWIRE_READ_DELAY, &read1WSensors);  
+    app.onDelay(ONEWIRE_READ_DELAY, read1WSensors);  
   }
 }
 
@@ -179,8 +182,6 @@ void oneWireScanBus(bool &need_save) {
   if (numberOfDevices > 0) {
     sensorOneWirePresent = true;
   }
-
-  SensorInfo *tmpSensorInfo;
 
   for(int i=0;i<numberOfDevices; i++) {
     if(sensors.getAddress(tempDeviceAddress, i))

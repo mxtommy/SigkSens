@@ -1,10 +1,14 @@
+#ifdef ESP8266
 extern "C" {
 #include "user_interface.h"
 }
+#endif
 
 #include "../../../config.h"
 
 #include "digitalIn.h"
+
+#include <FunctionalInterrupt.h>
 
 DigitalInSensorInfo::DigitalInSensorInfo(String addr) {
   strcpy(address, addr.c_str());
@@ -13,7 +17,7 @@ DigitalInSensorInfo::DigitalInSensorInfo(String addr) {
   signalKPath[2] = "";
   attrName[0] = "state";
   attrName[1] = "freq";
-  attrName[1] = "count";
+  attrName[2] = "count";
   type = SensorType::digitalIn;
   valueJson[0] = "null";
   valueJson[1] = "null";
@@ -87,6 +91,7 @@ void DigitalInSensorInfo::toJson(JsonObject &jsonSens) {
 
 int               digitalPins[NUMBER_DIGITAL_INPUT] = DIGITAL_INPUT_PINS;
 char              digitalPinNames[NUMBER_DIGITAL_INPUT][10] = DIGITAL_INPUT_NAME;
+int               digitalPinModes[NUMBER_DIGITAL_INPUT] = DIGITAL_INPUT_MODES;
 uint32_t          digitPinLastUpdateState[NUMBER_DIGITAL_INPUT] = { 0 };
 uint32_t          digitPinLastUpdatePeriodic[NUMBER_DIGITAL_INPUT] = { 0 };
 uint32_t          digitalPinCountLast[NUMBER_DIGITAL_INPUT] = { 0 };
@@ -98,35 +103,9 @@ void getDigitalPinName(uint8_t index, char *dstCharArr) {
   strcpy(dstCharArr, digitalPinNames[index]);
 }
 
-
-void ICACHE_RAM_ATTR interruptDigitalPin0() {
-  digitalPinStateChange[0] = true; 
-  digitalPinCount[0]++;
-}
-
-void ICACHE_RAM_ATTR interruptDigitalPin1() {
-  digitalPinStateChange[1] = true; 
-  digitalPinCount[1]++;
-}
-
-void ICACHE_RAM_ATTR interruptDigitalPin2() {
-  digitalPinStateChange[2] = true; 
-  digitalPinCount[2]++;
-}
-
-void ICACHE_RAM_ATTR interruptDigitalPin3() {
-  digitalPinStateChange[3] = true; 
-  digitalPinCount[3]++;
-}
-
-void ICACHE_RAM_ATTR interruptDigitalPin4() {
-  digitalPinStateChange[4] = true; 
-  digitalPinCount[4]++;
-}
-
-void ICACHE_RAM_ATTR interruptDigitalPin5() {
-  digitalPinStateChange[5] = true; 
-  digitalPinCount[5]++;
+void ICACHE_RAM_ATTR DigitalPinISR(int idx) {
+  digitalPinStateChange[idx] = true; 
+  digitalPinCount[idx]++;
 }
 
 // forward declarations
@@ -135,25 +114,18 @@ void updateDigitalInStates();
 void updateDigitalInSensorInfo();
 
 void setupDigitalIn(bool &need_save) {
-  for (int index=0;index<(sizeof(digitalPins)/sizeof(digitalPins[0])); index++) {
+  for (unsigned int index=0;index<(sizeof(digitalPins)/sizeof(digitalPins[0])); index++) {
     initializeDigitalPin(index, need_save); 
+    attachInterrupt(digitalPins[index], std::bind(DigitalPinISR, index), digitalPinModes[index]);
   }
 
-  //configure interupts pins. would  be awesome to do this dynamically...
-  if (NUMBER_DIGITAL_INPUT >= 1) { attachInterrupt(digitalPins[0], interruptDigitalPin0, CHANGE); }
-  if (NUMBER_DIGITAL_INPUT >= 2) { attachInterrupt(digitalPins[1], interruptDigitalPin1, CHANGE); }
-  if (NUMBER_DIGITAL_INPUT >= 3) { attachInterrupt(digitalPins[2], interruptDigitalPin2, CHANGE); }
-  if (NUMBER_DIGITAL_INPUT >= 4) { attachInterrupt(digitalPins[3], interruptDigitalPin3, CHANGE); }
-  if (NUMBER_DIGITAL_INPUT >= 5) { attachInterrupt(digitalPins[4], interruptDigitalPin4, CHANGE); }
-  if (NUMBER_DIGITAL_INPUT >= 6) { attachInterrupt(digitalPins[5], interruptDigitalPin5, CHANGE); }
-
-  app.repeat(20, &updateDigitalInStates);
-  app.repeat(SLOW_LOOP_DELAY, &updateDigitalInSensorInfo);
+  app.onRepeat(20, updateDigitalInStates);
+  app.onRepeat(SLOW_LOOP_DELAY, updateDigitalInSensorInfo);
 }
 
 
 void updateDigitalInStates() {
-  for (int index=0;index<(sizeof(digitalPins)/sizeof(digitalPins[0])); index++) {
+  for (unsigned int index=0;index<(sizeof(digitalPins)/sizeof(digitalPins[0])); index++) {
     if (digitalPinStateChange[index]) {
       updateDigitalInState(index);
     }
@@ -163,17 +135,14 @@ void updateDigitalInStates() {
 
 void updateDigitalInSensorInfo() {
   //Update Sensorinfo
-  for (int index=0;index<(sizeof(digitalPins)/sizeof(digitalPins[0])); index++) {
+  for (unsigned int index=0;index<(sizeof(digitalPins)/sizeof(digitalPins[0])); index++) {
     updateDigitalInPeriodic(index);   
   }
 }
 
 
 void initializeDigitalPin(uint8_t index, bool &need_save) {
-  SensorInfo *tmpSensorInfo;
-
   pinMode(digitalPins[index], INPUT);
-
   // Setup "sensors" if not already existing
   bool known = sensorStorage[(int)SensorType::digitalIn].find(
     digitalPinNames[index]) != nullptr;
@@ -213,7 +182,7 @@ void updateDigitalInState(uint8_t index) {
   if (si != nullptr) {
     //current state
     if (strcmp(si->signalKPath[0].c_str(), "") != 0) {    
-      if (digitalRead(digitalPins[index]) == LOW) {
+      if (digitalRead(digitalPins[index]) == LOGIC_LEVEL_TRUE) {
         si->valueJson[0] = "true";
       } else {
         si->valueJson[0] = "false";
@@ -236,7 +205,7 @@ void updateDigitalInPeriodic(uint8_t index) {
   if (si != nullptr) {
     //current state
     if (strcmp(si->signalKPath[0].c_str(), "") != 0) {    
-      if (digitalRead(digitalPins[index]) == LOW) {
+      if (digitalRead(digitalPins[index]) == LOGIC_LEVEL_TRUE) {
         si->valueJson[0] = "true";
       } else {
         si->valueJson[0] = "false";

@@ -1,13 +1,17 @@
-extern "C" {
-#include "user_interface.h"
-}
 #include <FS.h> //this needs to be first, or it all crashes and burns...
-
+#ifdef ESP32
+#include "SPIFFS.h"
+#endif
 
 #include <ArduinoJson.h>     //https://github.com/bblanchon/ArduinoJson
-#include <ESPAsyncTCP.h>
+
+#ifdef ESP8266
+  #include <ESPAsyncTCP.h>
+#elif defined(ESP32)
+  #include <AsyncTCP.h>
+#endif
+
 #include <ESPAsyncWebServer.h>
-#include <ESP8266SSDP.h>
 #include <StreamString.h>
 #include <AsyncJson.h>
 
@@ -17,45 +21,11 @@ extern "C" {
 #include "../../FSConfig.h"
 #include "webSocket.h"
 #include "../../sigksens.h"
+#include "../sensors/sensorStorage.h"
+#include "discovery.h"
 #include "../services/configReset.h"
 
-#ifdef ENABLE_MPU
-  #include "../sensors/mpu9250/mpu9250.h"
-#endif
 
-
-
-
-
-
-// SSDP related stuff
-
-//SSDP properties
-const char * modelName = "WifiSensorNode";
-const char * modelNumber = "12345";
-
-static const char* ssdpTemplate =
-  "<?xml version=\"1.0\"?>"
-  "<root xmlns=\"urn:schemas-upnp-org:device-1-0\">"
-    "<specVersion>"
-      "<major>1</major>"
-      "<minor>0</minor>"
-    "</specVersion>"
-    "<URLBase>http://%u.%u.%u.%u/</URLBase>"
-    "<device>"
-      "<deviceType>upnp:rootdevice</deviceType>"
-      "<friendlyName>%s</friendlyName>"
-      "<presentationURL>index.html</presentationURL>"
-      "<serialNumber>%u</serialNumber>"
-      "<modelName>%s</modelName>"
-      "<modelNumber>%s</modelNumber>"
-      "<modelURL>http://www.espressif.com</modelURL>"
-      "<manufacturer>Espressif Systems</manufacturer>"
-      "<manufacturerURL>http://www.espressif.com</manufacturerURL>"
-      "<UDN>uuid:38323636-4558-4dda-9188-cda0e6%02x%02x%02x</UDN>"
-    "</device>"
-  "</root>\r\n"
-  "\r\n";
 
 // Simple web page to view deltas
 const char INDEX_PAGE[] PROGMEM = R"foo(
@@ -168,7 +138,7 @@ void httpNewHostname(AsyncWebServerRequest *request) {
     return;
   }
   request->arg("hostname").toCharArray(myHostname, 16);
-  app.delay(0, &saveConfig);
+  app.onDelay(0, &saveConfig);
   request->send(200, "application/json", "{ \"success\": true }");
 }
 
@@ -178,9 +148,9 @@ void httpSetSignalKHost(AsyncWebServerRequest *request) {
     request->send(400, "text/plain", "missing arg 'host'"); 
     return;
   }
-  signalKClientInfo.host = request->arg("host");
-  app.delay(0, &saveConfig);
-  app.delay(0, &restartWebSocketClient);
+  signalKClientInfo.configuredHost = request->arg("host");
+  app.onDelay(0, &saveConfig);
+  app.onDelay(0, &restartWebSocketClient);
   request->send(200, "application/json", "{ \"success\": true }");
 }
 
@@ -190,9 +160,9 @@ void httpSetSignalKPort(AsyncWebServerRequest *request) {
     request->send(500, "text/plain", "missing arg 'port'");
     return;
   }
-  signalKClientInfo.port = request->arg("port").toInt();
-  app.delay(0, &saveConfig);
-  app.delay(0, &restartWebSocketClient);
+  signalKClientInfo.configuredPort = request->arg("port").toInt();
+  app.onDelay(0, &saveConfig);
+  app.onDelay(0, &restartWebSocketClient);
   request->send(200, "application/json", "{ \"success\": true }");
 }
 
@@ -200,56 +170,35 @@ void httpSetSignalKPort(AsyncWebServerRequest *request) {
 void httpSetSignalKPath(AsyncWebServerRequest *request) {
   if(!request->hasArg("path")) {request->send(500, "text/plain", "missing arg 'path'"); return;}
   signalKClientInfo.path = request->arg("path");
-  app.delay(0, &saveConfig);
-  app.delay(0, &restartWebSocketClient);
+  app.onDelay(0, &saveConfig);
+  app.onDelay(0, &restartWebSocketClient);
   request->send(200, "application/json", "{ \"success\": true }");
 }
 
 void httpSetSignalKToken(AsyncWebServerRequest *request) {
   if(!request->hasArg("token")) {request->send(500, "text/plain", "missing arg 'token'"); return;}
   signalKClientInfo.authToken = request->arg("token");
-  app.delay(0, &saveConfig);
-  app.delay(0, &restartWebSocketClient);
+  app.onDelay(0, &saveConfig);
+  app.onDelay(0, &restartWebSocketClient);
   request->send(200, "application/json", "{ \"success\": true }");
 }
 
-
-#ifdef ENABLE_MPU
-void httpMpuCalAccelGyro(AsyncWebServerRequest *request) {
-  runAccelGyroCal();
-  request->send(200, "application/json", "{ \"success\": true }");
-}
-
-void httpMpuCalMagStart(AsyncWebServerRequest *request) {
-  runMagCalStart();
-  request->send(200, "application/json", "{ \"success\": true }");
-}
-
-void httpMpuCalMagStop(AsyncWebServerRequest *request) {
-  runMagCalStop();
-  request->send(200, "application/json", "{ \"success\": true }");
-}
-
-#endif
 
 void httpGetSensorInfo(AsyncWebServerRequest *request) {
   AsyncJsonResponse * response = new AsyncJsonResponse();
   JsonObject& json = response->getRoot();
 
-  SensorInfo *tmpSensorInfo;
-  char strAddress[32];
-  char tmpPinStr[10];
-  uint8_t numAttr;
-
   //Info
   json["hostname"] = myHostname;
 
   //sigk
-  json["signalKHost"] = signalKClientInfo.host;
-  json["signalKPort"] = signalKClientInfo.port;
+  json["signalKHost"] = signalKClientInfo.configuredHost;
+  json["signalKPort"] = signalKClientInfo.configuredPort;
   json["signalKPath"] = signalKClientInfo.path;
   json["signalKToken"] = signalKClientInfo.authToken;
 
+  json["websocketClientConnectedHost"] = getWebsocketClientActiveHost();
+  json["websocketClientConnectedPort"] = getWebsocketClientActivePort();
   json["websocketClientConnected"] = getWebsocketClientStatus();
   //Sensor types present
 
@@ -268,7 +217,6 @@ void httpGetSensorInfo(AsyncWebServerRequest *request) {
 
 void httpSetSensorAttr(AsyncWebServerRequest *request) {
   
-  SensorInfo *tmpSensorInfo;
   char pathStr[MAX_SIGNALK_PATH_LEN];
   char address[32];
   char attrName[32];
@@ -308,7 +256,7 @@ void httpSetSensorAttr(AsyncWebServerRequest *request) {
   });
 
   if (found) {
-    app.delay(0, &saveConfig);
+    app.onDelay(0, &saveConfig);
     request->send(200, "application/json", "{ \"success\": true }");
   } else {
     request->send(400, "application/json", "{ \"success\": false }");
@@ -316,7 +264,7 @@ void httpSetSensorAttr(AsyncWebServerRequest *request) {
   
 }
 
-
+/* no longer used, leaving it here as it may be useful?
 void httpSetTimerDelay(AsyncWebServerRequest *request) {
   uint32_t newDelay = 0;
   char timer[15];
@@ -336,13 +284,13 @@ void httpSetTimerDelay(AsyncWebServerRequest *request) {
   }
 
   if (ok) {
-    app.delay(0, &saveConfig);
+    app.onDelay(0, &saveConfig);
     request->send(200, "application/json", "{ \"success\": true }");
   } else {
     request->send(400, "application/json", "{ \"success\": false }");
   }
 }
-
+*/
 
 void httpSignalKEndpoints(AsyncWebServerRequest *request) {
   IPAddress ip;  
@@ -372,7 +320,7 @@ void httpSignalKEndpoints(AsyncWebServerRequest *request) {
 
 void httpResetConfig(AsyncWebServerRequest *request) {
   request->send(200, "application/json", "{ \"success\": true }");
-  app.delay(0, &resetConfig);
+  app.onDelay(0, &resetConfig);
 }
 
 
@@ -397,47 +345,23 @@ void setupHTTP() {
   server.on("/setSensorPath", HTTP_GET, httpSetSensorAttr); //path for legacy
   server.on("/setSensorAttr", HTTP_GET, httpSetSensorAttr);
 
-  server.on("/setTimerDelay", HTTP_GET, httpSetTimerDelay);
   server.on("/setNewHostname", HTTP_GET, httpNewHostname);
-
-
-  #ifdef ENABLE_MPU
-  server.on("/mpuCalAccelGyro", HTTP_GET, httpMpuCalAccelGyro);
-  server.on("/mpuCalMagStart", HTTP_GET, httpMpuCalMagStart);
-  server.on("/mpuCalMagStop", HTTP_GET, httpMpuCalMagStop);
-  #endif
-
 
   server.on("/setSignalKHost", HTTP_GET, httpSetSignalKHost);
   server.on("/setSignalKPort", HTTP_GET, httpSetSignalKPort);
   server.on("/setSignalKPath", HTTP_GET, httpSetSignalKPath);
   server.on("/setSignalKToken", HTTP_GET, httpSetSignalKToken);
 
-  server.on("/description.xml", HTTP_GET, [](AsyncWebServerRequest *request){
-      StreamString output;
-      if(output.reserve(1024)){
-        IPAddress ip = WiFi.localIP();
-        uint32_t chipId = ESP.getChipId();
-        output.printf(ssdpTemplate,
-          ip[0], ip[1], ip[2], ip[3],
-          myHostname,
-          chipId,
-          modelName,
-          modelNumber,
-          (uint8_t) ((chipId >> 16) & 0xff),
-          (uint8_t) ((chipId >>  8) & 0xff),
-          (uint8_t)   chipId        & 0xff
-        );
-        request->send(200, "text/xml", (String)output);
-      } else {
-        request->send(500);
-      }
-  });
-
   server.on("/signalk", HTTP_GET, httpSignalKEndpoints);
   server.on("/signalk/", HTTP_GET, httpSignalKEndpoints);
   
   server.on("/resetConfig", HTTP_GET, httpResetConfig);
+
+  //setup sensor callbacks
+  sensorStorageForEach([&](SensorInfo* si) {
+    si->setupWebServerHooks(server);
+  });
+  setupSSDPHttpCallback(server);
 
   server.begin();
 }

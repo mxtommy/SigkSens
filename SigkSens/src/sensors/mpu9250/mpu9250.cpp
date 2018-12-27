@@ -1,8 +1,13 @@
+#ifdef ESP8266
 extern "C" {
 #include "user_interface.h"
 }
+#endif
 
 #include <FS.h>
+#ifdef ESP32
+#include "SPIFFS.h"
+#endif
 #include <Wire.h>
 #include "Arduino.h"
 
@@ -122,6 +127,31 @@ void MPU9250SensorInfo::toJson(JsonObject &jsonSens) {
   }  
 }
 
+MpuRunMode mpuRunMode = MpuRunMode::mpuOff;
+
+void httpMpuCalAccelGyro(AsyncWebServerRequest *request) {
+  Serial.println("Starting Accel and Gyro ");
+  mpuRunMode = MpuRunMode::calAccelGyro;
+  request->send(200, "application/json", "{ \"success\": true }");
+}
+
+void httpMpuCalMagStart(AsyncWebServerRequest *request) {
+  Serial.println("Starting Magnometer Calibration...");
+  mpuRunMode = MpuRunMode::calMagStart;
+  request->send(200, "application/json", "{ \"success\": true }");
+}
+
+void httpMpuCalMagStop(AsyncWebServerRequest *request) {
+  Serial.println("Stoping Magnometer Calibration...");
+  mpuRunMode = MpuRunMode::calMagStop;
+  request->send(200, "application/json", "{ \"success\": true }");
+}
+
+void MPU9250SensorInfo::setupWebServerHooks(AsyncWebServer &server) {
+  server.on("/mpuCalAccelGyro", HTTP_GET, httpMpuCalAccelGyro);
+  server.on("/mpuCalMagStart", HTTP_GET, httpMpuCalMagStart);
+  server.on("/mpuCalMagStop", HTTP_GET, httpMpuCalMagStop);
+}
 
 
 
@@ -198,7 +228,6 @@ bool MPUisValid = false;
 bool AK8963isValid = false;
 bool mpuUpdateReady = false;
 volatile bool newData = false;
-MpuRunMode mpuRunMode = MpuRunMode::mpuOff;
 
 //variables for Mag Calibration
 int16_t magCalMax[3] = {-32767, -32767, -32767};
@@ -239,12 +268,14 @@ void setupMPU9250() {
       mpuRunMode = MpuRunMode::mpuRun;
     }
   }
-  app.onTick(&handleMPU9250);
-  app.repeat(SLOW_LOOP_DELAY, &updateMPUSensorInfo);
+  app.onTick(handleMPU9250);
+  app.onRepeat(SLOW_LOOP_DELAY, updateMPUSensorInfo);
 }
 
 void handleMPU9250() {
   switch(mpuRunMode) {
+    case MpuRunMode::mpuOff:
+      break;
     case MpuRunMode::mpuRun:
       if(newData) { //newData is from pin Interrupt
         newData = false; // reset newData flag
@@ -362,21 +393,6 @@ void loadMPUCalibrationFS() {
 
 }
 
-void runAccelGyroCal() {
-  Serial.println("Starting Accel and Gyro ");
-  mpuRunMode = MpuRunMode::calAccelGyro;
-    
-}
-
-void runMagCalStart() {
-  Serial.println("Starting Magnometer Calibration...");
-  mpuRunMode = MpuRunMode::calMagStart;
-}
-
-void runMagCalStop() {
-  Serial.println("Stoping Magnometer Calibration...");
-  mpuRunMode = MpuRunMode::calMagStop;
-}
 
 
 /* ---------------------------------------------------------------------------------------------
@@ -487,8 +503,6 @@ void updateQuaternion() {
 
 
 void updateMPUSensorInfo() {
-  SensorInfo *thisSensorInfo;
-  uint8_t address;
   
   if (mpuRunMode != MpuRunMode::mpuRun) {
     return;
@@ -794,7 +808,7 @@ void accelgyrocalMPU9250() {
   writeByte(MPU9250_ADDRESS, GYRO_CONFIG, 0x00);  // Set gyro full-scale to 250 degrees per second, maximum sensitivity
   writeByte(MPU9250_ADDRESS, ACCEL_CONFIG, 0x00); // Set accelerometer full-scale to 2 g, maximum sensitivity
  
-  uint16_t  gyrosensitivity  = 131;   // = 131 LSB/degrees/sec
+  //uint16_t  gyrosensitivity  = 131;   // = 131 LSB/degrees/sec
   uint16_t  accelsensitivity = 16384;  // = 16384 LSB/g
 
   // Configure FIFO to capture accelerometer and gyro data for bias calculation

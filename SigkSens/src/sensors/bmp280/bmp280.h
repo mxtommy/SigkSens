@@ -2,6 +2,7 @@
 #define _bmp280_H_
 
 #include "../../../sigksens.h"
+#include "../sensorStorage.h"
 
 
 class BMP280SensorInfo : public SensorInfo {

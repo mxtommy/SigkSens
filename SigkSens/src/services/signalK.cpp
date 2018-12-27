@@ -1,10 +1,13 @@
+#ifdef ESP8266
 extern "C" {
 #include "user_interface.h"
 }
+#endif
 #include <ArduinoJson.h>     //https://github.com/bblanchon/ArduinoJson
 
 #include "../../config.h"
 #include "../../sigksens.h"
+#include "../sensors/sensorStorage.h"
 
 #include "signalK.h"
 
@@ -20,7 +23,7 @@ void handleSignalK();
 
 
 void setupSignalK() {
-  app.repeat(SLOW_LOOP_DELAY, &handleSignalK);
+  app.onRepeat(SLOW_LOOP_DELAY, handleSignalK);
 }
 
 
@@ -48,7 +51,6 @@ void handleSignalK() {
 
 void receiveDelta(uint8_t * payload) {
   DynamicJsonBuffer jsonBuffer;
-  SensorInfo *si;
   char tempStr[255];
   bool tempBool;
 
@@ -150,6 +152,7 @@ void sendDelta() {
   
   if (signalKClientInfo.connected) { // client
     signalKClientInfo.client.sendTXT(deltaText);
+    ledBlinker.flip();
   }
   
 }

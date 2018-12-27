@@ -1,9 +1,8 @@
-extern "C" {
-#include "user_interface.h"
-}
-
-#include <ESP8266mDNS.h>        // Include the mDNS library
-
+#ifdef ESP8266
+  #include <ESP8266mDNS.h>        // Include the mDNS library
+#elif defined(ESP32)
+  #include <ESPmDNS.h>
+#endif
 
 #include "../../config.h"
 #include "../../sigksens.h"
@@ -19,8 +18,10 @@ WebSocketsServer webSocketServer = WebSocketsServer(81);
 #endif
 
 SignalKClientInfo signalKClientInfo = { 
-  .host = "", 
-  .port = 80, 
+  .configuredHost = "", 
+  .configuredPort = 80, 
+  .activeHost = "",
+  .activePort = 80,
   .path = "/signalk/v1/stream",
   .authToken = "",
   .connected = false
@@ -44,7 +45,7 @@ void setupWebSocket() {
   connectWebSocketClient();
 
   //app.onTick(&handleWebSocket);
-  app.repeat(20, &handleWebSocket); // calling websocket loop every 20ms instead of every tick doubles systemHz :)
+  app.onRepeat(20, handleWebSocket); // calling websocket loop every 20ms instead of every tick doubles systemHz :)
 
 }
 
@@ -71,6 +72,16 @@ bool getWebsocketClientStatus() {
   return skci->connected;
 }
 
+String getWebsocketClientActiveHost() {
+  SignalKClientInfo *skci = &signalKClientInfo;  // save some typing
+  return skci->activeHost;
+}
+
+uint16_t getWebsocketClientActivePort() {
+  SignalKClientInfo *skci = &signalKClientInfo;  // save some typing
+  return skci->activePort;
+}
+
 bool getMDNSService(String &host, uint16_t &port) {
   // get IP address using an mDNS query
   int n = MDNS.queryService("signalk-ws", "tcp");
@@ -80,29 +91,29 @@ bool getMDNSService(String &host, uint16_t &port) {
   } else {
     host = MDNS.IP(0).toString();
     port = MDNS.port(0);
+    Serial.print(F("Found server with IP/Port: "));
+    Serial.print(host); Serial.print(":"); Serial.println(port);
     return true;
   }
 }
 
 void connectWebSocketClient() {
   SignalKClientInfo *skci = &signalKClientInfo;  // save some typing
-  String host = "";
-  uint16_t port = 80;
   String urlArgs = "?subscribe=none";
 
-  if (skci->host.length() == 0) {
-    getMDNSService(host, port);
+  if (skci->configuredHost.length() == 0) {
+    getMDNSService(skci->activeHost, skci->activePort);
   } else {
-    host = skci->host;
-    port = skci->port;
+    skci->activeHost = skci->configuredHost;
+    skci->activePort = skci->configuredPort;
   }
 
-  if ( (host.length() > 0) && 
-       (port > 0) && 
+  if ( (skci->activeHost.length() > 0) && 
+       (skci->activePort > 0) && 
        (skci->path.length() > 0) ) {
     Serial.println(F("Websocket client starting!"));
   } else {
-      app.delay(10000, &connectWebSocketClient);
+      app.onDelay(10000, connectWebSocketClient);
       return;
   }
 
@@ -110,7 +121,7 @@ void connectWebSocketClient() {
     urlArgs = urlArgs + "&token=" + skci->authToken;
   }
 
-  skci->client.begin(host, port, skci->path + urlArgs);
+  skci->client.begin(skci->activeHost, skci->activePort, skci->path + urlArgs);
   skci->connected = true;
 }
 
@@ -119,15 +130,22 @@ void webSocketClientEvent(WStype_t type, uint8_t * payload, size_t length) {
   switch(type) {
     case WStype_DISCONNECTED:
       signalKClientInfo.connected = false;
-      app.delay(10000, &connectWebSocketClient);
+      app.onDelay(10000, connectWebSocketClient);
       Serial.printf("[WSc] Disconnected!\n");
+      ledBlinker.setServerDisconnected();
       break;
-    case WStype_CONNECTED: {
+    case WStype_ERROR:
+      signalKClientInfo.connected = false;
+      app.onDelay(10000, connectWebSocketClient);
+      Serial.printf("[WSc] Error!\n");
+      ledBlinker.setServerDisconnected();
+      break;      
+    case WStype_CONNECTED:
       signalKClientInfo.connected = true;
       Serial.printf("[WSc] Connected to url: %s\n", payload);
+      ledBlinker.setServerConnected();
       // send message to server when Connected
       // webSocket.sendTXT("Connected");
-    }
       break;
     case WStype_TEXT:
       //Serial.printf("[WSc] get text: %s\n", payload);
@@ -142,6 +160,17 @@ void webSocketClientEvent(WStype_t type, uint8_t * payload, size_t length) {
       // send data to server
       // webSocket.sendBIN(payload, length);
       break;
+    case WStype_FRAGMENT_TEXT_START:
+      break;
+    case WStype_FRAGMENT_BIN_START:
+      break;
+    case WStype_FRAGMENT:
+      break;
+    case WStype_FRAGMENT_FIN:
+      break;
+    
+
+
   }
 
 }
@@ -152,6 +181,9 @@ void webSocketServerEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t 
         case WStype_DISCONNECTED:
             Serial.printf("[%u] Disconnected!\n", num);
             break;
+        case WStype_ERROR:
+          Serial.printf("[%u] Unknown Error!\n", num);
+          break;      
         case WStype_CONNECTED:
             {
                 IPAddress ip = webSocketServer.remoteIP(num);
@@ -177,6 +209,15 @@ void webSocketServerEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t 
             // send message to client
             // webSocket.sendBIN(num, payload, length);
             break;
+
+        case WStype_FRAGMENT_TEXT_START:
+          break;
+        case WStype_FRAGMENT_BIN_START:
+          break;
+        case WStype_FRAGMENT:
+          break;
+        case WStype_FRAGMENT_FIN:
+          break;
     }
 
 }

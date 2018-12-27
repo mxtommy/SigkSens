@@ -1,9 +1,3 @@
-
-extern "C" {
-#include "user_interface.h"
-}
-
-
 #include "../../../config.h"
 
 #include "analogIn.h"
@@ -83,8 +77,8 @@ void setupAnalogIn(bool &need_save) {
       need_save = true;
     }
   
-  app.repeat(readADCDelay, &readADC);
-  app.repeat(SLOW_LOOP_DELAY, &updateAnalogIn);
+  app.onRepeat(readADCDelay, readADC);
+  app.onRepeat(SLOW_LOOP_DELAY, updateAnalogIn);
 }
 
 
@@ -104,8 +98,6 @@ void readADC() {
 void updateAnalogIn() {
   // See if there is a signalk path set.
   sensorStorage[(int)SensorType::analogIn].forEach([&](SensorInfo* si){
-    int16_t rawResult;
-  
     if (si->type != SensorType::analogIn) return;
     if (strcmp(si->signalKPath[0].c_str(),  "") != 0) {
       analogInEnabled = true;

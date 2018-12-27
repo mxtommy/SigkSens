@@ -1,6 +1,8 @@
+#ifdef ESP8266
 extern "C" {
 #include "user_interface.h"
 }
+#endif
 
 #include "../../../config.h"
 
@@ -78,7 +80,6 @@ void updateSystemHz();
 
 void setupSystemHz(bool &need_save) {
   systemHzMs = millis();
-  SensorInfo *tmpSensorInfo;
 
   // Setup "sensor" if not already existing
   bool known = sensorStorage[(int)SensorType::local].find(
@@ -90,8 +91,8 @@ void setupSystemHz(bool &need_save) {
     sensorStorage[(int)newSensor->type].add(newSensor);
     need_save = true;
   }
-  app.onTick(&countSystemHz);
-  app.repeat(1000, &updateSystemHz);
+  app.onTick(countSystemHz);
+  app.onRepeat(1000, updateSystemHz);
 }
 
 

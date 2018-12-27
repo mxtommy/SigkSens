@@ -1,7 +1,7 @@
-#include <Reactduino.h>
-
+#include <ReactESP.h>
 
 #include "config.h"
+
 #ifdef ENABLE_I2C
 #include "src/services/i2c.h"
 #endif
@@ -39,12 +39,14 @@
 #include "src/net/webSocket.h"
 #include "src/net/httpd.h"
 #include "src/net/sigKWifi.h"
+#include "src/net/ota.h"
 
 #include "src/services/configReset.h"
 #include "src/services/signalK.h"
 
 
 #include "sigksens.h"
+#include "src/sensors/sensorStorage.h"
 
 /*---------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------
@@ -107,27 +109,27 @@ void setupFromJson() {
   #endif
 }
 
-
 // forward declarations
 void loop_();
 void slow_loop();
 
-Reactduino app([] () {
+ReactESP app([] () {
     bool need_save = false;
   // put your setup code here, to run once:
   Serial.begin(115200);
+
+  ledBlinker.setWifiDisconnected();
 
   setupFromJson();
 
   setupFS();
 
-
   setupWifi();
   loadConfig();
   setupDiscovery();
-  setupHTTP();
   setupWebSocket();
   setupSignalK();
+  setupOTA();
 
   setupConfigReset();
   #ifdef ENABLE_ONEWIRE
@@ -153,9 +155,13 @@ Reactduino app([] () {
     saveConfig();
   }
   
-  Serial.printf("Ready!\n");
+  // call http last so that we can call any needed callbacks.
+  setupHTTP();
 
-  app.repeat(SLOW_LOOP_DELAY, &slow_loop);
+
+  Serial.printf("Ready.\n");
+
+  app.onRepeat(SLOW_LOOP_DELAY, slow_loop);
 
   
 });

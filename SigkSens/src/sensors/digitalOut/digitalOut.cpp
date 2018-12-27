@@ -1,6 +1,8 @@
+#ifdef ESP8266
 extern "C" {
 #include "user_interface.h"
 }
+#endif
 
 #include "../../../config.h"
 
@@ -58,13 +60,13 @@ void updateSensorInfo();
 
 
 void setupDigitalOut(bool &need_save) {
-  for (int index=0;index<(sizeof(digitalOutPins)/sizeof(digitalOutPins[0])); index++) {
+  for (uint32_t index=0;index<(sizeof(digitalOutPins)/sizeof(digitalOutPins[0])); index++) {
     Serial.print(F("Initializing digitalOut pin: "));
     Serial.println(digitalOutPins[index]);
     initializeDigitalOutPin(index, need_save); 
   }
 
-  app.repeat(SLOW_LOOP_DELAY, &updateSensorInfo);
+  app.onRepeat(SLOW_LOOP_DELAY, updateSensorInfo);
 }
 
 
@@ -78,7 +80,6 @@ void updateSensorInfo() {
 
 
 void initializeDigitalOutPin(uint8_t index, bool &need_save) {
-  SensorInfo *si;
 
   pinMode(digitalOutPins[index], OUTPUT);
   digitalWrite(digitalOutPins[index], LOW);
@@ -126,7 +127,7 @@ void digitalOutSetBooleanValue(char * address, bool value) {
 
 
 uint8_t digitalOutGetIndex(char * address) {
-  for (int index=0;index<(sizeof(digitalOutPins)/sizeof(digitalOutPins[0])); index++) {
+  for (uint32_t index=0;index<(sizeof(digitalOutPins)/sizeof(digitalOutPins[0])); index++) {
     if (strcmp(address, digitalOutPinNames[index]) == 0) {
       return index;
     }
