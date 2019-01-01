@@ -5,6 +5,10 @@
 #ifdef ENABLE_I2C
 #include "src/services/i2c.h"
 #endif
+
+#ifdef ENABLE_WINDLASS_CTRL
+  #include "src/sensors/windlassCtrl/windlassCtrl.h"
+#endif
 #ifdef ENABLE_MPU
   #include "src/sensors/mpu9250/mpu9250.h"
 #endif
@@ -135,6 +139,9 @@ ReactESP app([] () {
   #endif
   #ifdef ENABLE_ANALOGIN
   setupAnalogIn(need_save);
+  #endif
+  #ifdef ENABLE_WINDLASS_CTRL
+    setupWindlassCtrl(need_save);
   #endif
   #ifdef ENABLE_SYSTEMHZ
   setupSystemHz();

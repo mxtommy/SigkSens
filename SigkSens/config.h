@@ -16,6 +16,9 @@ Feature selection
 // or add #define <feat> to my_config.h and enable my_config.h at the
 // end of this file.
 
+// Solutions
+#define ENABLE_WINDLASS_CTRL
+
 // Sensors
 
 #define ENABLE_SYSTEMHZ
