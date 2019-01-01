@@ -5,7 +5,6 @@
 #define MAX_SENSOR_ATTRIBUTES 10
 
 enum class SensorType {
-  local,
   digitalIn,
   oneWire,
   sht30,

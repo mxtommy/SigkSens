@@ -5,6 +5,7 @@ extern "C" {
 #endif
 #include <ArduinoJson.h> 
 
+#include "config.h"
 #include "sigksens.h"
 #include "src/services/configStore.h"
 #include "src/services/ledBlinker.h"
@@ -27,14 +28,48 @@ void handleSignalK() {
 }
 
 
-void SignalK::addValue(String path, String jsonValue) {
-  _mapValues[path] = jsonValue;
+void SignalK::addValue(String path, String value) {
+  _mapValues[path] = value;
 }
 
+void SignalK::addValue(String path, bool value) {
+  _mapValues[path] = String(value);
+}
+
+void SignalK::addValue(String path, uint8_t value) {
+  _mapValues[path] = String(value);
+}
+
+void SignalK::addValue(String path, uint16_t value) {
+  _mapValues[path] = String(value);
+}
+
+void SignalK::addValue(String path, uint32_t value) {
+  _mapValues[path] = String(value);
+}
+
+void SignalK::addValue(String path, int8_t value) {
+  _mapValues[path] = String(value);
+}
+
+void SignalK::addValue(String path, int16_t value) {
+  _mapValues[path] = String(value);
+}
+
+void SignalK::addValue(String path, int32_t value) {
+  _mapValues[path] = String(value);
+}
+
+void SignalK::addValue(String path, float value) {
+  _mapValues[path] = String(value);
+}
+
+void SignalK::addValue(String path, double value) {
+  _mapValues[path] = String(value);
+}
 
 void SignalK::handle() {
-  bool needToSend = false;
-  if (!_mapValues.empty) {
+  if (!_mapValues.empty()) {
     String deltaText;
     DynamicJsonBuffer jsonBuffer; 
 
@@ -66,6 +101,7 @@ void SignalK::handle() {
       signalKClientInfo.client.sendTXT(deltaText);
       ledBlinker.flip();
     }
+    _mapValues.clear();
   }
 }
 
@@ -111,6 +147,7 @@ void receiveDelta(uint8_t * payload) {
 
 
 void sendDelta() {
+  /*
   bool needToSend = false;
 
   String deltaText;
@@ -140,6 +177,6 @@ void sendDelta() {
     signalKClientInfo.client.sendTXT(deltaText);
     ledBlinker.flip();
   }
-  
+  */
 }
 

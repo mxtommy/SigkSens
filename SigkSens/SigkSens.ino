@@ -34,7 +34,7 @@
 #endif
 
 #include "FSConfig.h"
-#include "src/services/configStore.h";
+#include "src/services/configStore.h"
 
 #include "src/net/discovery.h"
 #include "src/net/webSocket.h"
@@ -56,11 +56,6 @@ General Setup
 ---------------------------------------------------------------------------------------------------*/
 
 void setupFromJson() {
-  #ifdef ENABLE_SYSTEMHZ
-  fromJson[(int)SensorType::local] =
-    (fromJsonFunc)&(SystemHzSensorInfo::fromJson);
-  #endif
-
   #ifdef ENABLE_DIGITALIN
   fromJson[(int)SensorType::digitalIn] =
     (fromJsonFunc)&(DigitalInSensorInfo::fromJson);
@@ -142,7 +137,7 @@ ReactESP app([] () {
   setupAnalogIn(need_save);
   #endif
   #ifdef ENABLE_SYSTEMHZ
-  setupSystemHz(need_save);
+  setupSystemHz();
   #endif
   
   if (need_save) {
