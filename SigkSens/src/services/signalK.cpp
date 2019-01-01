@@ -3,55 +3,75 @@ extern "C" {
 #include "user_interface.h"
 }
 #endif
-#include <ArduinoJson.h>     //https://github.com/bblanchon/ArduinoJson
+#include <ArduinoJson.h> 
 
-#include "../../config.h"
-#include "../../sigksens.h"
+#include "sigksens.h"
 #include "src/services/configStore.h"
 #include "src/services/ledBlinker.h"
-#include "../sensors/sensorStorage.h"
 
 #include "signalK.h"
 
 #include "../net/webSocket.h"
-
-#ifdef ENABLE_DIGITALOUT
- #include "../sensors/digitalOut/digitalOut.h"
-#endif
+#include <map>
 
 
-// forward declarations
-void handleSignalK();
 
+SignalK signalK;
 
 void setupSignalK() {
-  app.onRepeat(SLOW_LOOP_DELAY, handleSignalK);
+  app.onRepeat(10, handleSignalK); // check for deltas to send every 10ms
+}
+
+void handleSignalK() {
+  signalK.handle(); // not sure onRepeat will work directly with the singlaK Object instance...
 }
 
 
-void handleSignalK() {
+void SignalK::addValue(String path, String jsonValue) {
+  _mapValues[path] = jsonValue;
+}
+
+
+void SignalK::handle() {
   bool needToSend = false;
-  
-  sensorStorageForEach([&](SensorInfo* si) {
-    if (si->isUpdated) {
-      for (int x=0;x<MAX_SENSOR_ATTRIBUTES; x++) { // check if any paths are set.
-        if (strcmp(si->attrName[x].c_str(), "") == 0) {
-          break; // if attr is empty, no more attr's for this sensor
-        } 
-        if (strcmp(si->signalKPath[x].c_str(),  "") != 0) {
-           needToSend = true;
-        }      
-      }
-      
+  if (!_mapValues.empty) {
+    String deltaText;
+    DynamicJsonBuffer jsonBuffer; 
+
+    //  build delta message
+    JsonObject& delta = jsonBuffer.createObject();
+
+    //updated array
+    JsonArray& updatesArr = delta.createNestedArray("updates");
+    JsonObject& thisUpdate = updatesArr.createNestedObject();
+    JsonObject& source = thisUpdate.createNestedObject("source");
+    source["label"] = configStore.getString("myHostname");
+    JsonArray& values = thisUpdate.createNestedArray("values");
+
+    for (const auto& kv : _mapValues) {
+      JsonObject& thisValue = values.createNestedObject();
+      thisValue["path"] = kv.first.c_str();
+      thisValue["value"] = RawJson(kv.second.c_str());
     }
-  });
-  if (needToSend) {
-    sendDelta();
+
+    // Send Deltas
+    delta.printTo(deltaText);
+    #ifdef ENABLE_SERIAL_DELTA
+    Serial.println(deltaText);
+    #endif
+    #ifdef ENABLE_WEBSOCKET_SERVER
+    webSocketServer.broadcastTXT(deltaText);
+    #endif
+    if (signalKClientInfo.connected) { // client
+      signalKClientInfo.client.sendTXT(deltaText);
+      ledBlinker.flip();
+    }
   }
 }
 
 
 void receiveDelta(uint8_t * payload) {
+  /*
   DynamicJsonBuffer jsonBuffer;
   char tempStr[255];
   bool tempBool;
@@ -83,7 +103,7 @@ void receiveDelta(uint8_t * payload) {
       
     }
   }
-  
+  */
 
 
 
@@ -103,44 +123,8 @@ void sendDelta() {
   //updated array
   JsonArray& updatesArr = delta.createNestedArray("updates");
   
-  sensorStorageForEach([&](SensorInfo* si) {
-    if (si->isUpdated) {
-      needToSend = false;
-      //make sure we have paths set for this sensor
-      for (int x=0;x<MAX_SENSOR_ATTRIBUTES; x++) { // check if any paths are set.
-        if (strcmp(si->attrName[x].c_str(), "") == 0) {
-          break; // if attr is empty, no more attr's for this sensor
-        } 
-        if (strcmp(si->signalKPath[x].c_str(),  "") != 0) {
-           needToSend = true;
-        }      
-      }
-      if (needToSend) {
-        JsonObject& thisUpdate = updatesArr.createNestedObject();
 
-        JsonObject& source = thisUpdate.createNestedObject("source");
-        source["label"] = configStore.getString("myHostname");
-        source["src"] = si->address;
-        // values array
-      
-        JsonArray& values = thisUpdate.createNestedArray("values");
 
-        for (int x=0;x<MAX_SENSOR_ATTRIBUTES; x++) {
-          if (strcmp(si->attrName[x].c_str(), "") == 0) {
-            break; // if attr is empty, no more attr's for this sensor
-          } 
-          if (strcmp(si->signalKPath[x].c_str(),  "") == 0) {
-            continue; // no path set for this...
-          }
-          JsonObject& thisValue = values.createNestedObject();
-          thisValue["path"] = si->signalKPath[x].c_str();
-          thisValue["value"] = RawJson(si->valueJson[x].c_str());
-        }
-      }
-      //reset updated
-      si->isUpdated = false;
-    }
-  });
 
   delta.printTo(deltaText);
 
