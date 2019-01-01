@@ -32,9 +32,9 @@ void resetConfig() {
   wifiManager.resetSettings();
   SPIFFS.remove("/config.json");
   for (uint8_t x=0; x<50; x++) { // need delay as resetting right away 
-    digitalWrite(LED_BUILTIN, LOW);  // to cause wifi settings to not erase
+    digitalWrite(LED_PIN, LOW);  // to cause wifi settings to not erase
     delay(20);
-    digitalWrite(LED_BUILTIN, HIGH);
+    digitalWrite(LED_PIN, HIGH);
     delay(20);
   }
 
