@@ -85,14 +85,13 @@ void setupSSDPHttpCallback(AsyncWebServer &server) {
   
 
   server.on("/description.xml", HTTP_GET, [](AsyncWebServerRequest *request){
-      String hostname = configStore.getString("myHostname");
       StreamString output;
       if(output.reserve(1024)){
         IPAddress ip = WiFi.localIP();
         uint32_t chipId = 12345;
         output.printf(ssdpTemplate,
           ip[0], ip[1], ip[2], ip[3],
-          hostname,
+          configStore.getString("myHostname").c_str(),
           chipId,
           modelName,
           modelNumber,
