@@ -33,7 +33,12 @@ void SignalK::addValue(String path, String value) {
 }
 
 void SignalK::addValue(String path, bool value) {
-  _mapValues[path] = String(value);
+  if (value) {
+    _mapValues[path] = String("true");
+  } else {
+    _mapValues[path] = String("false");
+  }
+  
 }
 
 void SignalK::addValue(String path, uint8_t value) {
