@@ -1,6 +1,8 @@
 #ifndef _webSocket_H_
 #define _webSocket_H_
 
+#include "config.h"
+
 #ifdef ENABLE_WEBSOCKET_SERVER
   #include <WebSocketsServer.h>
 #endif

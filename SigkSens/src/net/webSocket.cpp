@@ -5,13 +5,12 @@
 #endif
 
 #include "../../config.h"
-#include "../../sigksens.h"
+#include "sigksens.h"
+#include "src/services/configStore.h"
 #include "src/services/ledBlinker.h"
-#include "../services/signalK.h"
+#include "src/services/signalK.h"
 
-
-
-#include "webSocket.h"
+#include "src/net/webSocket.h"
 
 
 #ifdef ENABLE_WEBSOCKET_SERVER
@@ -19,7 +18,7 @@ WebSocketsServer webSocketServer = WebSocketsServer(81);
 #endif
 
 SignalKClientInfo signalKClientInfo = { 
-  .configuredHost = "", 
+  .configuredHost = "",  
   .configuredPort = 80, 
   .activeHost = "",
   .activePort = 80,
@@ -118,8 +117,8 @@ void connectWebSocketClient() {
       return;
   }
 
-  if (skci->authToken != "") {
-    urlArgs = urlArgs + "&token=" + skci->authToken;
+  if (configStore.getString("accessToken", "") != "") {
+    urlArgs = urlArgs + "&token=" + configStore.getString("accessToken");
   }
 
   skci->client.begin(skci->activeHost, skci->activePort, skci->path + urlArgs);
@@ -145,6 +144,9 @@ void webSocketClientEvent(WStype_t type, uint8_t * payload, size_t length) {
       signalKClientInfo.connected = true;
       Serial.printf("[WSc] Connected to url: %s\n", payload);
       ledBlinker.setServerConnected();
+      if (configStore.getString("accessToken") == "") {
+        signalK.requestAuth();
+      }
       // send message to server when Connected
       // webSocket.sendTXT("Connected");
       break;

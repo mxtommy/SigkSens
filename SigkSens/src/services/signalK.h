@@ -28,6 +28,8 @@ class SignalK {
     void sendDeltas();
     void receiveDelta(uint8_t * payload);
 
+    void requestAuth();
+
     void handle();
 };
 

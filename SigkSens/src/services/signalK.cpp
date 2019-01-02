@@ -114,20 +114,46 @@ void SignalK::registerCallbackBool(String key, void (* CallbackFunction)(bool)) 
   _mapCallbackBool[key] = CallbackFunction;
 }
 
+void SignalK::requestAuth() {
+  String requestText;
+  DynamicJsonBuffer jsonBuffer; 
+  JsonObject& root = jsonBuffer.createObject();
+  root["requestId"] = uuidv4();
+  JsonObject& request = root.createNestedObject("accessRequest");
+  request["clientId"] = configStore.getString("myUUID", uuidv4());
+  request["description"] = configStore.getString("myHostname");
+  request["permissions"] = "readwrite";
+  root.printTo(requestText);
+  #ifdef ENABLE_SERIAL_DELTA
+    Serial.println(requestText);
+  #endif
+  if (signalKClientInfo.connected) { // client
+      signalKClientInfo.client.sendTXT(requestText);
+      ledBlinker.flip();
+  }
+}
+
 void SignalK::receiveDelta(uint8_t * payload) {
   Serial.println("receivingDelta");
-  /*
   DynamicJsonBuffer jsonBuffer;
-  char tempStr[255];
-  bool tempBool;
+//  char tempStr[255];
+//  bool tempBool;
 
   JsonObject& root = jsonBuffer.parseObject(payload);
   if (!root.success()) {
     Serial.println(F("parseObject() failed"));
     return;
   }
-  //root.prettyPrintTo(Serial);
-
+  root.prettyPrintTo(Serial);
+  if (root.containsKey("accessRequest")) {
+    JsonObject& accessRequest = root["accessRequest"];
+    if (accessRequest.containsKey("token")) {
+      configStore.putString("accessToken", accessRequest["token"]);
+      Serial.println ("Got new token!");
+    }
+    
+  }
+/*
   if (root.containsKey("put")) {
     for (uint8_t i=0; i < root["put"].size(); i++) {
       strcpy(tempStr, root["put"][i]["path"]);
