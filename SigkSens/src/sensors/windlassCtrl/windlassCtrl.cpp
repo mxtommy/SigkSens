@@ -5,13 +5,17 @@ extern "C" {
 #endif
 
 #include "config.h"
-
+#include "src/sensors/windlassCtrl/config.h"
+#include "sigksens.h" // for React app
+#include "src/services/configStore.h"
+#include "src/services/signalK.h"
 #include "windlassCtrl.h"
 
 WindlassStates windlassState = idle;
 uint32_t lastEventTime = 0;
 
-
+//forward declerations
+void handleCallbackUp(bool newValue);
 
 
 
@@ -97,5 +101,16 @@ void setupWindlassCtrl() {
   pinMode(WINDLASS_OUTPUT_CHANNEL2_PIN, OUTPUT);
   digitalWrite(WINDLASS_OUTPUT_CHANNEL1_PIN, LOW); 
   digitalWrite(WINDLASS_OUTPUT_CHANNEL2_PIN, LOW);
+
+  //sets default if not already defined :)
+  configStore.getString("pathWindlassUp",   "electrical.windlass.up");
+  configStore.getString("pathWindlassDown", "electrical.windlass.down");
+
+  signalK.registerCallbackBool("pathWindlassUp", &handleCallbackUp);
+
+
 }
 
+void handleCallbackUp(bool newValue) {
+  Serial.println("OMG....");
+}

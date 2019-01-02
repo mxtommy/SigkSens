@@ -11,7 +11,7 @@ enum WindlassStates {
   idleWait
 };
 
-void setupWindlassCtrl(bool&);
+void setupWindlassCtrl();
 void handleWindlassCtrl();
 
 

@@ -24,7 +24,7 @@ void setupSignalK() {
 }
 
 void handleSignalK() {
-  signalK.handle(); // not sure onRepeat will work directly with the singlaK Object instance...
+  signalK.sendDeltas(); // not sure onRepeat will work directly with the singlaK Object instance...
 }
 
 
@@ -68,7 +68,7 @@ void SignalK::addValue(String path, double value) {
   _mapValues[path] = String(value);
 }
 
-void SignalK::handle() {
+void SignalK::sendDeltas() {
   if (!_mapValues.empty()) {
     String deltaText;
     DynamicJsonBuffer jsonBuffer; 
@@ -105,8 +105,12 @@ void SignalK::handle() {
   }
 }
 
+void SignalK::registerCallbackBool(String key, void (* CallbackFunction)(bool)) {
+  _mapCallbackBool[key] = CallbackFunction;
+}
 
-void receiveDelta(uint8_t * payload) {
+void SignalK::receiveDelta(uint8_t * payload) {
+  Serial.println("receivingDelta");
   /*
   DynamicJsonBuffer jsonBuffer;
   char tempStr[255];

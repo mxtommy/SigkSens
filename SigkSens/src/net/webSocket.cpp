@@ -150,7 +150,7 @@ void webSocketClientEvent(WStype_t type, uint8_t * payload, size_t length) {
       break;
     case WStype_TEXT:
       //Serial.printf("[WSc] get text: %s\n", payload);
-      receiveDelta(payload);
+      signalK.receiveDelta(payload);
       // send message to server
       // webSocket.sendTXT("message here");
       break;

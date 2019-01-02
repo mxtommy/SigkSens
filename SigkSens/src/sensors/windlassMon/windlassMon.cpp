@@ -5,8 +5,10 @@ extern "C" {
 #endif
 
 #include "config.h"
-#include "sigksens.h"
-
+#include "src/sensors/windlassMon/config.h"
+#include "sigksens.h" // for React app
+#include "src/services/configStore.h"
+#include "src/services/signalK.h"
 #include "windlassMon.h"
 
 // forward decleration
@@ -24,8 +26,9 @@ uint32_t channel2ChangeTime = 0;
 uint32_t chainCounterCount = 0;
 
 
-/*
+
 void handleWindlassMonitor() {
+  /*
   if (digitalRead(WINDLASS_STATE_CHANNEL1_PIN) == HIGH) {
     channel1Monitor = true; //active
   } else {
@@ -37,11 +40,11 @@ void handleWindlassMonitor() {
     channel1MonitorLast = channel1Monitor;
     channel1ChangeTime = millis();
   }
-
-
-
+  */
+  signalK.addValue(configStore.getString("pathWindlassUp"),   (bool)digitalRead(WINDLASS_STATE_CHANNEL1_PIN));
+  signalK.addValue(configStore.getString("pathWindlassDown"), (bool)digitalRead(WINDLASS_STATE_CHANNEL2_PIN));
 }
-*/
+
 
 
 
@@ -52,4 +55,10 @@ void setupWindlassMon() {
   pinMode(WINDLASS_STATE_CHANNEL1_PIN, INPUT);
   pinMode(WINDLASS_STATE_CHANNEL2_PIN, INPUT);
   pinMode(WINDLASS_COUNT_PIN, INPUT);
+
+  //sets default if not already defined :)
+  configStore.getString("pathWindlassUp",   "electrical.windlass.up");
+  configStore.getString("pathWindlassDown", "electrical.windlass.down");
+
+  app.onRepeat(1000, handleWindlassMonitor);
 }
