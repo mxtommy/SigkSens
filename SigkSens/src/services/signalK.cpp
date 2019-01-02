@@ -135,14 +135,9 @@ void receiveDelta(uint8_t * payload) {
           }
         }
       });
-
       
     }
-  }
-  */
-
-
-
+  } */
 }
 
 

@@ -11,14 +11,8 @@ extern "C" {
 WindlassStates windlassState = idle;
 uint32_t lastEventTime = 0;
 
-bool channel1Monitor = false;
-bool channel1MonitorLast = false;
-bool channel2Monitor = false;
-bool channel2MonitorLast = false;
-uint32_t channel1ChangeTime = 0;
-uint32_t channel2ChangeTime = 0;
 
-uint32_t chainCounterCount = 0;
+
 
 
 void setWindlassChannel1Active() {
@@ -97,41 +91,11 @@ void handleWindlassCtrl() {
 }
 
 
-
-/*
-void handleWindlassMonitor() {
-  if (digitalRead(WINDLASS_STATE_CHANNEL1_PIN) == HIGH) {
-    channel1Monitor = true; //active
-  } else {
-    channel1Monitor = false; //not active
-  }
-
-  if (channel1Monitor && !channel1MonitorLast) { 
-    //just changed!
-    channel1MonitorLast = channel1Monitor;
-    channel1ChangeTime = millis();
-  }
-
-
-
-}
-*/
-
-
-
-
-void setupWindlassCtrl(bool &need_save) {
+void setupWindlassCtrl() {
   //CTRL
   pinMode(WINDLASS_OUTPUT_CHANNEL1_PIN, OUTPUT);
   pinMode(WINDLASS_OUTPUT_CHANNEL2_PIN, OUTPUT);
-  digitalWrite(WINDLASS_OUTPUT_CHANNEL1_PIN, LOW);
+  digitalWrite(WINDLASS_OUTPUT_CHANNEL1_PIN, LOW); 
   digitalWrite(WINDLASS_OUTPUT_CHANNEL2_PIN, LOW);
-  //MON
-  pinMode(WINDLASS_STATE_CHANNEL1_PIN, INPUT);
-  pinMode(WINDLASS_STATE_CHANNEL2_PIN, INPUT);
-  pinMode(WINDLASS_COUNT_PIN, INPUT);
 }
-
-
-
 

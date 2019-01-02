@@ -141,7 +141,10 @@ ReactESP app([] () {
   setupAnalogIn(need_save);
   #endif
   #ifdef ENABLE_WINDLASS_CTRL
-    setupWindlassCtrl(need_save);
+    setupWindlassCtrl();
+  #endif
+  #ifdef ENABLE_WINDLASS_MON
+    setupWindlassMon();
   #endif
   #ifdef ENABLE_SYSTEMHZ
   setupSystemHz();
