@@ -2,7 +2,6 @@
 
 #include "../../config.h"
 #include "../../sigksens.h"
-#include "../../FSConfig.h"
 #include "src/services/configStore.h"
 #include "src/services/ledBlinker.h"
 #include "sigKWifi.h"
@@ -40,7 +39,6 @@ void setupWifi() {
   if (shouldSaveConfig) {
     configStore.putString("myHostname", custom_hostname.getValue());
     configStore.saveConfig();
-    saveConfig(); // builds rest of old config? :) 
     // For some reason, connection isn't properly established after exiting the
     // captive portal. Just reset to be safe.
     ESP.restart();

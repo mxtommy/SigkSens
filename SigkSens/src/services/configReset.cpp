@@ -30,7 +30,7 @@ void resetConfig() {
   Serial.println(F("Resetting Config!"));
   delay(200);
   wifiManager.resetSettings();
-  SPIFFS.remove("/config.json");
+  SPIFFS.format();
   for (uint8_t x=0; x<50; x++) { // need delay as resetting right away 
     digitalWrite(LED_PIN, LOW);  // to cause wifi settings to not erase
     delay(20);

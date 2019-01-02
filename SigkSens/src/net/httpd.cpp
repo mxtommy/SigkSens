@@ -18,7 +18,6 @@
 #include "../../config.h"
 #include "httpd.h"
 
-#include "../../FSConfig.h"
 #include "src/services/configStore.h"
 #include "webSocket.h"
 #include "../../sigksens.h"
@@ -133,57 +132,28 @@ void handleNotFound(AsyncWebServerRequest *request) {
 }
 
 
-void httpNewHostname(AsyncWebServerRequest *request) {
-  if(!request->hasArg("hostname")) {
-    request->send(400, "text/plain", "missing arg 'hostname'");
+void httpSetKeyValue(AsyncWebServerRequest *request) {
+  if(!request->hasArg("key")) {
+    request->send(400, "text/plain", "missing arg 'key'");
     return;
   }
-  configStore.putString("myHostname", request->arg("hostname"));
-  app.onDelay(0, &saveConfig);
-  request->send(200, "application/json", "{ \"success\": true }");
-}
-
-
-void httpSetSignalKHost(AsyncWebServerRequest *request) {
-  if(!request->hasArg("host")) {
-    request->send(400, "text/plain", "missing arg 'host'"); 
+  if(!request->hasArg("dataType")) {
+    request->send(400, "text/plain", "missing arg 'dataType'");
     return;
   }
-  signalKClientInfo.configuredHost = request->arg("host");
-  app.onDelay(0, &saveConfig);
-  app.onDelay(0, &restartWebSocketClient);
-  request->send(200, "application/json", "{ \"success\": true }");
-}
-
-
-void httpSetSignalKPort(AsyncWebServerRequest *request) {
-  if(!request->hasArg("port")) {
-    request->send(500, "text/plain", "missing arg 'port'");
-    return;
+  if (request->arg("dataType") == "String") {
+    configStore.putString(request->arg("key").c_str(), request->arg("value"));
   }
-  signalKClientInfo.configuredPort = request->arg("port").toInt();
-  app.onDelay(0, &saveConfig);
-  app.onDelay(0, &restartWebSocketClient);
-  request->send(200, "application/json", "{ \"success\": true }");
+  
 }
 
-
-void httpSetSignalKPath(AsyncWebServerRequest *request) {
-  if(!request->hasArg("path")) {request->send(500, "text/plain", "missing arg 'path'"); return;}
-  signalKClientInfo.path = request->arg("path");
-  app.onDelay(0, &saveConfig);
-  app.onDelay(0, &restartWebSocketClient);
-  request->send(200, "application/json", "{ \"success\": true }");
+void httpReboot(AsyncWebServerRequest *request) {
+  #ifdef ESP8266
+    ESP.reset();
+  #elif defined(ESP32)
+    ESP.restart();
+  #endif
 }
-
-void httpSetSignalKToken(AsyncWebServerRequest *request) {
-  if(!request->hasArg("token")) {request->send(500, "text/plain", "missing arg 'token'"); return;}
-  signalKClientInfo.authToken = request->arg("token");
-  app.onDelay(0, &saveConfig);
-  app.onDelay(0, &restartWebSocketClient);
-  request->send(200, "application/json", "{ \"success\": true }");
-}
-
 
 void httpGetSensorInfo(AsyncWebServerRequest *request) {
   AsyncJsonResponse * response = new AsyncJsonResponse();
@@ -202,7 +172,7 @@ void httpGetSensorInfo(AsyncWebServerRequest *request) {
   json["websocketClientConnectedPort"] = getWebsocketClientActivePort();
   json["websocketClientConnected"] = getWebsocketClientStatus();
   //Sensor types present
-
+/*
   //Sensors
   JsonArray& sensorArr = json.createNestedArray("sensors");
   
@@ -210,14 +180,14 @@ void httpGetSensorInfo(AsyncWebServerRequest *request) {
     JsonObject& tmpSens = sensorArr.createNestedObject();
     si->toJson(tmpSens);
   });
-
+*/
   response->setLength();
   request->send(response);
 }
 
+/*
 
 void httpSetSensorAttr(AsyncWebServerRequest *request) {
-  
   char pathStr[MAX_SIGNALK_PATH_LEN];
   char address[32];
   char attrName[32];
@@ -264,7 +234,7 @@ void httpSetSensorAttr(AsyncWebServerRequest *request) {
   }
   
 }
-
+*/
 /* no longer used, leaving it here as it may be useful?
 void httpSetTimerDelay(AsyncWebServerRequest *request) {
   uint32_t newDelay = 0;
@@ -343,20 +313,13 @@ void setupHTTP() {
   server.on("/getSensorInfo", HTTP_GET, httpGetSensorInfo);
 
   //server.on("/getMPUCalibration", HTTP_GET, httpGetMPUCalibration);
-  server.on("/setSensorPath", HTTP_GET, httpSetSensorAttr); //path for legacy
-  server.on("/setSensorAttr", HTTP_GET, httpSetSensorAttr);
-
-  server.on("/setNewHostname", HTTP_GET, httpNewHostname);
-
-  server.on("/setSignalKHost", HTTP_GET, httpSetSignalKHost);
-  server.on("/setSignalKPort", HTTP_GET, httpSetSignalKPort);
-  server.on("/setSignalKPath", HTTP_GET, httpSetSignalKPath);
-  server.on("/setSignalKToken", HTTP_GET, httpSetSignalKToken);
-
+  
+  server.on("/set", HTTP_GET, httpSetKeyValue);
   server.on("/signalk", HTTP_GET, httpSignalKEndpoints);
   server.on("/signalk/", HTTP_GET, httpSignalKEndpoints);
   
   server.on("/resetConfig", HTTP_GET, httpResetConfig);
+  server.on("/restart", HTTP_GET, httpReboot);
 
   //setup sensor callbacks
   sensorStorageForEach([&](SensorInfo* si) {

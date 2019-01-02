@@ -6,12 +6,8 @@
 #include "src/services/i2c.h"
 #endif
 
-#ifdef ENABLE_WINDLASS_CTRL
-  #include "src/sensors/windlassCtrl/windlassCtrl.h"
-#endif
-#ifdef ENABLE_WINDLASS_MON
-  #include "src/sensors/windlassMon/windlassMon.h"
-#endif
+
+/*
 #ifdef ENABLE_MPU
   #include "src/sensors/mpu9250/mpu9250.h"
 #endif
@@ -36,11 +32,18 @@
 #ifdef ENABLE_ANALOGIN
   #include "src/sensors/analogIn/analogIn.h"
 #endif
+*/
+#ifdef ENABLE_WINDLASS_CTRL
+  #include "src/sensors/windlassCtrl/windlassCtrl.h"
+#endif
+#ifdef ENABLE_WINDLASS_MON
+  #include "src/sensors/windlassMon/windlassMon.h"
+#endif
 #ifdef ENABLE_SYSTEMHZ
   #include "src/sensors/systemHz/systemHz.h"
 #endif
 
-#include "FSConfig.h"
+#include "src/services/filesystem.h"
 #include "src/services/configStore.h"
 
 #include "src/net/discovery.h"
@@ -61,7 +64,7 @@
 General Setup
 -----------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------*/
-
+/*
 void setupFromJson() {
   #ifdef ENABLE_DIGITALIN
   fromJson[(int)SensorType::digitalIn] =
@@ -103,31 +106,31 @@ void setupFromJson() {
     (fromJsonFunc)&(BMP280SensorInfo::fromJson);
   #endif
 }
-
+*/
 // forward declarations
 void loop_();
 void slow_loop();
 
 ReactESP app([] () {
-    bool need_save = false;
+
   // put your setup code here, to run once:
   Serial.begin(115200);
 
   ledBlinker.setWifiDisconnected();
 
-  setupFromJson();
+  //setupFromJson();
 
-  setupFS();
+  setupFilesystem();
   configStore.begin("/newConfig.json");
 
   setupWifi();
-  loadConfig();
   setupDiscovery();
   setupWebSocket();
   setupSignalK();
   setupOTA();
 
   setupConfigReset();
+  /*
   #ifdef ENABLE_ONEWIRE
   setup1Wire(need_save);
   #endif
@@ -143,6 +146,7 @@ ReactESP app([] () {
   #ifdef ENABLE_ANALOGIN
   setupAnalogIn(need_save);
   #endif
+  */
   #ifdef ENABLE_WINDLASS_CTRL
     setupWindlassCtrl();
   #endif
@@ -150,12 +154,8 @@ ReactESP app([] () {
     setupWindlassMon();
   #endif
   #ifdef ENABLE_SYSTEMHZ
-  setupSystemHz();
+    setupSystemHz();
   #endif
-  
-  if (need_save) {
-    saveConfig();
-  }
   
   // call http last so that we can call any needed callbacks.
   setupHTTP();
@@ -164,7 +164,6 @@ ReactESP app([] () {
   Serial.printf("Ready.\n");
 
   app.onRepeat(SLOW_LOOP_DELAY, slow_loop);
-
   
 });
 

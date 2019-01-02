@@ -12,7 +12,6 @@ extern "C" {
 
 
 #include "../../../config.h"
-#include "../../../FSConfig.h"
 
 #include "oneWire.h"
 
@@ -106,11 +105,12 @@ void setup1Wire(bool &need_save) {
 }
 
 void onewire_scan_loop() {
-  bool need_save = false;
+  //TODO
+  /*bool need_save = false;
   oneWireScanBus(need_save);
   if (need_save) {
     saveConfig();
-  }
+  }*/
 }
 
 // debug function to print a device address
