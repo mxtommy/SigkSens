@@ -34,13 +34,13 @@
 #endif
 */
 #ifdef ENABLE_WINDLASS_CTRL
-  #include "src/sensors/windlassCtrl/windlassCtrl.h"
+  #include "src/components/windlassCtrl/windlassCtrl.h"
 #endif
 #ifdef ENABLE_WINDLASS_MON
-  #include "src/sensors/windlassMon/windlassMon.h"
+  #include "src/components/windlassMon/windlassMon.h"
 #endif
 #ifdef ENABLE_SYSTEMHZ
-  #include "src/sensors/systemHz/systemHz.h"
+  #include "src/components/systemHz/systemHz.h"
 #endif
 
 #include "src/services/filesystem.h"
