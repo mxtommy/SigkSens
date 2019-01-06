@@ -16,7 +16,7 @@ Feature selection
 // or add #define <feat> to my_config.h and enable my_config.h at the
 // end of this file.
 
-// Sensors
+// components
 
 #define ENABLE_SYSTEMHZ
 //#define ENABLE_DIGITALIN
@@ -25,6 +25,7 @@ Feature selection
 //#define ENABLE_ONEWIRE
 //#define ENABLE_WINDLASS_CTRL
 //#define ENABLE_WINDLASS_MON
+//#define ENABLE_SIMPLE_TANK_LEVEL
 
 // if any of these are enabled, make sure ENABLE_I2C below is as well.
 //#define ENABLE_I2C

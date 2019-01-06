@@ -33,6 +33,9 @@
   #include "src/sensors/analogIn/analogIn.h"
 #endif
 */
+#ifdef ENABLE_SIMPLE_TANK_LEVEL
+  #include "src/components/simpleTankLevel/simpleTankLevel.h"
+#endif
 #ifdef ENABLE_WINDLASS_CTRL
   #include "src/components/windlassCtrl/windlassCtrl.h"
 #endif
@@ -152,6 +155,9 @@ ReactESP app([] () {
   #endif
   #ifdef ENABLE_WINDLASS_MON
     setupWindlassMon();
+  #endif
+  #ifdef ENABLE_SIMPLE_TANK_LEVEL
+    setupSimpleTankLevel();
   #endif
   #ifdef ENABLE_SYSTEMHZ
     setupSystemHz();
