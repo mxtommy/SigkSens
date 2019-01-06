@@ -121,7 +121,7 @@ ReactESP app([] () {
   //setupFromJson();
 
   setupFilesystem();
-  configStore.begin("/newConfig.json");
+  configStore.begin(CONFIG_FILENAME);
 
   setupWifi();
   setupDiscovery();

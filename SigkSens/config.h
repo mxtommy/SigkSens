@@ -23,8 +23,8 @@ Feature selection
 //#define ENABLE_DIGITALOUT
 //#define ENABLE_ANALOGIN
 //#define ENABLE_ONEWIRE
-//#define ENABLE_WINDLASS_CTRL
-//#define ENABLE_WINDLASS_MON
+#define ENABLE_WINDLASS_CTRL
+#define ENABLE_WINDLASS_MON
 
 // if any of these are enabled, make sure ENABLE_I2C below is as well.
 //#define ENABLE_I2C
@@ -107,6 +107,10 @@ Defines
 
 #define SHORT_BUTTON_PRESS_MS 1000
 #define LONG_BUTTON_PRESS_MS 5000
+
+// name of the file to use in SPIFFS. 
+// Should not need to be changed. Make sure to have "/"
+#define CONFIG_FILENAME "/newConfig.json" 
 
 // if you want to use the optional my_config.h file
 // to override configuration constants, 

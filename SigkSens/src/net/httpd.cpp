@@ -19,8 +19,8 @@
 #include "httpd.h"
 
 #include "src/services/configStore.h"
-#include "webSocket.h"
-#include "../../sigksens.h"
+#include "src/net/webSocket.h"
+#include "sigksens.h"
 #include "../sensors/sensorStorage.h"
 #include "discovery.h"
 #include "../services/configReset.h"
@@ -75,13 +75,14 @@ HTTP
 
 AsyncWebServer server(HTTP_PORT);
 
+/* No static files for the moment
 void createStaticFiles() {
   if (!SPIFFS.exists("/web/index.html")) {
     File f = SPIFFS.open("/web/index.html", "w");
     f.println("Hello, world!");
     f.close();
   }
-}
+} */
 
 
 void handleNotFound(AsyncWebServerRequest *request) {
@@ -131,6 +132,9 @@ void handleNotFound(AsyncWebServerRequest *request) {
   request->send(404);
 }
 
+void httpGetConfig(AsyncWebServerRequest *request) {
+  request->send(SPIFFS, CONFIG_FILENAME, "application/json");
+}
 
 void httpSetKeyValue(AsyncWebServerRequest *request) {
   if(!request->hasArg("key")) {
@@ -158,15 +162,6 @@ void httpReboot(AsyncWebServerRequest *request) {
 void httpGetSensorInfo(AsyncWebServerRequest *request) {
   AsyncJsonResponse * response = new AsyncJsonResponse();
   JsonObject& json = response->getRoot();
-
-  //Info
-  json["hostname"] = configStore.getString("myHostname");
-
-  //sigk
-  json["signalKHost"] = configStore.getString("signalKServerHost");
-  json["signalKPort"] = configStore.getUInt16("signalKServerPort");
-  json["signalKPath"] = configStore.getString("signalKURLPath");
-  json["signalKToken"] = configStore.getString("accessToken");
 
   json["websocketClientConnected"] = getWebsocketClientStatus();
   //Sensor types present
@@ -296,8 +291,6 @@ void httpResetConfig(AsyncWebServerRequest *request) {
 void setupHTTP() {
   Serial.println(F("starting webserver"));
 
-  createStaticFiles();
-
   server.onNotFound(handleNotFound);
 
   server.on("/",[](AsyncWebServerRequest *request ) {
@@ -310,9 +303,8 @@ void setupHTTP() {
 
   server.on("/getSensorInfo", HTTP_GET, httpGetSensorInfo);
 
-  //server.on("/getMPUCalibration", HTTP_GET, httpGetMPUCalibration);
-  
-  server.on("/set", HTTP_GET, httpSetKeyValue);
+  server.on("/getConfig", HTTP_GET, httpGetConfig);
+  server.on("/set", HTTP_POST, httpSetKeyValue);
   server.on("/signalk", HTTP_GET, httpSignalKEndpoints);
   server.on("/signalk/", HTTP_GET, httpSignalKEndpoints);
   
