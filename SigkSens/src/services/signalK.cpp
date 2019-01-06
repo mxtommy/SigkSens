@@ -150,6 +150,7 @@ void SignalK::receiveDelta(uint8_t * payload) {
     if (accessRequest.containsKey("token")) {
       configStore.putString("accessToken", accessRequest["token"]);
       Serial.println ("Got new token!");
+      restartWebSocketClient();
     }
     
   }

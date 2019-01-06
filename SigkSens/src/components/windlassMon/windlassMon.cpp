@@ -5,11 +5,12 @@ extern "C" {
 #endif
 
 #include "config.h"
-#include "src/sensors/windlassMon/config.h"
 #include "sigksens.h" // for React app
 #include "src/services/configStore.h"
 #include "src/services/signalK.h"
-#include "windlassMon.h"
+
+#include "src/components/windlassMon/config.h"
+#include "src/components/windlassMon/windlassMon.h"
 
 // forward decleration
 void handleWindlassMon();

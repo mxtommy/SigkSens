@@ -18,12 +18,6 @@ WebSocketsServer webSocketServer = WebSocketsServer(81);
 #endif
 
 SignalKClientInfo signalKClientInfo = { 
-  .configuredHost = "",  
-  .configuredPort = 80, 
-  .activeHost = "",
-  .activePort = 80,
-  .path = "/signalk/v1/stream",
-  .authToken = "",
   .connected = false
 };
 
@@ -42,9 +36,13 @@ void setupWebSocket() {
   #endif
   signalKClientInfo.client.onEvent(webSocketClientEvent);
 
-  connectWebSocketClient();
+  //sets defaults if not set already :)
+  configStore.getString("signalKServerHost", "");
+  configStore.getUInt16("signalKServerPort", 80);
+  configStore.getString("signalKURLPath", "/signalk/v1/stream");
+  configStore.getString("accessToken","");
 
-  //app.onTick(&handleWebSocket);
+  connectWebSocketClient();
   app.onRepeat(20, handleWebSocket); // calling websocket loop every 20ms instead of every tick doubles systemHz :)
 
 }
@@ -72,27 +70,17 @@ bool getWebsocketClientStatus() {
   return skci->connected;
 }
 
-String getWebsocketClientActiveHost() {
-  SignalKClientInfo *skci = &signalKClientInfo;  // save some typing
-  return skci->activeHost;
-}
-
-uint16_t getWebsocketClientActivePort() {
-  SignalKClientInfo *skci = &signalKClientInfo;  // save some typing
-  return skci->activePort;
-}
-
-bool getMDNSService(String &host, uint16_t &port) {
+bool getMDNSService() {
   // get IP address using an mDNS query
   int n = MDNS.queryService("signalk-ws", "tcp");
   if (n==0) {
     // no service found
     return false;
   } else {
-    host = MDNS.IP(0).toString();
-    port = MDNS.port(0);
+    configStore.putString("signalKServerHost" ,MDNS.IP(0).toString());
+    configStore.putUInt16("signalKServerPort", MDNS.port(0));
     Serial.print(F("Found server with IP/Port: "));
-    Serial.print(host); Serial.print(":"); Serial.println(port);
+    Serial.print(MDNS.IP(0).toString()); Serial.print(":"); Serial.println(MDNS.port(0));
     return true;
   }
 }
@@ -101,27 +89,23 @@ void connectWebSocketClient() {
   SignalKClientInfo *skci = &signalKClientInfo;  // save some typing
   String urlArgs = "?subscribe=none";
 
-  if (skci->configuredHost.length() == 0) {
-    getMDNSService(skci->activeHost, skci->activePort);
-  } else {
-    skci->activeHost = skci->configuredHost;
-    skci->activePort = skci->configuredPort;
-  }
-
-  if ( (skci->activeHost.length() > 0) && 
-       (skci->activePort > 0) && 
-       (skci->path.length() > 0) ) {
+  if (configStore.getString("signalKServerHost").length() == 0) {
+    getMDNSService();
+  } 
+  if ( (configStore.getString("signalKServerHost").length() > 0) && 
+       (configStore.getUInt16("signalKServerPort") > 0) && 
+       (configStore.getString("signalKURLPath").length() > 0) ) {
     Serial.println(F("Websocket client starting!"));
   } else {
-      app.onDelay(10000, connectWebSocketClient);
+      app.onDelay(10000, connectWebSocketClient); //retry in 10 sec
       return;
   }
 
-  if (configStore.getString("accessToken", "") != "") {
+  if (configStore.getString("accessToken").length() > 0) {
     urlArgs = urlArgs + "&token=" + configStore.getString("accessToken");
   }
 
-  skci->client.begin(skci->activeHost, skci->activePort, skci->path + urlArgs);
+  skci->client.begin(configStore.getString("signalKServerHost"), configStore.getUInt16("signalKServerPort"), configStore.getString("signalKURLPath") + urlArgs);
   skci->connected = true;
 }
 

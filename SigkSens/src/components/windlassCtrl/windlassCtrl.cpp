@@ -5,11 +5,12 @@ extern "C" {
 #endif
 
 #include "config.h"
-#include "src/sensors/windlassCtrl/config.h"
 #include "sigksens.h" // for React app
 #include "src/services/configStore.h"
 #include "src/services/signalK.h"
-#include "windlassCtrl.h"
+
+#include "src/components/windlassCtrl/config.h"
+#include "src/components/windlassCtrl/windlassCtrl.h"
 
 WindlassStates windlassState = idle;
 uint32_t lastEventTime = 0;

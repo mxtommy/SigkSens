@@ -163,13 +163,11 @@ void httpGetSensorInfo(AsyncWebServerRequest *request) {
   json["hostname"] = configStore.getString("myHostname");
 
   //sigk
-  json["signalKHost"] = signalKClientInfo.configuredHost;
-  json["signalKPort"] = signalKClientInfo.configuredPort;
-  json["signalKPath"] = signalKClientInfo.path;
-  json["signalKToken"] = signalKClientInfo.authToken;
+  json["signalKHost"] = configStore.getString("signalKServerHost");
+  json["signalKPort"] = configStore.getUInt16("signalKServerPort");
+  json["signalKPath"] = configStore.getString("signalKURLPath");
+  json["signalKToken"] = configStore.getString("accessToken");
 
-  json["websocketClientConnectedHost"] = getWebsocketClientActiveHost();
-  json["websocketClientConnectedPort"] = getWebsocketClientActivePort();
   json["websocketClientConnected"] = getWebsocketClientStatus();
   //Sensor types present
 /*

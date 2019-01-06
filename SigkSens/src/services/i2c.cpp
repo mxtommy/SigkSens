@@ -48,7 +48,7 @@ void scanAllI2C() {
   }
 }
 
-void setupI2C(bool &need_save) {
+void setupI2C() {
   //Wire.setClock(0000L);
 
   Wire.begin();
@@ -63,7 +63,6 @@ void setupI2C(bool &need_save) {
       Serial.print(F("New SHT Sensor found at: 0x45 "));
       SensorInfo *newSensor = new SHT30SensorInfo("0x45");
       sensorStorage[(int)newSensor->type].add(newSensor);
-      need_save = true;
     }    
     setupSHT30();
   }
@@ -76,7 +75,6 @@ void setupI2C(bool &need_save) {
       Serial.print(F("New MPU925X found at: 0x68 "));
       SensorInfo *newSensor = new MPU9250SensorInfo("0x68");
       sensorStorage[(int)newSensor->type].add(newSensor);
-      need_save = true;
     }    
     setupMPU9250();
   }
@@ -89,7 +87,6 @@ void setupI2C(bool &need_save) {
       Serial.print(F("New BMP280 found at: 0x77 "));
       SensorInfo *newSensor = new BMP280SensorInfo("0x77");
       sensorStorage[(int)newSensor->type].add(newSensor);
-      need_save = true;
     }
     setupBMP280();
   }
@@ -102,7 +99,6 @@ void setupI2C(bool &need_save) {
     if (!known) {
       SensorInfo *newSensor = new ADSSensorInfo("0x48");
       sensorStorage[(int)newSensor->type].add(newSensor);
-      need_save = true;
     }    
     setupADS1115();
   }
