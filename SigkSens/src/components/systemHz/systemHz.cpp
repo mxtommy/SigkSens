@@ -23,6 +23,7 @@ void setupSystemHz() {
   systemHzMs = millis();
   
   //sets default if not already defined
+  configStore.getBool("enableSystemHz", true);
   configStore.getString("pathSystemHz",       String("sensors.") + configStore.getString("myHostname") + String(".systemHz"));
   configStore.getString("pathSystemFreeMem",  String("sensors.") + configStore.getString("myHostname") + String(".freeMem"));
   configStore.getString("pathSystemUptime",   String("sensors.") + configStore.getString("myHostname") + String(".uptime"));
@@ -37,6 +38,7 @@ void countSystemHz() {
 
 
 void updateSystemHz() {
+  if (!configStore.getBool("enableSystemHz")) { return; }
   uint32_t elapsed = millis() - systemHzMs;
   
   if (elapsed == 0) { return; } // getting sporadic divide by 0 exceptions, no harm in skipping a loop.

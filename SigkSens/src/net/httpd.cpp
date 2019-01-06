@@ -30,42 +30,20 @@
 
 // Simple web page to view deltas
 const char INDEX_PAGE[] PROGMEM = R"foo(
-<html>
-<head>
-  <title>Deltas</title>
-  <meta charset="utf-8">
-  <script type="text/javascript">
-    var WebSocket = WebSocket || MozWebSocket;
-    var lastDelta = Date.now();
-    var serverUrl = "ws://" + window.location.hostname + ":81";
-
-    connection = new WebSocket(serverUrl);
-
-    connection.onopen = function(evt) {
-      console.log("Connected!");
-      document.getElementById("box").innerHTML = "Connected!";
-      document.getElementById("last").innerHTML = "Last: N/A";
-    };
-
-    connection.onmessage = function(evt) {
-      var msg = JSON.parse(evt.data);
-      document.getElementById("box").innerHTML = JSON.stringify(msg, null, 2);
-      document.getElementById("last").innerHTML = "Last: " + ((Date.now() - lastDelta)/1000).toFixed(2) + " seconds";
-      lastDelta = Date.now();
-    };
-
-    setInterval(function(){
-      document.getElementById("age").innerHTML = "Age: " + ((Date.now() - lastDelta)/1000).toFixed(1) + " seconds";
-    }, 50);
-  </script>
-</head>
-<body>
-  <h3>Last Delta</h3>
-  <pre width="100%" height="50%" id="box">Not Connected yet</pre>
-  <div id="last"></div>
-  <div id="age"></div>
-</body>
-</html>
+<html><head><title>Deltas</title><meta charset="utf-8"><script type="text/javascript">var WebSocket=WebSocket||MozWebSocket;var lastDelta=Date.now();var serverWsUrl="ws://"+window.location.hostname+":81";var serverUrl="http://"+window.location.hostname;var paths={};var pathAge={};connection=new WebSocket(serverWsUrl);connection.onopen=function(evt){console.log("Connected!");document.getElementById("box").innerHTML="Status: Connected!"};connection.onmessage=function(evt){var msg=JSON.parse(evt.data);msg.updates[0].values.forEach(function(pathData){paths[pathData.path]=pathData.value;pathAge[pathData.path]=Date.now()});updateValues()
+lastDelta=Date.now()};function updateValues(){var newTbody="";for(var path in paths){newTbody=newTbody+"<tr><td>"+path+"</td><td>"+paths[path]+"</td><td>"+((Date.now()-pathAge[path])/1000).toFixed(1)+"</td></tr>"}
+document.getElementById("deltaValues").innerHTML=newTbody}
+setInterval(function(){document.getElementById("age").innerHTML="Time since last delta: "+((Date.now()-lastDelta)/1000).toFixed(1)+" seconds";updateValues()},50);fetch(serverUrl+"/getConfig").then((resp)=>resp.json()).then(function(data){var newTbody="";Object.keys(data).sort().forEach(function(key,idx){newTbody=newTbody+"<tr><td>"+key+"</td><td>";switch(data[key].dataType){case "string":newTbody=newTbody+"<input id=\""+key+"\" type='text' value=\""+data[key].value+"\">";break;case "boolean":newTbody=newTbody+"<select id=\""+key+"\"><option value='true'";if(data[key].value){newTbody=newTbody+" SELECTED"}
+newTbody=newTbody+">True</option><option value='false'";if(!data[key].value){newTbody=newTbody+" SELECTED"}
+newTbody=newTbody+">False</Option></select>";break;case "int8":newTbody=newTbody+"<input id=\""+key+"\" type='number' min=-127 max=127 value=\""+data[key].value+"\">";break;case "uint8":newTbody=newTbody+"<input id=\""+key+"\" type='number' min=0 max=255 value=\""+data[key].value+"\">";break;case "int16":newTbody=newTbody+"<input id=\""+key+"\" type='number' min=-32767 max=32767 value=\""+data[key].value+"\">";break;case "uint16":newTbody=newTbody+"<input id=\""+key+"\" type='number' min=0 max=65535 value=\""+data[key].value+"\">";break;case "int32":case "uint32":newTbody=newTbody+"<input id=\""+key+"\" type='number'value=\""+data[key].value+"\">";break}
+newTbody=newTbody+"</td><td><button id=\"button"+key+"\" onclick=\"postConfig('"+key+"', '"+data[key].dataType+"')\">Set</button></td></tr>"});document.getElementById("formTable").innerHTML=newTbody}).catch(function(error){console.log(error);alert(error)})
+function postConfig(configKey,configDataType){document.getElementById("button"+configKey).innerHTML="Saving";let newValue=document.getElementById(configKey).value;let data="key="+encodeURIComponent(configKey)+"&dataType="+encodeURIComponent(configDataType)+"&value="+encodeURIComponent(newValue);let fetchData={method:'POST',body:data,headers:{'Content-type':'application/x-www-form-urlencoded;charset=UTF-8'}};fetch(serverUrl+"/set",fetchData).then((resp)=>resp.json()).then(function(data){document.getElementById("button"+configKey).innerHTML="Saved!";console.log(data)}).catch(function(error){document.getElementById("button"+configKey).innerHTML="Error!";console.log(error);alert(error)})}</script><style>html{font-family:Helvetica;display:inline-block;margin:0px auto;text-align:center}
+h1{color:#0F3376;padding:2vh}
+p{font-size:1.5rem}
+table{margin-left:auto;margin-right:auto}
+th{background-color:rgb(158,233,247)}
+th,td{border-bottom:1px solid #ddd}
+form{margin-block-end:0px}</style></head><body><h1>SigKSens</h1><h2>Current Values</h2><table><thead><tr><th>Path</th><th>Value</th><th>Age</th></tr></thead><tbody id="deltaValues"></tbody></table><div id="box">Status:Not Connected yet</div><div id="age"></div><h2>Configuration</h2><table><thead><tr><th>Config</th><th>Value</th><th></th></tr></thead><tbody id="formTable"></tbody></table></body></html>
 )foo";
 
 /*----------------------------------------------------------------------------
@@ -100,8 +78,11 @@ void handleNotFound(AsyncWebServerRequest *request) {
     Serial.printf("PATCH");
   else if(request->method() == HTTP_HEAD)
     Serial.printf("HEAD");
-  else if(request->method() == HTTP_OPTIONS)
-    Serial.printf("OPTIONS");
+  else if(request->method() == HTTP_OPTIONS) {
+    AsyncWebServerResponse *response = request->beginResponse(200, "application/json", "{ \"success\": true }");
+    response->addHeader("Access-Control-Allow-Headers", "Content-Type");
+    request->send(response); // when posting needed for CORS pre-flight
+  }
   else
     Serial.printf("UNKNOWN");
   Serial.printf(" http://%s%s\n", request->host().c_str(), request->url().c_str());
@@ -134,22 +115,32 @@ void handleNotFound(AsyncWebServerRequest *request) {
 }
 
 void httpGetConfig(AsyncWebServerRequest *request) {
-  request->send(SPIFFS, CONFIG_FILENAME, "application/json");
+  AsyncWebServerResponse *response = request->beginResponse(SPIFFS, CONFIG_FILENAME, "application/json");
+  request->send(response);
 }
 
 void httpSetKeyValue(AsyncWebServerRequest *request) {
   if(!request->hasArg("key")) {
-    request->send(400, "text/plain", "missing arg 'key'");
-    return;
+    request->send(400, "application/json", "{ \"success\": false, \"message\": \"missing arg 'key'\" }");    return;
   }
   if(!request->hasArg("dataType")) {
-    request->send(400, "text/plain", "missing arg 'dataType'");
+    request->send(400, "application/json", "{ \"success\": false, \"message\": \"missing arg 'dataType'\" }");
     return;
   }
-  if (request->arg("dataType") == "String") {
+  if (request->arg("dataType") == "string") {
     configStore.putString(request->arg("key").c_str(), request->arg("value"));
+    request->send(200, "application/json", "{ \"success\": true }");
+    return;
+  } else if (request->arg("dataType") == "boolean") {
+    bool newValue = false;
+    if (request->arg("value") == "true") {
+      newValue = true;
+    }
+    configStore.putBool(request->arg("key").c_str(), newValue);
+    request->send(200, "application/json", "{ \"success\": true }");
+    return;
   }
-  
+  request->send(400, "application/json", "{ \"success\": false }");
 }
 
 void httpReboot(AsyncWebServerRequest *request) {
@@ -179,83 +170,6 @@ void httpGetSensorInfo(AsyncWebServerRequest *request) {
   request->send(response);
 }
 
-/*
-
-void httpSetSensorAttr(AsyncWebServerRequest *request) {
-  char pathStr[MAX_SIGNALK_PATH_LEN];
-  char address[32];
-  char attrName[32];
-  bool found = false;
-
-  Serial.println(F("Setting attributes for Sensor"));
-  if(!request->hasArg("address")) {request->send(400, "text/plain", "missing arg 'address'"); return;}
-  if(!request->hasArg("attrName")) {request->send(400, "text/plain", "missing arg 'attrName'"); return;}
-  
-  request->arg("address").toCharArray(address, 32);
-  request->arg("attrName").toCharArray(attrName, 32);
-
-
-  //for (int x=0;x<sensorStorage.size() ; x++) 
-  sensorStorageForEach([&](SensorInfo* si) {
-    if (strcmp(si->address, address) == 0) {
-      // found our sensor, now find index
-      for (int y=0; y<MAX_SENSOR_ATTRIBUTES; y++) {
-        if (strcmp(si->attrName[y].c_str(), attrName) == 0) {
-          //  found index!
-          if(request->hasArg("path")) {
-            request->arg("path").toCharArray(pathStr, MAX_SIGNALK_PATH_LEN);
-            si->signalKPath[y] = pathStr;
-          }
-          
-          if(request->hasArg("offset")) {
-            si->offset[y] = request->arg("offset").toFloat();
-          }
-          if(request->hasArg("scale")) {
-            si->scale[y] = request->arg("scale").toFloat();
-          }          
-          
-          found = true;          
-        }
-      }     
-    }
-  });
-
-  if (found) {
-    app.onDelay(0, &saveConfig);
-    request->send(200, "application/json", "{ \"success\": true }");
-  } else {
-    request->send(400, "application/json", "{ \"success\": false }");
-  }
-  
-}
-*/
-/* no longer used, leaving it here as it may be useful?
-void httpSetTimerDelay(AsyncWebServerRequest *request) {
-  uint32_t newDelay = 0;
-  char timer[15];
-  bool ok = false;
-
-  Serial.print(F("Setting Timer delay"));
-  if(!request->hasArg("timer")) {request->send(400, "text/plain", "missing arg 'timer'"); return;}
-  if(!request->hasArg("delay")) {request->send(400, "text/plain", "missing arg 'delay'"); return;}
-
-  request->arg("timer").toCharArray(timer, 15);
-  newDelay = request->arg("delay").toInt();
-
-  if (newDelay > 5) { //ostimer min delay is 5ms
-    if (strcmp(timer, "deltaDelay") == 0) {
-      ok = true;
-    }
-  }
-
-  if (ok) {
-    app.onDelay(0, &saveConfig);
-    request->send(200, "application/json", "{ \"success\": true }");
-  } else {
-    request->send(400, "application/json", "{ \"success\": false }");
-  }
-}
-*/
 
 void httpSignalKEndpoints(AsyncWebServerRequest *request) {
   IPAddress ip;  
@@ -317,6 +231,6 @@ void setupHTTP() {
     si->setupWebServerHooks(server);
   });
   setupSSDPHttpCallback(server);
-
+  DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*"); //CORSS...
   server.begin();
 }
