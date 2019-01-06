@@ -82,9 +82,28 @@ void setupDiscovery() {
 
 
 void setupSSDPHttpCallback(AsyncWebServer &server) {
-  
-
+  //not sure why two paths. The libraries maybe?
   server.on("/description.xml", HTTP_GET, [](AsyncWebServerRequest *request){
+      StreamString output;
+      if(output.reserve(1024)){
+        IPAddress ip = WiFi.localIP();
+        uint32_t chipId = 12345;
+        output.printf(ssdpTemplate,
+          ip[0], ip[1], ip[2], ip[3],
+          configStore.getString("myHostname").c_str(),
+          chipId,
+          modelName,
+          modelNumber,
+          (uint8_t) ((chipId >> 16) & 0xff),
+          (uint8_t) ((chipId >>  8) & 0xff),
+          (uint8_t)   chipId        & 0xff
+        );
+        request->send(200, "text/xml", (String)output);
+      } else {
+        request->send(500);
+      }
+    });
+  server.on("/ssdp/schema.xml", HTTP_GET, [](AsyncWebServerRequest *request){
       StreamString output;
       if(output.reserve(1024)){
         IPAddress ip = WiFi.localIP();
