@@ -25,6 +25,7 @@ void handleWebSocket();
 bool getWebsocketClientStatus();
 String getWebsocketClientActiveHost();
 uint16_t getWebsocketClientActivePort();
+bool getMDNSService();
 void restartWebSocketClient();
 
 #endif

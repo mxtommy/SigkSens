@@ -46,49 +46,51 @@
 
 
         /* get config */
+    function getConfig() {
+      fetch(serverUrl + "/getConfig")
+      .then((resp) => resp.json())
+      .then(function(data) { 
+        var newTbody = "";
+        Object.keys(data).sort().forEach(function(key, idx) {
+          newTbody = newTbody + "<tr><td>" + key + "</td><td>";
+          switch (data[key].dataType) {
+            case "string":
+              newTbody = newTbody + "<input id=\"" + key + "\" type='text' value=\"" + data[key].value + "\">";
+              break;
+            case "boolean":
+              newTbody = newTbody + "<select id=\"" + key + "\"><option value='true'";
+              if (data[key].value) { newTbody = newTbody + " SELECTED" ;} 
+              newTbody = newTbody + ">True</option><option value='false'";
+              if (!data[key].value) { newTbody = newTbody + " SELECTED" ;}
+              newTbody = newTbody + ">False</Option></select>";
+              break;            
+            case "int8":
+              newTbody = newTbody + "<input id=\"" + key + "\" type='number' min=-127 max=127 value=\"" + data[key].value + "\">";
+              break;
+            case "uint8":
+              newTbody = newTbody + "<input id=\"" + key + "\" type='number' min=0 max=255 value=\"" + data[key].value + "\">";
+              break;
+            case "int16":
+              newTbody = newTbody + "<input id=\"" + key + "\" type='number' min=-32767 max=32767 value=\"" + data[key].value + "\">";
+              break;          
+            case "uint16":
+              newTbody = newTbody + "<input id=\"" + key + "\" type='number' min=0 max=65535 value=\"" + data[key].value + "\">";
+              break;          
+            case "int32":
+            case "uint32":
+              newTbody = newTbody + "<input id=\"" + key + "\" type='number'value=\"" + data[key].value + "\">";
+              break;          
+          }
 
-    fetch(serverUrl + "/getConfig")
-    .then((resp) => resp.json())
-    .then(function(data) { 
-      var newTbody = "";
-      Object.keys(data).sort().forEach(function(key, idx) {
-        newTbody = newTbody + "<tr><td>" + key + "</td><td>";
-        switch (data[key].dataType) {
-          case "string":
-            newTbody = newTbody + "<input id=\"" + key + "\" type='text' value=\"" + data[key].value + "\">";
-            break;
-          case "boolean":
-            newTbody = newTbody + "<select id=\"" + key + "\"><option value='true'";
-            if (data[key].value) { newTbody = newTbody + " SELECTED" ;} 
-            newTbody = newTbody + ">True</option><option value='false'";
-            if (!data[key].value) { newTbody = newTbody + " SELECTED" ;}
-            newTbody = newTbody + ">False</Option></select>";
-            break;            
-          case "int8":
-            newTbody = newTbody + "<input id=\"" + key + "\" type='number' min=-127 max=127 value=\"" + data[key].value + "\">";
-            break;
-          case "uint8":
-            newTbody = newTbody + "<input id=\"" + key + "\" type='number' min=0 max=255 value=\"" + data[key].value + "\">";
-            break;
-          case "int16":
-            newTbody = newTbody + "<input id=\"" + key + "\" type='number' min=-32767 max=32767 value=\"" + data[key].value + "\">";
-            break;          
-          case "uint16":
-            newTbody = newTbody + "<input id=\"" + key + "\" type='number' min=0 max=65535 value=\"" + data[key].value + "\">";
-            break;          
-          case "int32":
-          case "uint32":
-            newTbody = newTbody + "<input id=\"" + key + "\" type='number'value=\"" + data[key].value + "\">";
-            break;          
-        }
-
-        newTbody = newTbody + "</td><td><button id=\"button"+key+"\" onclick=\"postConfig('"+key+"', '"+ data[key].dataType +"')\">Set</button></td></tr>";
+          newTbody = newTbody + "</td><td><button id=\"button"+key+"\" onclick=\"postConfig('"+key+"', '"+ data[key].dataType +"')\">Set</button></td></tr>";
+          
+        });
+        document.getElementById("formTable").innerHTML = newTbody;
         
-      });
-      document.getElementById("formTable").innerHTML = newTbody;
-      
-    })
-    .catch(function(error) { console.log(error); alert(error); })
+      })
+      .catch(function(error) { console.log(error); alert(error); });
+    }
+
 
     // POST Config
     function postConfig(configKey, configDataType) {
@@ -108,12 +110,26 @@
       })
       .catch(function(error) { 
         document.getElementById("button"+configKey).innerHTML = "Error!";
-        console.log(error); alert(error); })
+        console.log(error); alert(error); });
 
     }
 
+    function getURL(url, buttonId, reloadConfig = false) {
+      fetch(serverUrl + url)
+      .then((resp) => resp.json())
+      .then(function(data) { 
+        document.getElementById(buttonId).innerHTML = "Done!";
+        if (reloadConfig) { 
+          setTimeout(function(){ getConfig(); }, 1000); //getConfig grabs config from flash, need to leave time for config to be written to flash :)
+        }
+        console.log(data);
+      })
+      .catch(function(error) { 
+        document.getElementById(buttonId).innerHTML = "Error!";
+        console.log(error); alert(error); });
+    }
 
-
+    getConfig(); //get config initially
   </script>
   <style>
 html {
@@ -156,6 +172,12 @@ form {
   </table>
   <div id="box">Status: Not Connected yet</div>
   <div id="age"></div>
+  <h2>Actions</h2>
+  <div>
+    <button id="buttonReboot" onclick="getURL('/restart', 'buttonReboot')">Reboot</button>
+    <button id="buttonReset" onclick="getURL('/resetConfig', 'buttonReset')">Reset all Configuration</button>
+    <button id="buttonDiscover" onclick="getURL('/rediscover', 'buttonDiscover', true)">Rediscover server</button>
+  </div>
   <h2>Configuration</h2>
   <table>
     <thead>
