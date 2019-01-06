@@ -42,58 +42,31 @@ bool ConfigStore::begin(const char * name) {
       root.prettyPrintTo(Serial);
       configFile.close();
 
-      //bool
-      JsonObject& nodeBool = root["bool"];
-      for (auto kvp : nodeBool) {
-        _mapBool[kvp.key] = kvp.value;
+      for (auto kvp : root) {
+        JsonObject& kv = root[kvp.key];
+        if (kv["dataType"] == "boolean") {
+          _mapBool[kvp.key] = kv["value"];
+        } else if (kv["dataType"] == "string") {
+          String temp = kv["value"];
+          _mapString[kvp.key] = temp;
+        } else if (kv["dataType"] == "float") {
+          _mapFloat[kvp.key] = kv["value"];
+        } else if (kv["dataType"] == "double") {
+          _mapDouble[kvp.key] = kv["value"];
+        } else if (kv["dataType"] == "int8") {
+          _mapInt8[kvp.key] = kv["value"];
+        } else if (kv["dataType"] == "uint8") {
+          _mapUInt8[kvp.key] = kv["value"];
+        } else if (kv["dataType"] == "int16") {
+          _mapInt16[kvp.key] = kv["value"];
+        } else if (kv["dataType"] == "uint16") {
+          _mapUInt16[kvp.key] = kv["value"];
+        } else if (kv["dataType"] == "int32") {
+          _mapInt32[kvp.key] = kv["value"];
+        } else if (kv["dataType"] == "uint32") {
+          _mapUInt32[kvp.key] = kv["value"];
+        }
       }
-      //String
-      JsonObject& nodeString = root["string"];
-      for (auto kvp : nodeString) {
-        String temp = kvp.value;
-        _mapString[kvp.key] = temp;
-      }
-      //float
-      JsonObject& nodeFloat = root["float"];
-      for (auto kvp : nodeFloat) {
-        _mapFloat[kvp.key] = kvp.value;
-      }
-      //double
-      JsonObject& nodeDouble = root["double"];
-      for (auto kvp : nodeDouble) {
-        _mapDouble[kvp.key] = kvp.value;
-      }
-      //int8
-      JsonObject& nodeInt8 = root["int8"];
-      for (auto kvp : nodeInt8) {
-        _mapInt8[kvp.key] = kvp.value;
-      }
-      //uint8
-      JsonObject& nodeUInt8 = root["uint8"];
-      for (auto kvp : nodeUInt8) {
-        _mapUInt8[kvp.key] = kvp.value;
-      }
-      //int16
-      JsonObject& nodeInt16 = root["int16"];
-      for (auto kvp : nodeInt16) {
-        _mapInt16[kvp.key] = kvp.value;
-      }
-      //uint16
-      JsonObject& nodeUInt16 = root["uint16"];
-      for (auto kvp : nodeUInt16) {
-        _mapUInt16[kvp.key] = kvp.value;
-      }
-      //int32
-      JsonObject& nodeInt32 = root["int32"];
-      for (auto kvp : nodeInt32) {
-        _mapInt32[kvp.key] = kvp.value;
-      }
-      //uint32
-      JsonObject& nodeUInt32 = root["uint32"];
-      for (auto kvp : nodeUInt32) {
-        _mapUInt32[kvp.key] = kvp.value;
-      }
-
       _started = true;
       jsonBuffer.clear();
       return true;
@@ -114,54 +87,64 @@ void ConfigStore::saveConfig() {
   DynamicJsonBuffer jsonBuffer;
   JsonObject& root = jsonBuffer.createObject();
   //bool
-  JsonObject& nodeBool = root.createNestedObject("bool");
   for (const auto& kv : _mapBool) {
-    nodeBool[kv.first] = kv.second ;
+    JsonObject& tmp = root.createNestedObject(kv.first);
+    tmp["value"] = kv.second;
+    tmp["dataType"] = "boolean";
   }
   //String
-  JsonObject& nodeString = root.createNestedObject("string");
   for (const auto& kv : _mapString) {
-    nodeString[kv.first] = kv.second ;
+    JsonObject& tmp = root.createNestedObject(kv.first);
+    tmp["value"] = kv.second;
+    tmp["dataType"] = "string";
   }
   //Float
-  JsonObject& nodeFloat = root.createNestedObject("float");
   for (const auto& kv : _mapFloat) {
-    nodeFloat[kv.first] = kv.second ;
+    JsonObject& tmp = root.createNestedObject(kv.first);
+    tmp["value"] = kv.second;
+    tmp["dataType"] = "float";
   }
   //Double
-  JsonObject& nodeDouble = root.createNestedObject("double");
   for (const auto& kv : _mapDouble) {
-    nodeDouble[kv.first] = kv.second ;
+    JsonObject& tmp = root.createNestedObject(kv.first);
+    tmp["value"] = kv.second;
+    tmp["dataType"] = "double";
   }
   //Int8
-  JsonObject& nodeInt8 = root.createNestedObject("int8");
   for (const auto& kv : _mapInt8) {
-    nodeInt8[kv.first] = kv.second ;
+    JsonObject& tmp = root.createNestedObject(kv.first);
+    tmp["value"] = kv.second;
+    tmp["dataType"] = "int8";
   }
  //UInt8
-  JsonObject& nodeUInt8 = root.createNestedObject("uint8");
   for (const auto& kv : _mapUInt8) {
-    nodeUInt8[kv.first] = kv.second ;
+    JsonObject& tmp = root.createNestedObject(kv.first);
+    tmp["value"] = kv.second;
+    tmp["dataType"] = "uint8";
   }  
   //Int16
-  JsonObject& nodeInt16 = root.createNestedObject("int16");
   for (const auto& kv : _mapInt16) {
-    nodeInt16[kv.first] = kv.second ;
+    JsonObject& tmp = root.createNestedObject(kv.first);
+    tmp["value"] = kv.second;
+    tmp["dataType"] = "int16";
   }
  //UInt16
-  JsonObject& nodeUInt16 = root.createNestedObject("uint16");
   for (const auto& kv : _mapUInt16) {
-    nodeUInt16[kv.first] = kv.second ;
+    JsonObject& tmp = root.createNestedObject(kv.first);
+    tmp["value"] = kv.second;
+    tmp["dataType"] = "uint16";
   }
   //Int32
-  JsonObject& nodeInt32 = root.createNestedObject("int32");
   for (const auto& kv : _mapInt16) {
-    nodeInt32[kv.first] = kv.second ;
+    JsonObject& tmp = root.createNestedObject(kv.first);
+    tmp["value"] = kv.second;
+    tmp["dataType"] = "int32";
   }
  //UInt32
-  JsonObject& nodeUInt32 = root.createNestedObject("uint32");
   for (const auto& kv : _mapUInt32) {
-    nodeUInt32[kv.first] = kv.second ;
+    JsonObject& tmp = root.createNestedObject(kv.first);
+    tmp["value"] = kv.second;
+    tmp["dataType"] = "uint32";
   }
 
   File configFile = SPIFFS.open(_configFileName, "w");

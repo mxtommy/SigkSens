@@ -19,12 +19,13 @@
 #include "httpd.h"
 
 #include "src/services/configStore.h"
-#include "src/net/webSocket.h"
 #include "sigksens.h"
 #include "../sensors/sensorStorage.h"
-#include "discovery.h"
-#include "../services/configReset.h"
 
+
+#include "src/services/configReset.h"
+#include "src/net/webSocket.h"
+#include "src/net/discovery.h"
 
 
 // Simple web page to view deltas
