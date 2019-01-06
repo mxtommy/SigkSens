@@ -81,22 +81,22 @@ void setup1Wire(bool &need_save) {
   
   sensors.setWaitForConversion(false);
 
-  Serial.print("1-Wire Parasite power is: "); 
-  if (sensors.isParasitePowerMode()) Serial.println("ON");
-  else Serial.println("OFF");
+  Serial.print(F("1-Wire Parasite power is: ")); 
+  if (sensors.isParasitePowerMode()) Serial.println(F("ON"));
+  else Serial.println(F("OFF"));
 
-  Serial.print("1-Wire Device precision currently: ");
+  Serial.print(F("1-Wire Device precision currently: "));
   Serial.print(sensors.getResolution());
-  Serial.print(" setting to ");
+  Serial.print(F(" setting to "));
   Serial.print(TEMPERATURE_PRECISION);
   sensors.setResolution(TEMPERATURE_PRECISION);
-  Serial.println(" Done!");
+  Serial.println(F(" Done!"));
 
-  Serial.print("Starting 1-Wire scanning timer at: ");
+  Serial.print(F("Starting 1-Wire scanning timer at: "));
   Serial.print(oneWireScanDelay);
-  Serial.println("ms");
+  Serial.println(F("ms"));
 
-  Serial.println("Scanning 1-Wire Bus");
+  Serial.println(F("Scanning 1-Wire Bus"));
 
   oneWireScanBus(need_save);
 
@@ -118,10 +118,10 @@ void printAddress(DeviceAddress deviceAddress) {
  for (uint8_t i = 0; i < 8; i++)
   {
     // zero pad the address if necessary
-    if (deviceAddress[i] < 16) Serial.print("0");
+    if (deviceAddress[i] < 16) Serial.print(F("0"));
     Serial.print(deviceAddress[i], HEX);
     if (i < 7) {
-      Serial.print(":");
+      Serial.print(F(":"));
     }
   }
 }
@@ -193,9 +193,9 @@ void oneWireScanBus(bool &need_save) {
         strAddress) != nullptr;
 
       if (!known) {
-        Serial.print("New Sensor found: ");
+        Serial.print(F("New Sensor found: "));
         Serial.print(strAddress);
-        Serial.println("");
+        Serial.println(F(""));
         OneWireSensorInfo *newSensor = new OneWireSensorInfo(strAddress);
         sensorStorage[(int)newSensor->type].add(newSensor);
         need_save = true;

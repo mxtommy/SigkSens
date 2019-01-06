@@ -134,7 +134,7 @@ void SignalK::requestAuth() {
 }
 
 void SignalK::receiveDelta(uint8_t * payload) {
-  Serial.println("receivingDelta");
+  Serial.println(F("receivingDelta"));
   DynamicJsonBuffer jsonBuffer;
 //  char tempStr[255];
 //  bool tempBool;

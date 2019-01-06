@@ -60,7 +60,7 @@ AsyncWebServer server(HTTP_PORT);
 void createStaticFiles() {
   if (!SPIFFS.exists("/web/index.html")) {
     File f = SPIFFS.open("/web/index.html", "w");
-    f.println("Hello, world!");
+    f.println(F("Hello, world!"));
     f.close();
   }
 } */

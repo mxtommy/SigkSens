@@ -80,7 +80,7 @@ bool getMDNSService() {
     configStore.putString("signalKServerHost" ,MDNS.IP(0).toString());
     configStore.putUInt16("signalKServerPort", MDNS.port(0));
     Serial.print(F("Found server with IP/Port: "));
-    Serial.print(MDNS.IP(0).toString()); Serial.print(":"); Serial.println(MDNS.port(0));
+    Serial.print(MDNS.IP(0).toString()); Serial.print(F(":")); Serial.println(MDNS.port(0));
     return true;
   }
 }

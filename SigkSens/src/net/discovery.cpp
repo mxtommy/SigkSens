@@ -74,7 +74,7 @@ void setupDiscovery() {
   device.friendlyName((char*)"ESP32-WROVER");
   device.presentationURL((char*)"/");
   SSDP.begin(&device);
-  Serial.println("SSDP Started");
+  Serial.println(F("SSDP Started"));
 
   app.onRepeat(30, handleSSDP);
   

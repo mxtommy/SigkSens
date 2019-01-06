@@ -113,5 +113,5 @@ void setupWindlassCtrl() {
 }
 
 void handleCallbackUp(bool newValue) {
-  Serial.println("OMG....");
+  Serial.println(F("OMG...."));
 }

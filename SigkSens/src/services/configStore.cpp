@@ -154,7 +154,7 @@ void ConfigStore::saveConfig() {
   root.printTo(configFile);
   configFile.close();
   root.prettyPrintTo(Serial);
-  Serial.println("Configuration saved to SPIFFS");
+  Serial.println(F("Configuration saved to SPIFFS"));
 }
 
 

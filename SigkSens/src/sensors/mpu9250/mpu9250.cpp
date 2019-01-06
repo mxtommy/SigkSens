@@ -130,19 +130,19 @@ void MPU9250SensorInfo::toJson(JsonObject &jsonSens) {
 MpuRunMode mpuRunMode = MpuRunMode::mpuOff;
 
 void httpMpuCalAccelGyro(AsyncWebServerRequest *request) {
-  Serial.println("Starting Accel and Gyro ");
+  Serial.println(F("Starting Accel and Gyro "));
   mpuRunMode = MpuRunMode::calAccelGyro;
   request->send(200, "application/json", "{ \"success\": true }");
 }
 
 void httpMpuCalMagStart(AsyncWebServerRequest *request) {
-  Serial.println("Starting Magnometer Calibration...");
+  Serial.println(F("Starting Magnometer Calibration..."));
   mpuRunMode = MpuRunMode::calMagStart;
   request->send(200, "application/json", "{ \"success\": true }");
 }
 
 void httpMpuCalMagStop(AsyncWebServerRequest *request) {
-  Serial.println("Stoping Magnometer Calibration...");
+  Serial.println(F("Stoping Magnometer Calibration..."));
   mpuRunMode = MpuRunMode::calMagStop;
   request->send(200, "application/json", "{ \"success\": true }");
 }
@@ -251,18 +251,18 @@ void setupMPU9250() {
     loadAccelAndGyroBiases(); // load calibration into MPU
 
     initMPU9250(); 
-    Serial.println("MPU925X initialized...");
+    Serial.println(F("MPU925X initialized..."));
 
     AK8963isValid = testAK8963();
     if (AK8963isValid) {
       initAK8963(magCalibration); 
-      Serial.println("AK8963 initialized... Mag hardware cablibration");
-      Serial.print("X-Axis sensitivity adjustment value "); Serial.println(magCalibration[0], 2);
-      Serial.print("Y-Axis sensitivity adjustment value "); Serial.println(magCalibration[1], 2);
-      Serial.print("Z-Axis sensitivity adjustment value "); Serial.println(magCalibration[2], 2);
+      Serial.println(F("AK8963 initialized... Mag hardware cablibration"));
+      Serial.print(F("X-Axis sensitivity adjustment value ")); Serial.println(magCalibration[0], 2);
+      Serial.print(F("Y-Axis sensitivity adjustment value ")); Serial.println(magCalibration[1], 2);
+      Serial.print(F("Z-Axis sensitivity adjustment value ")); Serial.println(magCalibration[2], 2);
       // define interrupt for INT pin output of MPU9250
       attachInterrupt(MPU_INTERRUPT_PIN, interruptMPUNewData, RISING); 
-      Serial.println("Interrupts setup");
+      Serial.println(F("Interrupts setup"));
     }
     if (MPUisValid && AK8963isValid) {
       mpuRunMode = MpuRunMode::mpuRun;
@@ -312,7 +312,7 @@ void handleMPU9250() {
 }
 
 void saveMPUCalibrationFS(){
-  Serial.println("Saving MPU Calibrations");
+  Serial.println(F("Saving MPU Calibrations"));
   DynamicJsonBuffer jsonBuffer;
   JsonObject& json = jsonBuffer.createObject();
 
@@ -327,7 +327,7 @@ void saveMPUCalibrationFS(){
 
   File configFile = SPIFFS.open("/mpuCal.json", "w");
   if (!configFile) {
-    Serial.println("failed to open MPU Calibration file for writing");
+    Serial.println(F("failed to open MPU Calibration file for writing"));
   }
   json.prettyPrintTo(Serial);
   json.printTo(configFile);
@@ -336,10 +336,10 @@ void saveMPUCalibrationFS(){
 
 
 void loadMPUCalibrationFS() {
-  Serial.println("Loading MPU Calibration.");
+  Serial.println(F("Loading MPU Calibration."));
   if (!SPIFFS.exists("/mpuCal.json")) {
     return; // no calibrations to load
-    Serial.println("No Calibration found");
+    Serial.println(F("No Calibration found"));
   }
 
   DynamicJsonBuffer jsonBuffer;
@@ -402,7 +402,7 @@ void loadMPUCalibrationFS() {
 
 bool testMPU9250() {
  // Read the WHO_AM_I register, this is a good test of communication
-  Serial.println("Testing MPU9250 9-axis motion sensor...");
+  Serial.println(F("Testing MPU9250 9-axis motion sensor..."));
   byte c = readByte(MPU9250_ADDRESS, WHO_AM_I_MPU9250);  // Read WHO_AM_I register for MPU-9250
 
   if (c == 0x71) {
@@ -415,15 +415,15 @@ bool testMPU9250() {
 
   if ( (c == 0x71) || (c == 0x73) ) //
   {  
-    Serial.println("MPU925X is online...");
+    Serial.println(F("MPU925X is online..."));
 
     MPU9250SelfTest(SelfTest); // Start by performing self test and reporting values
-    Serial.print("x-axis self test: acceleration trim within : "); Serial.print(SelfTest[0],1); Serial.println("% of factory value");
-    Serial.print("y-axis self test: acceleration trim within : "); Serial.print(SelfTest[1],1); Serial.println("% of factory value");
-    Serial.print("z-axis self test: acceleration trim within : "); Serial.print(SelfTest[2],1); Serial.println("% of factory value");
-    Serial.print("x-axis self test: gyration trim within : "); Serial.print(SelfTest[3],1); Serial.println("% of factory value");
-    Serial.print("y-axis self test: gyration trim within : "); Serial.print(SelfTest[4],1); Serial.println("% of factory value");
-    Serial.print("z-axis self test: gyration trim within : "); Serial.print(SelfTest[5],1); Serial.println("% of factory value");
+    Serial.print(F("x-axis self test: acceleration trim within : ")); Serial.print(SelfTest[0],1); Serial.println(F("% of factory value"));
+    Serial.print(F("y-axis self test: acceleration trim within : ")); Serial.print(SelfTest[1],1); Serial.println(F("% of factory value"));
+    Serial.print(F("z-axis self test: acceleration trim within : ")); Serial.print(SelfTest[2],1); Serial.println(F("% of factory value"));
+    Serial.print(F("x-axis self test: gyration trim within : ")); Serial.print(SelfTest[3],1); Serial.println(F("% of factory value"));
+    Serial.print(F("y-axis self test: gyration trim within : ")); Serial.print(SelfTest[4],1); Serial.println(F("% of factory value"));
+    Serial.print(F("z-axis self test: gyration trim within : ")); Serial.print(SelfTest[5],1); Serial.println(F("% of factory value"));
     
     // get sensor resolutions, only need to do this once
     getAres();
@@ -432,7 +432,7 @@ bool testMPU9250() {
     return true;
   } else
   {
-    Serial.print("Could not connect to MPU9250: 0x");
+    Serial.print(F("Could not connect to MPU9250: 0x"));
     Serial.println(c, HEX);
     return false;
   }
@@ -560,19 +560,19 @@ void updateMPUSensorInfo() {
   //if(SerialDebug) {
     //Serial.print("ax = "); Serial.print((int)1000*ax);  
     //Serial.print(" ay = "); Serial.print((int)1000*ay); 
-    //Serial.print(" az = "); Serial.print((int)1000*az); Serial.println(" mg");
+    //Serial.print(" az = "); Serial.print((int)1000*az); Serial.println(F(" mg"));
     //Serial.print("gx = "); Serial.print( gx, 2); 
     //Serial.print(" gy = "); Serial.print( gy, 2); 
-    //Serial.print(" gz = "); Serial.print( gz, 2); Serial.println(" deg/s");
+    //Serial.print(" gz = "); Serial.print( gz, 2); Serial.println(F(" deg/s"));
     //Serial.print("mx = "); Serial.print( (int)mx ); 
     //Serial.print(" my = "); Serial.print( (int)my ); 
-    //Serial.print(" mz = "); Serial.print( (int)mz ); Serial.println(" mG");
+    //Serial.print(" mz = "); Serial.print( (int)mz ); Serial.println(F(" mG"));
     
     //Serial.print("q0 = "); Serial.print(q[0]);
     //Serial.print(" qx = "); Serial.print(q[1]); 
     //Serial.print(" qy = "); Serial.print(q[2]); 
     //Serial.print(" qz = "); Serial.println(q[3]); 
-    //Serial.print("Gyro temperature is ");  Serial.print(temperature, 1);  Serial.println(" degrees C"); // Print T values to tenths of s degree C
+    //Serial.print("Gyro temperature is ");  Serial.print(temperature, 1);  Serial.println(F(" degrees C")); // Print T values to tenths of s degree C
     
     //Serial.print("Yaw, Pitch, Roll: ");
     //Serial.print(yaw, 2);
@@ -580,19 +580,19 @@ void updateMPUSensorInfo() {
     //Serial.print(pitch, 2);
     //Serial.print(", ");
     //Serial.print(roll, 2);
-    //Serial.print(" rate = "); Serial.print((float)sumCount/sum, 2); Serial.println(" Hz");
+    //Serial.print(" rate = "); Serial.print((float)sumCount/sum, 2); Serial.println(F(" Hz"));
     //Serial.print("Grav_x, Grav_y, Grav_z: ");
     //Serial.print(-a31*1000, 2);
     //Serial.print(", ");
     //Serial.print(-a32*1000, 2);
     //Serial.print(", ");
-    //Serial.print(a33*1000, 2);  Serial.println(" mg");
+    //Serial.print(a33*1000, 2);  Serial.println(F(" mg"));
     //Serial.print("Lin_ax, Lin_ay, Lin_az: ");
     //Serial.print(lin_ax*1000, 2);
     //Serial.print(", ");
     //Serial.print(lin_ay*1000, 2);
     //Serial.print(", ");
-    //Serial.print(lin_az*1000, 2);  Serial.println(" mg");
+    //Serial.print(lin_az*1000, 2);  Serial.println(F(" mg"));
     
   //}
   count = millis(); 
@@ -985,7 +985,7 @@ void magcalMPU9250Stop() {
   magScale[1] = avg_rad/((float)mag_scale[1]);
   magScale[2] = avg_rad/((float)mag_scale[2]);
 
-  Serial.println("Mag Calibration done!");
+  Serial.println(F("Mag Calibration done!"));
   
 }
 
@@ -995,7 +995,7 @@ void magcalMPU9250(float * dest1, float * dest2) {
   int32_t mag_bias[3] = {0, 0, 0}, mag_scale[3] = {0, 0, 0};
   int16_t mag_max[3] = {-32767, -32767, -32767}, mag_min[3] = {32767, 32767, 32767}, mag_temp[3] = {0, 0, 0};
 
-  Serial.println("Mag Calibration: Wave device in a figure eight until done!");
+  Serial.println(F("Mag Calibration: Wave device in a figure eight until done!"));
   //delay(4000);
   
     // shoot for ~fifteen seconds of mag data
@@ -1011,9 +1011,9 @@ void magcalMPU9250(float * dest1, float * dest2) {
     if(Mmode == 0x06) delay(12);  // at 100 Hz ODR, new mag data is available every 10 ms
     }
 
-  //    Serial.println("mag x min/max:"); Serial.println(mag_max[0]); Serial.println(mag_min[0]);
-  //    Serial.println("mag y min/max:"); Serial.println(mag_max[1]); Serial.println(mag_min[1]);
-  //    Serial.println("mag z min/max:"); Serial.println(mag_max[2]); Serial.println(mag_min[2]);
+  //    Serial.println(F("mag x min/max:")); Serial.println(mag_max[0]); Serial.println(mag_min[0]);
+  //    Serial.println(F("mag y min/max:")); Serial.println(mag_max[1]); Serial.println(mag_min[1]);
+  //    Serial.println(F("mag z min/max:")); Serial.println(mag_max[2]); Serial.println(mag_min[2]);
 
     // Get hard iron correction
     mag_bias[0]  = (mag_max[0] + mag_min[0])/2;  // get average x mag bias in counts
@@ -1036,7 +1036,7 @@ void magcalMPU9250(float * dest1, float * dest2) {
     dest2[1] = avg_rad/((float)mag_scale[1]);
     dest2[2] = avg_rad/((float)mag_scale[2]);
   
-   Serial.println("Mag Calibration done!");
+   Serial.println(F("Mag Calibration done!"));
 }
 */
 
