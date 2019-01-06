@@ -11,7 +11,7 @@
 #include "discovery.h"
 #include "../../config.h"
 #include "../../sigksens.h"
-#include "src/services/configStore.h"
+#include "../services/configStore.h"
 
 uDevice device;
 uSSDP SSDP;

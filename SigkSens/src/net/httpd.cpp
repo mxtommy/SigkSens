@@ -16,16 +16,15 @@
 #include <AsyncJson.h>
 
 #include "../../config.h"
+#include "../../sigksens.h"
+
 #include "httpd.h"
 
-#include "src/services/configStore.h"
-#include "sigksens.h"
-#include "../sensors/sensorStorage.h"
+#include "../services/configStore.h"
+#include "../services/configReset.h"
 
-
-#include "src/services/configReset.h"
-#include "src/net/webSocket.h"
-#include "src/net/discovery.h"
+#include "webSocket.h"
+#include "discovery.h"
 
 
 // Simple web page to view deltas
@@ -270,9 +269,11 @@ void setupHTTP() {
   server.on("/signalk/", HTTP_GET, httpSignalKEndpoints);
 
   //setup sensor callbacks
+  /*
   sensorStorageForEach([&](SensorInfo* si) {
     si->setupWebServerHooks(server);
   });
+  */
   setupSSDPHttpCallback(server);
   DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*"); //CORSS...
   server.begin();

@@ -23,8 +23,8 @@ Feature selection
 //#define ENABLE_DIGITALOUT
 //#define ENABLE_ANALOGIN
 //#define ENABLE_ONEWIRE
-#define ENABLE_WINDLASS_CTRL
-#define ENABLE_WINDLASS_MON
+//#define ENABLE_WINDLASS_CTRL
+//#define ENABLE_WINDLASS_MON
 
 // if any of these are enabled, make sure ENABLE_I2C below is as well.
 //#define ENABLE_I2C

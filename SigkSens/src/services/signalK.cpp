@@ -5,10 +5,10 @@ extern "C" {
 #endif
 #include <ArduinoJson.h> 
 
-#include "config.h"
-#include "sigksens.h"
-#include "src/services/configStore.h"
-#include "src/services/ledBlinker.h"
+#include "../../config.h"
+#include "../../sigksens.h"
+#include "configStore.h"
+#include "ledBlinker.h"
 
 #include "signalK.h"
 

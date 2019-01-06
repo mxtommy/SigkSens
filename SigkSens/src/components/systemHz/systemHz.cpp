@@ -5,9 +5,9 @@ extern "C" {
 #endif
 
 #include "../../../config.h"
-#include "sigksens.h"
-#include "src/services/configStore.h"
-#include "src/services/signalK.h"
+#include "../../../sigksens.h"
+#include "../../services/configStore.h"
+#include "../../services/signalK.h"
 #include "systemHz.h"
 
 uint32_t systemHzCount = 0, systemHzMs = 0;

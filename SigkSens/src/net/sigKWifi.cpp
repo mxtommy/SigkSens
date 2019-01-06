@@ -2,8 +2,8 @@
 
 #include "../../config.h"
 #include "../../sigksens.h"
-#include "src/services/configStore.h"
-#include "src/services/ledBlinker.h"
+#include "../services/configStore.h"
+#include "../services/ledBlinker.h"
 #include "sigKWifi.h"
 
 

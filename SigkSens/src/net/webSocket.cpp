@@ -5,12 +5,12 @@
 #endif
 
 #include "../../config.h"
-#include "sigksens.h"
-#include "src/services/configStore.h"
-#include "src/services/ledBlinker.h"
-#include "src/services/signalK.h"
+#include "../../sigksens.h"
+#include "../services/configStore.h"
+#include "../services/ledBlinker.h"
+#include "../services/signalK.h"
 
-#include "src/net/webSocket.h"
+#include "webSocket.h"
 
 
 #ifdef ENABLE_WEBSOCKET_SERVER

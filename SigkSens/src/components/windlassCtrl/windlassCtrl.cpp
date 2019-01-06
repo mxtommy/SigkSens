@@ -4,13 +4,13 @@ extern "C" {
 }
 #endif
 
-#include "config.h"
-#include "sigksens.h" // for React app
-#include "src/services/configStore.h"
-#include "src/services/signalK.h"
+#include "../../../config.h"
+#include "../../../sigksens.h" // for React app
+#include "../../services/configStore.h"
+#include "../../services/signalK.h"
 
-#include "src/components/windlassCtrl/config.h"
-#include "src/components/windlassCtrl/windlassCtrl.h"
+#include "config.h"
+#include "windlassCtrl.h"
 
 WindlassStates windlassState = idle;
 uint32_t lastEventTime = 0;
