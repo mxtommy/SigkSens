@@ -160,7 +160,7 @@ ReactESP app([] () {
     setupSimpleTankLevel();
   #endif
   #ifdef ENABLE_SYSTEMHZ
-    setupSystemHz();
+    //setupSystemHz();
   #endif
   
   // call http last so that we can call any needed callbacks.

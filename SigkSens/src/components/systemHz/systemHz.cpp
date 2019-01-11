@@ -5,40 +5,34 @@ extern "C" {
 #endif
 
 #include "../../../config.h"
-#include "../../../sigksens.h"
-#include "../../services/configStore.h"
+#include "../../../sigksens.h" // for app instance
 #include "../../services/signalK.h"
 #include "systemHz.h"
 
-uint32_t systemHzCount = 0, systemHzMs = 0;
+ComponentSystemHz componentSystemHz("systemHz");
 
-float systemHz = 0;
-
-// forward declarations
-void countSystemHz();
-void updateSystemHz();
-
-
-void setupSystemHz() {
+void ComponentSystemHz::setupComponent() {
   systemHzMs = millis();
-  
+  systemHzCount = 0;
+  systemHz = 0;
+
   //sets default if not already defined
   configStore.getBool("enableSystemHz", true);
   configStore.getString("pathSystemHz",       String("sensors.") + configStore.getString("myHostname") + String(".systemHz"));
   configStore.getString("pathSystemFreeMem",  String("sensors.") + configStore.getString("myHostname") + String(".freeMem"));
   configStore.getString("pathSystemUptime",   String("sensors.") + configStore.getString("myHostname") + String(".uptime"));
-  app.onTick(countSystemHz);
-  app.onRepeat(1000, updateSystemHz);
+  //app.onTick(countSystemHz);
+  //app.onRepeat(1000, [this]() { this->handleComponent(); });
 }
 
 
-void countSystemHz() {
+void ComponentSystemHz::countSystemHz() {
   systemHzCount++;
 }
 
 
-void updateSystemHz() {
-  if (!configStore.getBool("enableSystemHz")) { return; }
+void ComponentSystemHz::handleComponent() {
+  if (!config.getBool("enableSystemHz")) { return; }
   uint32_t elapsed = millis() - systemHzMs;
   
   if (elapsed == 0) { return; } // getting sporadic divide by 0 exceptions, no harm in skipping a loop.
