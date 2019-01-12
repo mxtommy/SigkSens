@@ -1,6 +1,10 @@
 #include <ReactESP.h>
 
 #include "config.h"
+#include "src/services/filesystem.h"
+#include "src/services/configStore.h"
+#include "src/components/componentSensor.h"
+
 
 #ifdef ENABLE_I2C
 #include "src/services/i2c.h"
@@ -46,8 +50,7 @@
   #include "src/components/systemHz/systemHz.h"
 #endif
 
-#include "src/services/filesystem.h"
-#include "src/services/configStore.h"
+
 
 #include "src/net/discovery.h"
 #include "src/net/webSocket.h"
@@ -61,6 +64,7 @@
 
 #include "sigksens.h"
 #include "src/sensors/sensorStorage.h"
+
 
 /*---------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------
@@ -163,9 +167,14 @@ ReactESP app([] () {
     //setupSystemHz();
   #endif
   
+  //Start all components
+  forEachComponent([](ComponentSensor* ComponentSensor) {
+    ComponentSensor->begin();
+  });
+
+
   // call http last so that we can call any needed callbacks.
   setupHTTP();
-
 
   Serial.printf("Ready.\n");
 

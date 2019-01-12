@@ -1,12 +1,11 @@
 #ifndef _systemHz_H_
 #define _systemHz_H_
 
-#include "../sensorComponent.h"
+#include "../componentSensor.h"
 
-class ComponentSystemHz : public SensorComponent {
+class ComponentSystemHz : public ComponentSensor {
   public:
-    using SensorComponent::SensorComponent; //inherit constructor
-    //ComponentSystemHz(const char * name);
+    using ComponentSensor::ComponentSensor; //inherit constructor
     uint32_t systemHzCount;
     uint32_t systemHzMs;
     float systemHz;

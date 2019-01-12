@@ -17,12 +17,12 @@ void ComponentSystemHz::setupComponent() {
   systemHz = 0;
 
   //sets default if not already defined
-  configStore.getBool("enableSystemHz", true);
-  configStore.getString("pathSystemHz",       String("sensors.") + configStore.getString("myHostname") + String(".systemHz"));
-  configStore.getString("pathSystemFreeMem",  String("sensors.") + configStore.getString("myHostname") + String(".freeMem"));
-  configStore.getString("pathSystemUptime",   String("sensors.") + configStore.getString("myHostname") + String(".uptime"));
-  //app.onTick(countSystemHz);
-  //app.onRepeat(1000, [this]() { this->handleComponent(); });
+  config.getBool("enableSystemHz", true);
+  config.getString("pathSystemHz",       String("sensors.") + configStore.getString("myHostname") + String(".systemHz"));
+  config.getString("pathSystemFreeMem",  String("sensors.") + configStore.getString("myHostname") + String(".freeMem"));
+  config.getString("pathSystemUptime",   String("sensors.") + configStore.getString("myHostname") + String(".uptime"));
+  app.onTick([this]() { this->countSystemHz(); });
+  app.onRepeat(1000, [this]() { this->handleComponent(); });
 }
 
 
@@ -38,9 +38,9 @@ void ComponentSystemHz::handleComponent() {
   if (elapsed == 0) { return; } // getting sporadic divide by 0 exceptions, no harm in skipping a loop.
   systemHz = (systemHzCount*1000) / elapsed;
   
-  signalK.addValue(configStore.getString("pathSystemHz"), systemHz);
-  signalK.addValue(configStore.getString("pathSystemFreeMem"), ESP.getFreeHeap());
-  signalK.addValue(configStore.getString("pathSystemUptime"), (float)millis()/1000.0);
+  signalK.addValue(config.getString("pathSystemHz"), systemHz);
+  signalK.addValue(config.getString("pathSystemFreeMem"), ESP.getFreeHeap());
+  signalK.addValue(config.getString("pathSystemUptime"), (float)millis()/1000.0);
   systemHzCount = 0;
   systemHzMs = millis();
 }
