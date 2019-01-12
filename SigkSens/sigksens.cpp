@@ -25,7 +25,6 @@ void parseBytes(const char* str, char sep, byte* bytes, int maxBytes, int base) 
 String uuidv4() {
   char *hexvalues = "0123456789abcdef";
   String uuid = "";
-  uint8_t temp;
   for (int i = 0 ; i < 32; i++) {
     if (i == 9) { uuid = uuid + "-"; continue; }
     if (i == 14) { uuid = uuid + "-"; continue; }

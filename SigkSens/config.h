@@ -109,10 +109,6 @@ Defines
 #define SHORT_BUTTON_PRESS_MS 1000
 #define LONG_BUTTON_PRESS_MS 5000
 
-// name of the file to use in SPIFFS. 
-// Should not need to be changed. Make sure to have "/"
-#define CONFIG_FILENAME "/newConfig.json" 
-
 // if you want to use the optional my_config.h file
 // to override configuration constants, 
 // uncomment the following line.

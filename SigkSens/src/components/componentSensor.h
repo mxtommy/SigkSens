@@ -20,7 +20,8 @@ class ComponentSensor {
 
 };
 
-void listComponents();
+
+ComponentSensor* getComponent(String componentName);
 
 extern std::vector<ComponentSensor*> * componentsPointers;
 template<typename F>

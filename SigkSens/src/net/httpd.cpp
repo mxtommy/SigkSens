@@ -22,6 +22,7 @@
 
 #include "../services/configStore.h"
 #include "../services/configReset.h"
+#include "../components/componentSensor.h"
 
 #include "webSocket.h"
 #include "discovery.h"
@@ -117,11 +118,16 @@ void handleNotFound(AsyncWebServerRequest *request) {
 }
 
 void httpGetConfig(AsyncWebServerRequest *request) {
-  AsyncWebServerResponse *response = request->beginResponse(SPIFFS, CONFIG_FILENAME, "application/json");
+  String fileName = "/globalConfig.json";
+  if(request->hasArg("component")) {
+    fileName = "/" + request->arg("component") + ".json";
+  }
+  AsyncWebServerResponse *response = request->beginResponse(SPIFFS, fileName, "application/json");
   request->send(response);
 }
 
 void httpSetKeyValue(AsyncWebServerRequest *request) {
+  ConfigStore* componentConfig = &configStore; // default to global configStore
   if(!request->hasArg("key")) {
     request->send(400, "application/json", "{ \"success\": false, \"message\": \"missing arg 'key'\" }");    return;
   }
@@ -129,8 +135,18 @@ void httpSetKeyValue(AsyncWebServerRequest *request) {
     request->send(400, "application/json", "{ \"success\": false, \"message\": \"missing arg 'dataType'\" }");
     return;
   }
+
+  if(!request->hasArg("component")) {
+    ComponentSensor* component = getComponent(request->arg("component"));
+    if (component == nullptr) {
+      request->send(400, "application/json", "{ \"success\": false, \"message\": \"did not find component\" }");
+      return;
+    }
+    componentConfig = &(*component).config;
+  }
+
   if (request->arg("dataType") == "string") {
-    configStore.putString(request->arg("key").c_str(), request->arg("value"));
+    componentConfig->putString(request->arg("key").c_str(), request->arg("value"));
     request->send(200, "application/json", "{ \"success\": true }");
     return;
   } else if (request->arg("dataType") == "boolean") {
@@ -138,31 +154,31 @@ void httpSetKeyValue(AsyncWebServerRequest *request) {
     if (request->arg("value") == "true") {
       newValue = true;
     }
-    configStore.putBool(request->arg("key").c_str(), newValue);
+    componentConfig->putBool(request->arg("key").c_str(), newValue);
     request->send(200, "application/json", "{ \"success\": true }");
     return;
   } else if (request->arg("dataType") == "int8") {
-    configStore.putInt8(request->arg("key").c_str(), request->arg("value").toInt());
+    componentConfig->putInt8(request->arg("key").c_str(), request->arg("value").toInt());
     request->send(200, "application/json", "{ \"success\": true }");
     return;
   } else if (request->arg("dataType") == "uint8") {
-    configStore.putUInt8(request->arg("key").c_str(), request->arg("value").toInt());
+    componentConfig->putUInt8(request->arg("key").c_str(), request->arg("value").toInt());
     request->send(200, "application/json", "{ \"success\": true }");
     return;
   } else if (request->arg("dataType") == "int16") {
-    configStore.putInt16(request->arg("key").c_str(), request->arg("value").toInt());
+    componentConfig->putInt16(request->arg("key").c_str(), request->arg("value").toInt());
     request->send(200, "application/json", "{ \"success\": true }");
     return;
   } else if (request->arg("dataType") == "uint16") {
-    configStore.putUInt16(request->arg("key").c_str(), request->arg("value").toInt());
+    componentConfig->putUInt16(request->arg("key").c_str(), request->arg("value").toInt());
     request->send(200, "application/json", "{ \"success\": true }");
     return;
   } else if (request->arg("dataType") == "int32") {
-    configStore.putInt32(request->arg("key").c_str(), request->arg("value").toInt());
+    componentConfig->putInt32(request->arg("key").c_str(), request->arg("value").toInt());
     request->send(200, "application/json", "{ \"success\": true }");
     return;
   } else if (request->arg("dataType") == "uint32") {
-    configStore.putUInt32(request->arg("key").c_str(), request->arg("value").toInt());
+    componentConfig->putUInt32(request->arg("key").c_str(), request->arg("value").toInt());
     request->send(200, "application/json", "{ \"success\": true }");
     return;
   }
@@ -186,16 +202,14 @@ void httpGetSensorInfo(AsyncWebServerRequest *request) {
   JsonObject& json = response->getRoot();
 
   json["websocketClientConnected"] = getWebsocketClientStatus();
-  //Sensor types present
-/*
-  //Sensors
-  JsonArray& sensorArr = json.createNestedArray("sensors");
+
+  //Components types present
+  JsonArray& componentsArr = json.createNestedArray("components");
   
-  sensorStorageForEach([&](SensorInfo* si) {
-    JsonObject& tmpSens = sensorArr.createNestedObject();
-    si->toJson(tmpSens);
+  forEachComponent([&](ComponentSensor* component) {
+    componentsArr.add(component->componentName);
   });
-*/
+
   response->setLength();
   request->send(response);
 }

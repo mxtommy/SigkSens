@@ -84,7 +84,7 @@ ReactESP app([] () {
   ledBlinker.setWifiDisconnected();
 
   setupFilesystem();
-  configStore.begin(CONFIG_FILENAME);
+  configStore.begin("/globalConfig.json");
 
   setupWifi();
   setupDiscovery();

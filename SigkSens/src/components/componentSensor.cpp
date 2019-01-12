@@ -8,11 +8,12 @@ void registerComponent(ComponentSensor* sc) {
   componentsPointers->push_back(sc);
 }
 
-void listComponents() {
-  if (!componentsPointers) componentsPointers = new std::vector<ComponentSensor*>();
-  for (auto it = componentsPointers->begin(); it != componentsPointers->end(); it++) {
-    Serial.println((*it)->componentName);
+ComponentSensor* getComponent(String componentName) {
+  for (auto component = componentsPointers->begin(); component != componentsPointers->end(); component++) {
+    if ((*component)->componentName == componentName) return *component;
   }
+  //not found
+  return nullptr;
 }
 
 ComponentSensor::ComponentSensor(const char * name) {
