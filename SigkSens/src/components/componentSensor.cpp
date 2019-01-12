@@ -16,8 +16,7 @@ void listComponents() {
 }
 
 ComponentSensor::ComponentSensor(const char * name) {
-  String strName = String(name);
-  componentName = String(strName);
+  componentName = String(name);
   registerComponent(this);
 }
 
