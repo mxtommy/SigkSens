@@ -71,49 +71,7 @@
 General Setup
 -----------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------*/
-/*
-void setupFromJson() {
-  #ifdef ENABLE_DIGITALIN
-  fromJson[(int)SensorType::digitalIn] =
-    (fromJsonFunc)&(DigitalInSensorInfo::fromJson);
-  #endif
 
-  #ifdef ENABLE_DIGITALOUT
-  fromJson[(int)SensorType::digitalOut] =
-    (fromJsonFunc)&(DigitalOutSensorInfo::fromJson);
-  #endif
-
-  #ifdef ENABLE_ANALOGIN
-  fromJson[(int)SensorType::analogIn] =
-    (fromJsonFunc)&(AinSensorInfo::fromJson);
-  #endif
-
-  #ifdef ENABLE_ONEWIRE
-  fromJson[(int)SensorType::oneWire] =
-    (fromJsonFunc)&(OneWireSensorInfo::fromJson);
-  #endif
-
-  #ifdef ENABLE_SHT30
-  fromJson[(int)SensorType::sht30] =
-    (fromJsonFunc)&(SHT30SensorInfo::fromJson);
-  #endif
-
-  #ifdef ENABLE_MPU
-  fromJson[(int)SensorType::mpu925x] =
-    (fromJsonFunc)&(MPU9250SensorInfo::fromJson);
-  #endif    
-
-  #ifdef ENABLE_ADS1115
-  fromJson[(int)SensorType::ads1115] =
-    (fromJsonFunc)&(ADSSensorInfo::fromJson);    
-  #endif
-
-  #ifdef ENABLE_BMP280
-  fromJson[(int)SensorType::bmp280] =
-    (fromJsonFunc)&(BMP280SensorInfo::fromJson);
-  #endif
-}
-*/
 // forward declarations
 void loop_();
 void slow_loop();
@@ -125,8 +83,6 @@ ReactESP app([] () {
 
   ledBlinker.setWifiDisconnected();
 
-  //setupFromJson();
-
   setupFilesystem();
   configStore.begin(CONFIG_FILENAME);
 
@@ -137,35 +93,6 @@ ReactESP app([] () {
   setupOTA();
 
   setupConfigReset();
-  /*
-  #ifdef ENABLE_ONEWIRE
-  setup1Wire(need_save);
-  #endif
-  #ifdef ENABLE_I2C
-  setupI2C(need_save);
-  #endif
-  #ifdef ENABLE_DIGITALIN
-  setupDigitalIn(need_save);
-  #endif
-  #ifdef ENABLE_DIGITALOUT
-  setupDigitalOut(need_save);
-  #endif
-  #ifdef ENABLE_ANALOGIN
-  setupAnalogIn(need_save);
-  #endif
-  */
-  #ifdef ENABLE_WINDLASS_CTRL
-    setupWindlassCtrl();
-  #endif
-  #ifdef ENABLE_WINDLASS_MON
-    setupWindlassMon();
-  #endif
-  #ifdef ENABLE_SIMPLE_TANK_LEVEL
-    setupSimpleTankLevel();
-  #endif
-  #ifdef ENABLE_SYSTEMHZ
-    //setupSystemHz();
-  #endif
   
   //Start all components
   forEachComponent([](ComponentSensor* ComponentSensor) {
