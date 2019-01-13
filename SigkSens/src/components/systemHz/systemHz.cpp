@@ -32,6 +32,7 @@ void ComponentSystemHz::countSystemHz() {
 
 
 void ComponentSystemHz::handleComponent() {
+  config.handle(); //saves config if any changes
   if (!config.getBool("enableSystemHz")) { return; }
   uint32_t elapsed = millis() - systemHzMs;
   

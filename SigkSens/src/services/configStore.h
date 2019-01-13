@@ -9,7 +9,7 @@ void setupFS();
 class ConfigStore {
     protected:
         bool _started;
-        const char * _configFileName;
+        String _configFileName;
         bool _needSave;
         std::map<String, String> _mapString;
         std::map<String, float> _mapFloat;

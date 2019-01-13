@@ -122,6 +122,9 @@ void httpGetConfig(AsyncWebServerRequest *request) {
   if(request->hasArg("component")) {
     fileName = "/" + request->arg("component") + ".json";
   }
+  if (!SPIFFS.exists(fileName)) {
+    request->send(404, "application/json", "{ \"success\": false, \"message\": \"component not found\" }");    return;
+  } 
   AsyncWebServerResponse *response = request->beginResponse(SPIFFS, fileName, "application/json");
   request->send(response);
 }

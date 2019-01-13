@@ -24,12 +24,13 @@ bool ConfigStore::begin(const char * name) {
   if(_started){
         return false;
   }
-  _configFileName = name;
+  _configFileName = String(name);
   if (!SPIFFS.exists(name)) {
-    
+    _started = true;
+    return true; // file will be created on first save
   } else {
     //file exists, reading and loading
-    Serial.println(F("opening config file"));
+    Serial.print(F("opening config file: ")); Serial.println(name);
     File configFile = SPIFFS.open(name, "r");
     if (configFile) {
       size_t size = configFile.size();
@@ -154,7 +155,8 @@ void ConfigStore::saveConfig() {
   root.printTo(configFile);
   configFile.close();
   root.prettyPrintTo(Serial);
-  Serial.println(F("Configuration saved to SPIFFS"));
+  Serial.print(F("Configuration saved to SPIFFS file: "));
+  Serial.println(_configFileName);
 }
 
 
