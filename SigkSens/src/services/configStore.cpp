@@ -35,10 +35,10 @@ bool ConfigStore::begin(const char * name) {
     if (configFile) {
       size_t size = configFile.size();
       // Allocate a buffer to store contents of the file.
-      std::unique_ptr<char[]> buf(new char[size]);
-      configFile.readBytes(buf.get(), size);
+      //std::unique_ptr<char[]> buf(new char[size]);
+      //configFile.readBytes(buf.get(), size);
       DynamicJsonBuffer jsonBuffer;
-      JsonObject& root = jsonBuffer.parseObject(buf.get());
+      JsonObject& root = jsonBuffer.parseObject(configFile);
       Serial.println(F("Current Configuration:"));
       root.prettyPrintTo(Serial);
       configFile.close();

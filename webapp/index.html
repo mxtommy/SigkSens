@@ -1,21 +1,21 @@
 <html>
 <head>
-  <title>Deltas</title>
+  <title>SigKSens</title>
   <meta charset="utf-8">
   <script type="text/javascript">
     var WebSocket = WebSocket || MozWebSocket;
     var lastDelta = Date.now();
     var serverWsUrl = "ws://" + window.location.hostname + ":81";
     var serverUrl = "http://" + window.location.hostname;
-    //var serverWsUrl = "ws://192.168.0.53:81"; // for development uncomment
-    //var serverUrl = "http://192.168.0.53";
+    //var serverWsUrl = "ws://192.168.0.50:81"; // for development uncomment
+    //var serverUrl = "http://192.168.0.50";
     var paths = {};
     var pathAge = {};
     connection = new WebSocket(serverWsUrl);
 
     connection.onopen = function(evt) {
       console.log("Connected!");
-      document.getElementById("box").innerHTML = "Status: Connected!";
+      document.getElementById("box").innerHTML = "Status: Connected to sensor!";
     };
 
     connection.onmessage = function(evt) {
@@ -44,10 +44,40 @@
       updateValues();
     }, 50);
 
+    /* Sensor Info */
+    function getInfo() {
+      fetch(serverUrl + "/getSensorInfo")
+      .then((resp) => resp.json())
+      .then(function(data) { 
+        
+        // update components list;
+        var components = "<option value=\"global\">Global</option>";
+        data.components.forEach(function(component) {
+          components += "<option value=\""+component+"\">" + component + "</option>";
+        });
+        document.getElementById("configComponent").innerHTML = components;
+        document.getElementById("thisHostname").innerHTML = data.hostname;
+        document.getElementById("connectedStatus").innerHTML = data.websocketClientConnected;
+        document.getElementById("freeHeap").innerHTML = data.freeHeap;
+        document.getElementById("resetReason").innerHTML = data.resetReason;
+        console.log(data);
+      })
+      .catch(function(error) { console.log(error); alert(error); });
+    }
+
+    
+    function loadConfig() {
+      var sel = document.getElementById("configComponent");
+      getConfig(sel.options[sel.selectedIndex].value);
+    }
 
         /* get config */
-    function getConfig() {
-      fetch(serverUrl + "/getConfig")
+    function getConfig(component = "global") {
+      var url = serverUrl + "/getConfig";
+      if (component != "global") {
+        url += "?component=" + component;
+      }
+      fetch(url)
       .then((resp) => resp.json())
       .then(function(data) { 
         var newTbody = "";
@@ -82,7 +112,7 @@
               break;          
           }
 
-          newTbody = newTbody + "</td><td><button id=\"button"+key+"\" onclick=\"postConfig('"+key+"', '"+ data[key].dataType +"')\">Set</button></td></tr>";
+          newTbody = newTbody + "</td><td><button id=\"button"+key+"\" onclick=\"postConfig('"+component+"', '"+key+"', '"+ data[key].dataType +"')\">Set</button></td></tr>";
           
         });
         document.getElementById("formTable").innerHTML = newTbody;
@@ -93,10 +123,13 @@
 
 
     // POST Config
-    function postConfig(configKey, configDataType) {
+    function postConfig(component, configKey, configDataType) {
+      console.log(configKey);
       document.getElementById("button"+configKey).innerHTML = "Saving";
       let newValue = document.getElementById(configKey).value;
+      console.log(document.getElementById(configKey));
       let data = "key=" + encodeURIComponent(configKey) +"&dataType=" + encodeURIComponent(configDataType) + "&value=" + encodeURIComponent(newValue);
+      if (component != "global") { data += "&component=" + encodeURIComponent(component); }
       let fetchData = { 
         method: 'POST', 
         body: data,
@@ -129,7 +162,8 @@
         console.log(error); alert(error); });
     }
 
-    getConfig(); //get config initially
+    getInfo();
+    getConfig();
   </script>
   <style>
 html {
@@ -158,33 +192,63 @@ th, td {
 form {
   margin-block-end: 0px;
 }
+.statusHeader {
+  font-weight: bold;
+  background-color: rgb(236, 236, 236);
+  border-bottom: 1px solid rgb(99, 99, 99);
+  border-right: 1px solid rgb(99, 99, 99);
+}
+
   </style>
 </head>
 <body>
-  <h1>SigKSens</h1>
-  <h2>Current Values</h2>
-  <table>
-    <thead>
-      <tr><th>Path</th><th>Value</th><th>Age</th></tr>
-    </thead>
-    <tbody id="deltaValues">
-    </tbody>
-  </table>
-  <div id="box">Status: Not Connected yet</div>
-  <div id="age"></div>
-  <h2>Actions</h2>
-  <div>
-    <button id="buttonReboot" onclick="getURL('/restart', 'buttonReboot')">Reboot</button>
-    <button id="buttonReset" onclick="getURL('/resetConfig', 'buttonReset')">Reset all Configuration</button>
-    <button id="buttonDiscover" onclick="getURL('/rediscover', 'buttonDiscover', true)">Rediscover server</button>
-  </div>
-  <h2>Configuration</h2>
-  <table>
-    <thead>
-      <tr><th>Config</th><th>Value</th><th></th></tr>
-    </thead>
-    <tbody id="formTable">
-    </tbody>
-  </table>
+ 
+    <h1>SigKSens: <div id="thisHostname"><i>hostname</i></div></h1>
+
+    <h2>Current Status</h2>
+    <table>
+      <tbody>
+        <tr><td class="statusHeader">Connected to SignalK Server</td><td id="connectedStatus"></td></tr>
+        <tr><td class="statusHeader">Free Heap</td><td id="freeHeap"></td></tr>
+        <tr><td class="statusHeader">Reset Reason</td><td id="resetReason"></td></tr>
+      </tbody>
+    </table>
+
+    <h2>Data recently sent</h2>
+    <table>
+      <thead>
+        <tr><th>Path</th><th>Value</th><th>Age</th></tr>
+      </thead>
+      <tbody id="deltaValues">
+      </tbody>
+    </table>
+    <div id="box">Status: Not Connected yet</div>
+    <div id="age"></div>
+    
+
+      <h2>Actions</h2>
+      <div>
+        <button id="buttonReboot" onclick="getURL('/restart', 'buttonReboot')">Reboot</button>
+        <button id="buttonReset" onclick="getURL('/resetConfig', 'buttonReset')">Reset all Configuration</button>
+        <button id="buttonDiscover" onclick="getURL('/rediscover', 'buttonDiscover', true)">Rediscover server</button>
+      </div>
+
+
+
+      <h2>Configuration</h2>
+      <div>Edit component config:
+        <select id="configComponent">
+          <option value="global">Global</option>
+        </select> <button id="buttonLoadConfig" onclick="loadConfig()">Load</button>
+      </div>
+      <table>
+        <thead>
+          <tr><th>Config</th><th>Value</th><th></th></tr>
+        </thead>
+        <tbody id="formTable">
+        </tbody>
+      </table>
+
+
 </body>
 </html>
