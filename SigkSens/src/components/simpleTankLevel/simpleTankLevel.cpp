@@ -13,6 +13,8 @@ extern "C" {
 ComponentSimpleTankLevel componentSimpleTank("simpleTankLevel");
 #endif
 
+int tankLevelLogicLevel[NUMBER_SIMPLE_TANK_PINS] = SIMPLE_TANK_LOGIC_LEVEL_TRUE;
+
 void ComponentSimpleTankLevel::setupComponent() {
   // set default path
   config.getString("pathSimpleTankLevel", String(SIMPLE_TANK_DEFAULT_PATH));
@@ -31,7 +33,7 @@ void ComponentSimpleTankLevel::handleComponent() {
 
   //loop through pins. Since in the array they are in order from high to low (tank level) first pin high = the level. 
   for (uint8_t index=0;index<NUMBER_SIMPLE_TANK_PINS; index++) {
-     if (digitalRead(inputPins[index])) {
+     if (digitalRead(inputPins[index]) == tankLevelLogicLevel[index]) {
        signalK.addValue(config.getString("pathSimpleTankLevel"), outputValues[index]);
        return;
      }

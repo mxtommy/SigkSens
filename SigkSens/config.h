@@ -40,7 +40,7 @@ Feature selection
 #define NUMBER_SIMPLE_TANK_PINS 3 // set this to number of elements in next two arrays
 #define SIMPLE_TANK_PINS  { 16, 15, 12  }  // D0, D8, D6 of Wemos)
 #define SIMPLE_TANK_LEVEL { 1, 0.5, 0.2 } // Ratio when corresponding PIN is high 
-
+#define SIMPLE_TANK_LOGIC_LEVEL_TRUE { LOW, LOW, LOW } // if HIGH the inputs will be true on Vcc. If LOW it will be true on gnd.
 
 
 
