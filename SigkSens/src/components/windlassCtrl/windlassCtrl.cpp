@@ -6,24 +6,34 @@ extern "C" {
 
 #include "../../../config.h"
 #include "../../../sigksens.h" // for React app
-#include "../../services/configStore.h"
 #include "../../services/signalK.h"
+#include "../../services/configStore.h"
 
 #include "config.h"
 #include "windlassCtrl.h"
 
-WindlassStates windlassState = idle;
-uint32_t lastEventTime = 0;
+ComponentWindlassCtrl componentWindlassCtrl("windlassCtrl");
 
-//forward declerations
-void handleCallbackUp(bool newValue);
+void ComponentWindlassCtrl::handleCallbackUp(bool newValue) {
+  if (newValue) {
+    setChannel1Active();
+  } else {
+    setWindlassIdle();
+  }
+}
+void ComponentWindlassCtrl::handleCallbackDown(bool newValue) {
+  if (newValue) {
+    setChannel2Active();
+  } else {
+    setWindlassIdle();
+  }}
 
 
-
-void setWindlassChannel1Active() {
+void ComponentWindlassCtrl::setChannel1Active() {
   switch(windlassState) {
     case idle:
       // we're activating the channel!
+      Serial.println("WINDLASS: CHANNEL1 ON");
       digitalWrite(WINDLASS_OUTPUT_CHANNEL1_PIN, HIGH);
       lastEventTime = millis();
       windlassState = channel1Active;
@@ -40,10 +50,11 @@ void setWindlassChannel1Active() {
   }
 }
 
-void setWindlassChannel2Active() {
+void ComponentWindlassCtrl::setChannel2Active() {
   switch(windlassState) {
     case idle:
       // we're activating the channel!
+      Serial.println("WINDLASS: CHANNEL2 ON");
       digitalWrite(WINDLASS_OUTPUT_CHANNEL2_PIN, HIGH);
       lastEventTime = millis();
       windlassState = channel2Active;
@@ -62,7 +73,8 @@ void setWindlassChannel2Active() {
 
 
 
-void setWindlassIdle() {
+void ComponentWindlassCtrl::setWindlassIdle() {
+  Serial.println("WINDLASS: IDLE");
   // turn off both channels just to be safe :)
   digitalWrite(WINDLASS_OUTPUT_CHANNEL1_PIN, LOW);
   digitalWrite(WINDLASS_OUTPUT_CHANNEL2_PIN, LOW);
@@ -70,7 +82,7 @@ void setWindlassIdle() {
   windlassState = idleWait;
 }
 
-void handleWindlassCtrl() {
+void ComponentWindlassCtrl::handleComponent() {
 
   switch(windlassState) {
     case idle:
@@ -96,7 +108,7 @@ void handleWindlassCtrl() {
 }
 
 
-void setupWindlassCtrl() {
+void ComponentWindlassCtrl::setupComponent() {
   //CTRL
   pinMode(WINDLASS_OUTPUT_CHANNEL1_PIN, OUTPUT);
   pinMode(WINDLASS_OUTPUT_CHANNEL2_PIN, OUTPUT);
@@ -107,11 +119,8 @@ void setupWindlassCtrl() {
   configStore.getString("pathWindlassUp",   "electrical.windlass.up");
   configStore.getString("pathWindlassDown", "electrical.windlass.down");
 
-  signalK.registerCallbackBool("pathWindlassUp", &handleCallbackUp);
+  signalK.registerCallbackBool("pathWindlassUp", [this](bool newValue) { this->handleCallbackUp(newValue); });
+  signalK.registerCallbackBool("pathWindlassDown", [this](bool newValue) { this->handleCallbackDown(newValue); });
 
-
-}
-
-void handleCallbackUp(bool newValue) {
-  Serial.println(F("OMG...."));
+  app.onRepeat(1, [this]() { this->handleComponent(); });
 }

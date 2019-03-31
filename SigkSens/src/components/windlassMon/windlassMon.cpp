@@ -12,8 +12,7 @@ extern "C" {
 #include "config.h"
 #include "windlassMon.h"
 
-// forward decleration
-void handleWindlassMon();
+ComponentWindlassMon componentWindlassMon("windlassMon");
 
 
 bool channel1Monitor = false;
@@ -28,8 +27,8 @@ uint32_t chainCounterCount = 0;
 
 
 
-void handleWindlassMonitor() {
-  /*
+void ComponentWindlassMon::handleComponent() {
+  
   if (digitalRead(WINDLASS_STATE_CHANNEL1_PIN) == HIGH) {
     channel1Monitor = true; //active
   } else {
@@ -41,7 +40,7 @@ void handleWindlassMonitor() {
     channel1MonitorLast = channel1Monitor;
     channel1ChangeTime = millis();
   }
-  */
+  
   signalK.addValue(configStore.getString("pathWindlassUp"),   (bool)digitalRead(WINDLASS_STATE_CHANNEL1_PIN));
   signalK.addValue(configStore.getString("pathWindlassDown"), (bool)digitalRead(WINDLASS_STATE_CHANNEL2_PIN));
 }
@@ -51,7 +50,7 @@ void handleWindlassMonitor() {
 
 
 
-void setupWindlassMon() {
+void ComponentWindlassMon::setupComponent() {
   //MON
   pinMode(WINDLASS_STATE_CHANNEL1_PIN, INPUT);
   pinMode(WINDLASS_STATE_CHANNEL2_PIN, INPUT);
@@ -61,5 +60,5 @@ void setupWindlassMon() {
   configStore.getString("pathWindlassUp",   "electrical.windlass.up");
   configStore.getString("pathWindlassDown", "electrical.windlass.down");
 
-  app.onRepeat(1000, handleWindlassMonitor);
+  app.onRepeat(100, [this]() { this->handleComponent(); });
 }

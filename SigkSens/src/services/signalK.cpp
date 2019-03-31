@@ -110,8 +110,8 @@ void SignalK::sendDeltas() {
   }
 }
 
-void SignalK::registerCallbackBool(String key, void (* CallbackFunction)(bool)) {
-  _mapCallbackBool[key] = CallbackFunction;
+void SignalK::registerCallbackBool(String key, bool_callback cb) {
+  _mapCallbackBool[key] = cb;
 }
 
 void SignalK::requestAuth() {
@@ -154,26 +154,40 @@ void SignalK::receiveDelta(uint8_t * payload) {
     }
     
   }
-/*
-  if (root.containsKey("put")) {
-    for (uint8_t i=0; i < root["put"].size(); i++) {
-      strcpy(tempStr, root["put"][i]["path"]);
-      sensorStorage[(int)SensorType::digitalOut].forEach([&](SensorInfo* si) {
-        if (strcmp(si->signalKPath[0].c_str(), tempStr) == 0) {
-           //Serial.println(si->address);
-           //Serial.println(si->signalKPath[0]);
 
-          if (root["put"][i]["value"].is<bool>()) {
-            tempBool = root["put"][i]["value"];
-#ifdef ENABLE_DIGITALOUT
-            digitalOutSetBooleanValue(si->address, tempBool);
-#endif
-          }
-        }
-      });
-      
+  if (root.containsKey("put")) {
+    if (root["put"].is<JsonArray>()) {
+      for (uint8_t i=0; i < root["put"].size(); i++) {
+        parsePut(root["put"][i]["path"], root["put"][i]["value"]);
+      }
+    } else
+    {
+      parsePut(root["put"]["path"], root["put"]["value"]);
     }
-  } */
+    //reply to request always same so no need for json object
+    String requestId = root["requestId"];
+    String reply = "{\"requestId\": \"" + requestId + "\", \"state\": \"COMPLETED\", \"statusCode\": 200}";
+    #ifdef ENABLE_SERIAL_DELTA
+    Serial.println(reply);
+    #endif
+    #ifdef ENABLE_WEBSOCKET_SERVER
+    webSocketServer.broadcastTXT(reply);
+    #endif
+    if (signalKClientInfo.connected) { // client
+      signalKClientInfo.client.sendTXT(reply);
+      ledBlinker.flip();
+    }
+  } 
+}
+
+void SignalK::parsePut(String path, String value) {
+  for (const auto& kv : _mapCallbackBool) {
+    if (configStore.getString(kv.first.c_str()) == path) {
+      bool newValue = false;
+      if (value == "true") { newValue = true; } // convert string to bool
+      kv.second(newValue);
+    }
+  }
 }
 
 
