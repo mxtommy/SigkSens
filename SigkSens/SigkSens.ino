@@ -6,51 +6,6 @@
 #include "src/components/componentSensor.h"
 
 
-#ifdef ENABLE_I2C
-#include "src/services/i2c.h"
-#endif
-
-
-/*
-#ifdef ENABLE_MPU
-  #include "src/sensors/mpu9250/mpu9250.h"
-#endif
-#ifdef ENABLE_SHT30
-  #include "src/sensors/sht30/sht30.h"
-#endif
-#ifdef ENABLE_BMP280
-  #include "src/sensors/bmp280/bmp280.h"
-#endif
-#ifdef ENABLE_ADS1115
-#include "src/sensors/ads1115/ads1115.h"
-#endif
-#ifdef ENABLE_ONEWIRE
-  #include "src/sensors/oneWire/oneWire.h"
-#endif
-#ifdef ENABLE_DIGITALIN
-  #include "src/sensors/digitalIn/digitalIn.h"
-#endif
-#ifdef ENABLE_DIGITALOUT
-  #include "src/sensors/digitalOut/digitalOut.h"
-#endif
-#ifdef ENABLE_ANALOGIN
-  #include "src/sensors/analogIn/analogIn.h"
-#endif
-*/
-#ifdef ENABLE_SIMPLE_TANK_LEVEL
-  #include "src/components/simpleTankLevel/simpleTankLevel.h"
-#endif
-#ifdef ENABLE_WINDLASS_CTRL
-  #include "src/components/windlassCtrl/windlassCtrl.h"
-#endif
-#ifdef ENABLE_WINDLASS_MON
-  #include "src/components/windlassMon/windlassMon.h"
-#endif
-#ifdef ENABLE_SYSTEMHZ
-  #include "src/components/systemHz/systemHz.h"
-#endif
-
-
 
 #include "src/net/discovery.h"
 #include "src/net/webSocket.h"
@@ -61,6 +16,7 @@
 
 #include "src/services/configReset.h"
 #include "src/services/signalK.h"
+#include "src/services/i2c.h"
 
 #include "sigksens.h"
 #include "src/sensors/sensorStorage.h"

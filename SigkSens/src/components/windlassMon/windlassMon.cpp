@@ -12,7 +12,7 @@ extern "C" {
 #include "config.h"
 #include "windlassMon.h"
 
-ComponentWindlassMon componentWindlassMon("windlassMon");
+//ComponentWindlassMon componentWindlassMon("windlassMon");
 
 
 bool channel1Monitor = false;

@@ -12,7 +12,7 @@ extern "C" {
 #include "config.h"
 #include "windlassCtrl.h"
 
-ComponentWindlassCtrl componentWindlassCtrl("windlassCtrl");
+//ComponentWindlassCtrl componentWindlassCtrl("windlassCtrl");
 
 void ComponentWindlassCtrl::handleCallbackUp(bool newValue) {
   if (newValue) {
