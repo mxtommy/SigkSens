@@ -4,3 +4,4 @@ Just a list of stuff to do in no particular order
 - Digital Out
 - Support HTTPS/WSS connection (as client at least)
 
+- If path is updated, signalK callback path doesn't get updated....

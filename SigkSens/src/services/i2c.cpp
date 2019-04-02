@@ -3,10 +3,13 @@ extern "C" {
 #include "user_interface.h"
 }
 #endif
+#include "../../sigksens.h"
+
+#include "i2c.h"
+
 
 #include <Wire.h>
 
-#include "i2c.h"
 
 
 

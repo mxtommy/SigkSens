@@ -19,7 +19,6 @@
 #include "src/services/i2c.h"
 
 #include "sigksens.h"
-#include "src/sensors/sensorStorage.h"
 
 
 /*---------------------------------------------------------------------------------------------------
@@ -31,6 +30,9 @@ General Setup
 // forward declarations
 void loop_();
 void slow_loop();
+
+I2cBus* i2cBus;
+
 
 ReactESP app([] () {
 
@@ -49,6 +51,10 @@ ReactESP app([] () {
   setupOTA();
 
   setupConfigReset();
+
+  // start i2c
+  i2cBus = new I2cBus();
+  i2cBus->start();
   
   //Start all components
   forEachComponent([](ComponentSensor* ComponentSensor) {

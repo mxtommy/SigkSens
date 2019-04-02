@@ -182,7 +182,7 @@ void SignalK::receiveDelta(uint8_t * payload) {
 
 void SignalK::parsePut(String path, String value) {
   for (const auto& kv : _mapCallbackBool) {
-    if (configStore.getString(kv.first.c_str()) == path) {
+    if (kv.first == path) {
       bool newValue = false;
       if (value == "true") { newValue = true; } // convert string to bool
       kv.second(newValue);
