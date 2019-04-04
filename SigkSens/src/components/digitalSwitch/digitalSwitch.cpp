@@ -4,7 +4,7 @@ extern "C" {
 }
 #endif
 
-#include <Adafruit_ADS1015.h>
+
 #define SMOOTHING_GAIN 0.2
 
 
@@ -13,13 +13,15 @@ extern "C" {
 #include "../../services/signalK.h"
 #include "digitalSwitch.h"
 
-ComponentDigitalSwitch componentDigitalSwitch("S1", 26, 1);
-ComponentDigitalSwitch componentDigitalSwitch2("S2", 14,2);
+//ComponentDigitalSwitch componentDigitalSwitch("S1", 26, 1);
+//ComponentDigitalSwitch componentDigitalSwitch2("S2", 14,2);
 
-ComponentDigitalSwitch::ComponentDigitalSwitch(const char * name, uint8_t outPin, uint8_t adsPin) : ComponentSensor(name) {
+ComponentDigitalSwitch::ComponentDigitalSwitch(const char * name, uint8_t outPin, uint8_t adsAddress, uint8_t adsChannel) : ComponentSensor(name) {
+  ads = Adafruit_ADS1115(adsAddress);
   outputPin = outPin;
-  ads1115Pin = adsPin;
+  adsChannel = adsChannel;
   state = false;
+  current = 0;
 }
 
 
@@ -29,7 +31,7 @@ void ComponentDigitalSwitch::setupComponent() {
   digitalWrite(outputPin, LOW);
 
   // setup ads1115
-  //ads.setGain(GAIN_ONE);
+  ads.setGain(GAIN_ONE);
 
 
   //sets default if not already defined
@@ -45,9 +47,16 @@ void ComponentDigitalSwitch::setupComponent() {
 
 
 void ComponentDigitalSwitch::handleComponent() {
+  int16_t rawResult;
+
   config.handle(); //saves config if any changes
   if (config.getBool("enabled")) {
     signalK.addValue(config.getString("pathState"), state);
+    rawResult = ads.readADC_SingleEnded(adsChannel);
+    current = (SMOOTHING_GAIN*rawResult) + ((1-SMOOTHING_GAIN)*current);
+    signalK.addValue(config.getString("pathCurrent"), current);
+
+
   }
 }
 
