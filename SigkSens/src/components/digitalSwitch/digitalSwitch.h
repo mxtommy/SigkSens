@@ -13,7 +13,8 @@ class ComponentDigitalSwitch : public ComponentSensor {
     uint8_t adsAddress;
     uint8_t adsChannel;
     bool state;
-    float current;    
+    float current;   
+    float gainMultiplier; 
 
   public:
     //using ComponentSensor::ComponentSensor; //inherit constructor
