@@ -9,7 +9,7 @@ Feature selection
 
 // Print Deltas to Serial? when enabled deltas are also printed to Serial, to 
 // aid in debuging. If you do not want this comment this line out.
-#define ENABLE_SERIAL_DELTA
+//#define ENABLE_SERIAL_DELTA
 
 
 // To enable any of the features below, either uncomment out the row
@@ -23,8 +23,7 @@ Feature selection
 //#define ENABLE_DIGITALOUT
 //#define ENABLE_ANALOGIN
 //#define ENABLE_ONEWIRE
-//#define ENABLE_WINDLASS_CTRL
-//#define ENABLE_WINDLASS_MON
+
 
 // if any of these are enabled, make sure ENABLE_I2C below is as well.
 //#define ENABLE_I2C

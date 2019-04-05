@@ -107,6 +107,7 @@
               newTbody = newTbody + "<input id=\"" + key + "\" type='number' min=0 max=65535 value=\"" + data[key].value + "\">";
               break;          
             case "int32":
+            case "float":
             case "uint32":
               newTbody = newTbody + "<input id=\"" + key + "\" type='number'value=\"" + data[key].value + "\">";
               break;          

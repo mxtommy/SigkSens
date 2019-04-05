@@ -41,7 +41,7 @@ function loadConfig(){var sel=document.getElementById("configComponent");getConf
 function getConfig(component="global"){var url=serverUrl+"/getConfig";if(component!="global"){url+="?component="+component}
 fetch(url).then((resp)=>resp.json()).then(function(data){var newTbody="";Object.keys(data).sort().forEach(function(key,idx){newTbody=newTbody+"<tr><td>"+key+"</td><td>";switch(data[key].dataType){case "string":newTbody=newTbody+"<input id=\""+key+"\" type='text' value=\""+data[key].value+"\">";break;case "boolean":newTbody=newTbody+"<select id=\""+key+"\"><option value='true'";if(data[key].value){newTbody=newTbody+" SELECTED"}
 newTbody=newTbody+">True</option><option value='false'";if(!data[key].value){newTbody=newTbody+" SELECTED"}
-newTbody=newTbody+">False</Option></select>";break;case "int8":newTbody=newTbody+"<input id=\""+key+"\" type='number' min=-127 max=127 value=\""+data[key].value+"\">";break;case "uint8":newTbody=newTbody+"<input id=\""+key+"\" type='number' min=0 max=255 value=\""+data[key].value+"\">";break;case "int16":newTbody=newTbody+"<input id=\""+key+"\" type='number' min=-32767 max=32767 value=\""+data[key].value+"\">";break;case "uint16":newTbody=newTbody+"<input id=\""+key+"\" type='number' min=0 max=65535 value=\""+data[key].value+"\">";break;case "int32":case "uint32":newTbody=newTbody+"<input id=\""+key+"\" type='number'value=\""+data[key].value+"\">";break}
+newTbody=newTbody+">False</Option></select>";break;case "int8":newTbody=newTbody+"<input id=\""+key+"\" type='number' min=-127 max=127 value=\""+data[key].value+"\">";break;case "uint8":newTbody=newTbody+"<input id=\""+key+"\" type='number' min=0 max=255 value=\""+data[key].value+"\">";break;case "int16":newTbody=newTbody+"<input id=\""+key+"\" type='number' min=-32767 max=32767 value=\""+data[key].value+"\">";break;case "uint16":newTbody=newTbody+"<input id=\""+key+"\" type='number' min=0 max=65535 value=\""+data[key].value+"\">";break;case "int32":case "float":case "uint32":newTbody=newTbody+"<input id=\""+key+"\" type='number'value=\""+data[key].value+"\">";break}
 newTbody=newTbody+"</td><td><button id=\"button"+key+"\" onclick=\"postConfig('"+component+"', '"+key+"', '"+data[key].dataType+"')\">Set</button></td></tr>"});document.getElementById("formTable").innerHTML=newTbody}).catch(function(error){console.log(error);alert(error)})}
 function postConfig(component,configKey,configDataType){console.log(configKey);document.getElementById("button"+configKey).innerHTML="Saving";let newValue=document.getElementById(configKey).value;console.log(document.getElementById(configKey));let data="key="+encodeURIComponent(configKey)+"&dataType="+encodeURIComponent(configDataType)+"&value="+encodeURIComponent(newValue);if(component!="global"){data+="&component="+encodeURIComponent(component)}
 let fetchData={method:'POST',body:data,headers:{'Content-type':'application/x-www-form-urlencoded;charset=UTF-8'}};fetch(serverUrl+"/set",fetchData).then((resp)=>resp.json()).then(function(data){document.getElementById("button"+configKey).innerHTML="Saved!";console.log(data)}).catch(function(error){document.getElementById("button"+configKey).innerHTML="Error!";console.log(error);alert(error)})}
@@ -190,6 +190,10 @@ void httpSetKeyValue(AsyncWebServerRequest *request) {
     return;
   } else if (request->arg("dataType") == "uint32") {
     componentConfig->putUInt32(request->arg("key").c_str(), request->arg("value").toInt());
+    request->send(200, "application/json", "{ \"success\": true }");
+    return;
+  } else if (request->arg("dataType") == "float") {
+    componentConfig->putFloat(request->arg("key").c_str(), request->arg("value").toFloat());
     request->send(200, "application/json", "{ \"success\": true }");
     return;
   }

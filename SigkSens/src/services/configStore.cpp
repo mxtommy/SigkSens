@@ -136,7 +136,7 @@ void ConfigStore::saveConfig() {
     tmp["dataType"] = "uint16";
   }
   //Int32
-  for (const auto& kv : _mapInt16) {
+  for (const auto& kv : _mapInt32) {
     JsonObject& tmp = root.createNestedObject(kv.first);
     tmp["value"] = kv.second;
     tmp["dataType"] = "int32";

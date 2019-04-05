@@ -13,19 +13,26 @@ enum WindlassStates {
 
 
 class ComponentWindlassCtrl : public ComponentSensor {
-  public:
-    using ComponentSensor::ComponentSensor; //inherit constructor
+  private:
     WindlassStates windlassState = idle;
     uint32_t lastEventTime = 0;
+    uint8_t channelUpPin;
+    uint8_t channelDownPin;
+    bool lockState;
+
+  public:
+    ComponentWindlassCtrl(const char * name, uint8_t upPin, uint8_t downPin);
 
     void setupComponent();
     void handleComponent();
+    void sendLockStatus();
 
     void handleCallbackUp(bool newValue);
     void handleCallbackDown(bool newValue);
+    void handleCallbackLock(bool newValue);
 
-    void setChannel1Active();
-    void setChannel2Active();
+    void setChannelUpActive();
+    void setChannelDownActive();
     void setWindlassIdle();
     
 };

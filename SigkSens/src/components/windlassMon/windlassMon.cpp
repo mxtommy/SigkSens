@@ -9,40 +9,56 @@ extern "C" {
 #include "../../services/configStore.h"
 #include "../../services/signalK.h"
 
-#include "config.h"
 #include "windlassMon.h"
 
-//ComponentWindlassMon componentWindlassMon("windlassMon");
+
+// interupts must be global...
+volatile bool countFlag = false;
+void ICACHE_RAM_ATTR countInterrupt() {
+  countFlag = true;
+}
 
 
-bool channel1Monitor = false;
-bool channel1MonitorLast = false;
-bool channel2Monitor = false;
-bool channel2MonitorLast = false;
+ComponentWindlassMon::ComponentWindlassMon(const char * name, uint8_t upPin, uint8_t downPin, uint8_t countPin) : ComponentSensor(name){
+  _upPin = upPin;
+  _downPin = downPin;
+  _countPin = countPin;
+  _chainCounterCount = 0;
+  _lastCountSave = millis();
+}    
 
-uint32_t channel1ChangeTime = 0;
-uint32_t channel2ChangeTime = 0;
 
-uint32_t chainCounterCount = 0;
 
 
 
 void ComponentWindlassMon::handleComponent() {
-  
-  if (digitalRead(WINDLASS_STATE_CHANNEL1_PIN) == HIGH) {
-    channel1Monitor = true; //active
-  } else {
-    channel1Monitor = false; //not active
+  config.handle(); //saves config if any changes
+  upState = digitalRead(_upPin);
+  downState = digitalRead(_downPin);
+
+  //check if count interrupt fired
+  if (countFlag) {
+    countFlag = false;
+    if (upState) {
+      _chainCounterCount--; //up= chain pulled in, so getting shorter
+    }
+    if (downState) {
+      _chainCounterCount++;
+    }
+   
   }
 
-  if (channel1Monitor && !channel1MonitorLast) { 
-    //just changed!
-    channel1MonitorLast = channel1Monitor;
-    channel1ChangeTime = millis();
+  if (_lastCountSave < (millis() - 120000 )) { //save max every minute
+    _lastCountSave = millis();
+    if (_chainCounterCount != configStore.getInt16("chainCounterValue")) {
+      configStore.putInt16("chainCounterValue", _chainCounterCount);
+    }
   }
-  
-  signalK.addValue(configStore.getString("pathWindlassUp"),   (bool)digitalRead(WINDLASS_STATE_CHANNEL1_PIN));
-  signalK.addValue(configStore.getString("pathWindlassDown"), (bool)digitalRead(WINDLASS_STATE_CHANNEL2_PIN));
+
+  signalK.addValue(configStore.getString("pathWindlassUp"), upState);
+  signalK.addValue(configStore.getString("pathWindlassDown"), downState);
+  signalK.addValue(configStore.getString("pathWindlassCount"), _chainCounterCount*configStore.getFloat("windlassScale"));
+
 }
 
 
@@ -52,13 +68,18 @@ void ComponentWindlassMon::handleComponent() {
 
 void ComponentWindlassMon::setupComponent() {
   //MON
-  pinMode(WINDLASS_STATE_CHANNEL1_PIN, INPUT);
-  pinMode(WINDLASS_STATE_CHANNEL2_PIN, INPUT);
-  pinMode(WINDLASS_COUNT_PIN, INPUT);
+  pinMode(_upPin, INPUT);
+  pinMode(_downPin, INPUT);
+  pinMode(_countPin, INPUT);
+
+  attachInterrupt(_countPin, countInterrupt, RISING);
 
   //sets default if not already defined :)
   configStore.getString("pathWindlassUp",   "electrical.windlass.up");
   configStore.getString("pathWindlassDown", "electrical.windlass.down");
-
+  configStore.getString("pathWindlassCount", "electrical.windlass.count");
+  _chainCounterCount = configStore.getInt16("chainCounterValue", 0);
+  configStore.getFloat("windlassScale",1); //for counting pulses
+  
   app.onRepeat(100, [this]() { this->handleComponent(); });
 }
