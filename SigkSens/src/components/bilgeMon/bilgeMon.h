@@ -9,8 +9,14 @@ class ComponentBilgeMonitor : public ComponentSensor {
   private: 
     
     uint8_t _inputPin;
-    uint16_t _runCount;
-    uint16_t _runTime;
+    uint32_t _runCount;
+    uint32_t _runTime;
+
+    bool _currentState;
+    uint32_t _currentRunStartTime;
+    uint32_t _oldRunTime;
+
+    uint16_t _hourlyRunTime[24];
 
   public:
     //using ComponentSensor::ComponentSensor; //inherit constructor
