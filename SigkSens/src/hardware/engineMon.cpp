@@ -2,7 +2,13 @@
 
 #include "../components/oneWireTemp/oneWireTemp.h"
 
-ComponentOneWireTemp oneW("oneWire", 26);
+#ifdef ESP32
+  ComponentOneWireTemp oneW("oneWire", 15);
+#endif
+
+#ifdef ESP8266
+  ComponentOneWireTemp oneW("oneWire", D7);
+#endif
 
 
 #endif

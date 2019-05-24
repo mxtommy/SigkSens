@@ -11,7 +11,12 @@
   #include <AsyncTCP.h>
 #endif
 
-#include <Update.h>
+#ifdef ESP8266
+  #include <Updater.h>
+#elif defined(ESP32)
+  #include <Update.h>
+#endif
+
 
 #include <ESPAsyncWebServer.h>
 #include <StreamString.h>

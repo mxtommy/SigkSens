@@ -11,7 +11,7 @@ class ComponentOneWireTemp : public ComponentSensor {
     
     uint8_t _oneWirePin;
     OneWire* _oneWireBus;
-    DallasTemperature _sensors;
+    DallasTemperature* _sensors;
     
 
   public:
@@ -23,6 +23,7 @@ class ComponentOneWireTemp : public ComponentSensor {
     void setupComponent();
     void handleComponent();
     
+    void scanBus();
     void readSensors();
     void addrToChar(char *strAddress, uint8_t *deviceAddress);
 
