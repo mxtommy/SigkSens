@@ -23,7 +23,8 @@ ComponentOneWireTemp::ComponentOneWireTemp(const char * name, uint8_t oneWirePin
 
 
 void ComponentOneWireTemp::setupComponent() {
-  
+  //sets default if not already defined
+  config.getBool("enabled", true);
 
   _sensors->begin();
   _sensors->setWaitForConversion(false);

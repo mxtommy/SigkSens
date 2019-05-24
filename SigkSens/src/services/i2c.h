@@ -13,6 +13,6 @@ class I2cBus {
 
 };
 
-
+extern I2cBus* i2cBus;
   
 #endif
