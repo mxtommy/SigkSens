@@ -14,9 +14,10 @@ extern "C" {
 //ComponentBilgeMonitor componentBilgeMonitor("S1", 26, 1);
 //ComponentBilgeMonitor componentBilgeMonitor("S2", 14,2);
 
-ComponentBilgeMonitor::ComponentBilgeMonitor(const char * name, uint8_t inputPin) : ComponentSensor(name) {
+ComponentBilgeMonitor::ComponentBilgeMonitor(const char * name, uint8_t inputPin, bool pinStateRunning) : ComponentSensor(name) {
  
   _inputPin = inputPin;
+  _pinStateRunning = pinStateRunning;
   _runCount = 0;
   _runTime = 0;
   _currentState = false;
@@ -39,7 +40,7 @@ void ComponentBilgeMonitor::setupComponent() {
   _runCount = config.getUInt32("runCount", 0);
 
 
-  app.onRepeat(200, [this]() { this->handleComponent(); });
+  app.onRepeat(500, [this]() { this->handleComponent(); });
 
 }
 
@@ -48,7 +49,7 @@ void ComponentBilgeMonitor::handleComponent() {
   if (!config.getBool("enabled")) {
     return;
   }
-  if (digitalRead(_inputPin)) {
+  if (digitalRead(_inputPin) == _pinStateRunning) {
     // Bilge running
     if (!_currentState) {
       //new running state
@@ -60,7 +61,7 @@ void ComponentBilgeMonitor::handleComponent() {
       _oldRunTime = _runTime;
       _currentRunStartTime = millis();
     }
-    _runTime = _runTime + 200; //100ms
+    _runTime = _runTime + 500; //100ms
   } else {
     // Bilge not running
     if (_currentState) {

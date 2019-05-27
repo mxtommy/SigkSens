@@ -9,6 +9,7 @@ class ComponentBilgeMonitor : public ComponentSensor {
   private: 
     
     uint8_t _inputPin;
+    bool _pinStateRunning;
     uint32_t _runCount;
     uint32_t _runTime;
 
@@ -20,7 +21,7 @@ class ComponentBilgeMonitor : public ComponentSensor {
 
   public:
     //using ComponentSensor::ComponentSensor; //inherit constructor
-    ComponentBilgeMonitor(const char * name, uint8_t inputPin);
+    ComponentBilgeMonitor(const char * name, uint8_t inputPin, bool pinStateRunning = HIGH);
     
     
 
