@@ -40,7 +40,7 @@ void ComponentBilgeMonitor::setupComponent() {
   _runCount = config.getUInt32("runCount", 0);
 
 
-  app.onRepeat(500, [this]() { this->handleComponent(); });
+  app.onRepeat(100, [this]() { this->handleComponent(); });
 
 }
 
@@ -61,7 +61,7 @@ void ComponentBilgeMonitor::handleComponent() {
       _oldRunTime = _runTime;
       _currentRunStartTime = millis();
     }
-    _runTime = _runTime + 500; //100ms
+    _runTime = _runTime + 100; //100ms
   } else {
     // Bilge not running
     if (_currentState) {

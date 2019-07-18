@@ -31,7 +31,7 @@ General Setup
 // forward declarations
 void loop_();
 void slow_loop();
-
+void checkMem();
 I2cBus* i2cBus;
 
 
@@ -69,7 +69,7 @@ ReactESP app([] () {
   Serial.printf("Ready.\n");
 
   app.onRepeat(SLOW_LOOP_DELAY, slow_loop);
-  
+  app.onRepeat(100, checkMem);
 });
 
 /*---------------------------------------------------------------------------------------------------
@@ -77,7 +77,15 @@ ReactESP app([] () {
 Main Loop!
 -----------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------*/
-
+void checkMem() {
+  if (ESP.getFreeHeap() < 4000) {
+    #ifdef ESP8266
+    ESP.reset();
+    #elif defined(ESP32)
+    ESP.restart();
+    #endif
+  }
+}
 void slow_loop() {
   // Check Wifi...
   if (WiFi.status() != WL_CONNECTED) {
