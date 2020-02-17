@@ -30,6 +30,7 @@ Feature selection
 //#define ENABLE_SHT30
 //#define ENABLE_MPU
 //#define ENABLE_BMP280
+//#define ENABLE_BME280
 //#define ENABLE_ADS1115
 
 // Services

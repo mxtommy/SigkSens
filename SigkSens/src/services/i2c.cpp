@@ -23,6 +23,10 @@ extern "C" {
 #include "../sensors/bmp280/bmp280.h"
 #endif
 
+#ifdef ENABLE_BME280
+#include "../sensors/bme280/bme280.h"
+#endif
+
 #ifdef ENABLE_ADS1115
 #include "../sensors/ads1115/ads1115.h"
 #endif
@@ -95,11 +99,25 @@ void setupI2C(bool &need_save) {
   }
   #endif
 
+  #ifdef ENABLE_BME280
+  if (scanI2CAddress(0x76)) {
+    bool known = sensorStorage[(int)SensorType::bme280].find("0x76") != nullptr;
+    if (!known) {
+      Serial.print(F("New BME280 found at: 0x76 "));
+      SensorInfo *newSensor = new BME280SensorInfo("0x76");
+      sensorStorage[(int)newSensor->type].add(newSensor);
+      need_save = true;
+    }
+    setupBME280();
+  }
+  #endif
+
   #ifdef ENABLE_ADS1115
   if (scanI2CAddress(0x48)) {
     Serial.println(F("Found ADS1115 chip at 0x48"));
     bool known = sensorStorage[(int)SensorType::ads1115].find("0x48") != nullptr;
     if (!known) {
+      Serial.print(F("New ADS1115 chip found at: 0x48 "));
       SensorInfo *newSensor = new ADSSensorInfo("0x48");
       sensorStorage[(int)newSensor->type].add(newSensor);
       need_save = true;
