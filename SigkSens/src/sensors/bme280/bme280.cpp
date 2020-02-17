@@ -12,8 +12,6 @@ extern "C" {
 
 #include "bme280.h"
 
-#define SEALEVELPRESSURE_HPA (1022.75) // (1013.25)
-
 BME280SensorInfo::BME280SensorInfo(String addr) {
   strcpy(address, addr.c_str());
   signalKPath[0] = "";

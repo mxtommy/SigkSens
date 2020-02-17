@@ -81,6 +81,9 @@ Defines
 #define DIGITAL_OUTPUT_PINS { 16, 15 }  // D0, D8 of Wemos)
 #define DIGITAL_OUTPUT_NAME {"OUT1", "OUT2"}
 
+// For the BME280
+#define SEALEVELPRESSURE_HPA (1022.75) // (1013.25)
+
 // ADS1115 read interval
 #define ADS1115_READ_INTERVAL 50
 
