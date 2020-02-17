@@ -82,7 +82,9 @@ Defines
 #define DIGITAL_OUTPUT_NAME {"OUT1", "OUT2"}
 
 // For the BME280
-#define SEALEVELPRESSURE_HPA (1022.75) // (1013.25)
+// 1013.25 is "standard pressure", but sea level pressure changes constantly, so the Altitude measurement is
+// unlikely to ever be very accurate.
+#define SEALEVELPRESSURE_HPA (1013.25)
 
 // ADS1115 read interval
 #define ADS1115_READ_INTERVAL 50
