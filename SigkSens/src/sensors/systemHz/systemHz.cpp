@@ -10,9 +10,9 @@ extern "C" {
 
 SystemHzSensorInfo::SystemHzSensorInfo(String addr) {
   strcpy(address, addr.c_str());
-  signalKPath[0] = String("sensors.") + String(myHostname) + String(".systemHz");
-  signalKPath[1] = String("sensors.") + String(myHostname) + String(".freeMem");
-  signalKPath[2] = String("sensors.") + String(myHostname) + String(".uptime");
+  signalKPath[0] = String("electrical.") + String(myHostname) + String(".systemHz");
+  signalKPath[1] = String("electrical.") + String(myHostname) + String(".freeMem");
+  signalKPath[2] = String("electrical.") + String(myHostname) + String(".uptime");
   attrName[0] = "systemHz";
   attrName[1] = "freeMem";
   attrName[2] = "uptime";
