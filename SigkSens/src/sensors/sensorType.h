@@ -11,6 +11,7 @@ enum class SensorType {
   sht30,
   mpu925x,
   bmp280,
+  bme280,
   ads1115,
   analogIn,
   digitalOut,

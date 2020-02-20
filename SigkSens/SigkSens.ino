@@ -14,6 +14,9 @@
 #ifdef ENABLE_BMP280
   #include "src/sensors/bmp280/bmp280.h"
 #endif
+#ifdef ENABLE_BME280
+  #include "src/sensors/bme280/bme280.h"
+#endif
 #ifdef ENABLE_ADS1115
 #include "src/sensors/ads1115/ads1115.h"
 #endif
@@ -106,6 +109,11 @@ void setupFromJson() {
   #ifdef ENABLE_BMP280
   fromJson[(int)SensorType::bmp280] =
     (fromJsonFunc)&(BMP280SensorInfo::fromJson);
+  #endif
+
+  #ifdef ENABLE_BME280
+  fromJson[(int)SensorType::bme280] =
+    (fromJsonFunc)&(BME280SensorInfo::fromJson);
   #endif
 }
 
