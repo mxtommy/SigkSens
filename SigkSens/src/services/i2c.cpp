@@ -31,6 +31,9 @@ extern "C" {
 #include "../sensors/ads1115/ads1115.h"
 #endif
 
+#ifdef ENABLE_INA219
+#include "../sensors/ina219/ina219.h"
+#endif
 
 bool scanI2CAddress(uint8_t address) {
   uint8_t errorCode;
@@ -123,6 +126,19 @@ void setupI2C(bool &need_save) {
       need_save = true;
     }    
     setupADS1115();
+  }
+  #endif
+
+  #ifdef ENABLE_INA219
+  if (scanI2CAddress(0x40)) {
+    bool known = sensorStorage[(int)SensorType::ina219].find("0x40") != nullptr;
+    if (!known) {
+      Serial.print(F("New INA219 found at: 0x40 "));
+      SensorInfo *newSensor = new INA219SensorInfo("0x40");
+      sensorStorage[(int)newSensor->type].add(newSensor);
+      need_save = true;
+    }
+    setupINA219();
   }
   #endif
 }
