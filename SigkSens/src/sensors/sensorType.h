@@ -15,7 +15,8 @@ enum class SensorType {
   ads1115,
   analogIn,
   digitalOut,
-  SensorType_MAX = digitalOut  // update this if you add items!
+  ina219,
+  SensorType_MAX = ina219  // update this if you add items!
 };
 
 #endif
