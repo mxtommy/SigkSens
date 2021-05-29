@@ -1,3 +1,9 @@
+# DEPRECEATED
+# DEPRECEATED
+Hi! This package does not have active maintenance. Please see [SensESP](https://github.com/SignalK/SensESP) for a more actively developed solution. :)
+# DEPRECEATED
+# DEPRECEATED
+
 # SignalK Wifi Controllers
 (Note: complete documentation is now available on the [Wiki page](https://github.com/mxtommy/SigkSens/wiki).)
 
