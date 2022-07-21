@@ -1,5 +1,6 @@
 my_config.h
 .vscode
+.pio
 .pioenvs
 .piolibdeps
 .vscode/.browse.c_cpp.db*

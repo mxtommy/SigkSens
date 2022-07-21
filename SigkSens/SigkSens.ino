@@ -35,6 +35,9 @@
 #ifdef ENABLE_SYSTEMHZ
   #include "src/sensors/systemHz/systemHz.h"
 #endif
+#ifdef ENABLE_INA219
+  #include "src/sensors/ina219/ina219.h"
+#endif
 
 #include "FSConfig.h"
 
@@ -114,6 +117,11 @@ void setupFromJson() {
   #ifdef ENABLE_BME280
   fromJson[(int)SensorType::bme280] =
     (fromJsonFunc)&(BME280SensorInfo::fromJson);
+  #endif
+
+  #ifdef ENABLE_INA219
+  fromJson[(int)SensorType::ina219] =
+    (fromJsonFunc)&(INA219SensorInfo::fromJson);
   #endif
 }
 

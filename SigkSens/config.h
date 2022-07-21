@@ -9,7 +9,7 @@ Feature selection
 
 // Print Deltas to Serial? when enabled deltas are also printed to Serial, to 
 // aid in debuging. If you do not want this comment this line out.
-#define ENABLE_SERIAL_DELTA
+ #define ENABLE_SERIAL_DELTA
 
 
 // To enable any of the features below, either uncomment out the row
@@ -32,6 +32,7 @@ Feature selection
 //#define ENABLE_BMP280
 //#define ENABLE_BME280
 //#define ENABLE_ADS1115
+//#define ENABLE_INA219
 
 // Services
 
@@ -105,6 +106,13 @@ Defines
 // pin is defined below:
 
 #define MPU_INTERRUPT_PIN 12 // D6 pin on Wemos D1 Mini
+
+// INA219 shunt setup
+
+#define SHUNT_AMP    200  // max ampere for shunt
+#define SHUNT_MV     75   // mV output at max amp
+#define MAX_VOLT     14.4 // max bus voltage (alternator/charge max)
+#define MAX_AMP      150  // max amp to be measured over shunt
 
 // Button configuration for resetting the device
 
